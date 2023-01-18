@@ -3,5 +3,11 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "cSpell.diagnosticLevel": "Hint",
   "[handlebars]": { "editor.formatOnSave": false },
-  "todo-tree.filtering.excludeGlobs": ["**/node_modules/*"]
+  "todo-tree.filtering.excludeGlobs": ["**/node_modules/*"],
+  //Disable the pushing to master from the VSCode Extension
+  "git.branchProtection": [
+      "main"
+  ],
+  //Ask the branch name if they do commit on main
+  "git.branchProtectionPrompt":"alwaysCommitToNewBranch"
 }

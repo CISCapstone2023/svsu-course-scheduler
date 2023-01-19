@@ -5,7 +5,9 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ children }: DashboardProps) => {
-  return <div className="flex h-full w-full bg-gray-200">{children}</div>;
+  return (
+    <div className="flex h-full w-full bg-primary-content">{children}</div>
+  );
 };
 
 export default Dashboard;

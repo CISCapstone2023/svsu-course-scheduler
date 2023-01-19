@@ -15,73 +15,73 @@ datasource db {
 }
 
 model Event {
-    id        String   @id @default(cuid())
-    name      String
-    location  String? @db.Text
-    startDate DateTime
-    endDate   DateTime
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    authorId  String
-    author    User?    @relation(fields: [authorId], references: [id])
+    id         String   @id @default(cuid())
+    name       String
+    location   String? @db.Text
+    startDate  DateTime
+    endDate    DateTime
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+    authorId   String
+    author     User?    @relation(fields: [authorId], references: [id])
 }
 
 // Necessary for Next auth
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? @db.Text
-    access_token      String? @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id                 String  @id @default(cuid())
+    userId             String
+    type               String
+    provider           String
+    providerAccountId  String
+    refresh_token      String? @db.Text
+    access_token       String? @db.Text
+    expires_at         Int?
+    token_type         String?
+    scope              String?
+    id_token           String? @db.Text
+    session_state      String?
+    user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id            String   @id @default(cuid())
+    sessionToken  String   @unique
+    userId        String
+    expires       DateTime
+    user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    username      String
-    email         String?   @unique
-    emailVerified DateTime?
-    password      String
-    image         String?
-    events        Event[]
-    accounts      Account[]
-    sessions      Session[]
-    permissions   Permission[]
+    id             String    @id @default(cuid())
+    name           String?
+    username       String
+    email          String?   @unique
+    emailVerified  DateTime?
+    password       String
+    image          String?
+    events         Event[]
+    accounts       Account[]
+    sessions       Session[]
+    permissions    Permission[]
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+    identifier  String
+    token       String   @unique
+    expires     DateTime
 
     @@unique([identifier, token])
 }
 
 // Permission model
 model Permission {
-    tuid String @id @default(cuid())
-    user_tuid String
-    id Permissions @default(DEFAULT)
+    tuid       String @id @default(cuid())
+    user_tuid  String
+    id         Permissions @default(DEFAULT)
     // This is basically a join, not a field
-    user User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
+    user       User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
 }
 
 // Permissions list 
@@ -104,6 +104,11 @@ model ScheduleRevision {
     schedule       Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
 }
 
+model Course {
+   tuid     String @id @default(cuid()) 
+   faculty  GuidelinesFacultyToCourses[]
+}
+
 model CourseLocation {
     tuid           String @id @default(cuid())
     start_time     DateTime
@@ -116,4 +121,22 @@ model CourseLocation {
     day_saturday   Boolean
     day_sunday     Boolean
     is_online      Boolean
+}
+
+model GuidelinesFaculty {
+    tuid        String @id @default(cuid())
+    suffix      String
+    last_name   String
+    first_name  String
+    email       String
+    is_adjunct  Boolean
+    to_courses  GuidelinesFacultyToCourses[]
+}
+
+model GuidelinesFacultyToCourses {
+    tuid          String @id @default(cuid())
+    faculty_tuid  String 
+    course_tuid   String
+    faculty       GuidelinesFaculty @relation(fields: [faculty_tuid], references: [tuid], onDelete: Cascade)
+    course        Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 }

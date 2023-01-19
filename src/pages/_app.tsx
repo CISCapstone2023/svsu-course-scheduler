@@ -36,7 +36,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
   pageProps: { session, ...pageProps },
 }) => {
   return (
-    <Theme dataTheme="light">
+    <Theme dataTheme="light" id="theme">
       <SessionProvider session={session}>
         <Component {...pageProps} />
       </SessionProvider>

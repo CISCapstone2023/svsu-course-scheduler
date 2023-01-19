@@ -5,3 +5,19 @@
 :root {
   --animation-btn: 0;
 }
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+#__next {
+  height: inherit;
+  width: inherit;
+}
+
+#theme {
+  height: inherit;
+  width: inherit;
+}

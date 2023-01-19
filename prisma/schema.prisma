@@ -84,9 +84,41 @@ model Permission{
     user User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
 }
 
+//Course model
+model Course {
+    tuid String @id @default(cuid())
+    type String 
+    section_id Int
+    revision_tuid String //needs relation to schedule revision
+    term Int
+    div String
+    department String
+    subject String
+    course_number String
+    section String
+    start_date DateTime
+    end_date DateTime
+    credits Int
+    title String @db.VarChar(30)
+    status String @default("Active")
+    faculty String //needs relation to faculty/courses table
+    instruction_method String @db.VarChar(3) @default("LEC")
+    capacity Int
+    original_state State
+    state State
+    location String
+}
+
 //Permissions list 
 enum Permissions {
     DEPARTMENT_CHAIR
     ADMIN
     DEFAULT
+}
+
+enum State {
+    UNMODIFIED
+    MODIFIED
+    ADDED
+    REMOVED
 }

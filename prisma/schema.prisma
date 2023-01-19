@@ -64,7 +64,7 @@ model User {
     events        Event[]
     accounts      Account[]
     sessions      Session[]
-    permissions Permission[]
+    permissions   Permission[]
 }
 
 model VerificationToken {
@@ -75,18 +75,31 @@ model VerificationToken {
     @@unique([identifier, token])
 }
 
-//Permission model
-model Permission{
+// Permission model
+model Permission {
     tuid String @id @default(cuid())
     user_tuid String
     id Permissions @default(DEFAULT)
-    //this is basically a join, not a field
+    // This is basically a join, not a field
     user User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
 }
 
-//Permissions list 
+// Permissions list 
 enum Permissions {
     DEPARTMENT_CHAIR
     ADMIN
     DEFAULT
+}
+
+model Schedule {
+    tuid       String @id @default(cuid())
+    revisions  ScheduleRevision[]
+}
+
+model ScheduleRevision {
+    tuid           String @id @default(cuid())
+    name           String
+    file           Bytes @db.Blob
+    schedule_tuid  String
+    schedule       Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
 }

@@ -103,3 +103,17 @@ model ScheduleRevision {
     schedule_tuid  String
     schedule       Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
 }
+
+model CourseLocation {
+    tuid           String @id @default(cuid())
+    start_time     DateTime
+    end_time       DateTime
+    day_monday     Boolean
+    day_tuesday    Boolean
+    day_wednesday  Boolean
+    day_thursday   Boolean
+    day_friday     Boolean
+    day_saturday   Boolean
+    day_sunday     Boolean
+    is_online      Boolean
+}

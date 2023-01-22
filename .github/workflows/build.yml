@@ -12,6 +12,7 @@ jobs:
     runs-on: self-hosted
     env:
       DATABASE_URL: "mysql://root:password@localhost/capstone"
+      NEXTAUTH_SECRET: "${{ secrets.NEXTAUTH_SECRET }}"
       NEXTAUTH_URL: "http://localhost:3000"
     steps:
       - name: Checkout code
@@ -19,6 +20,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: yarn
       - name: Install Yarn
         run: npm install -g yarn
       - name: Install dependencies

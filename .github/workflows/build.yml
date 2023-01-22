@@ -2,6 +2,7 @@ name: Build Application
 on:
   pull_request:
     branches:
+      - main
       - "feature-**"
       - "feature/**"
       - "config/**"

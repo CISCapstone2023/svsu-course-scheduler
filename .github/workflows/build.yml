@@ -1,0 +1,23 @@
+name: Build Application
+on:
+  pull_request:
+    branches:
+      - "feature-**"
+      - "feature/**"
+      - "config/**"
+jobs:
+  build-project:
+    name: Build Project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install Yarn
+        run: npm install -g yarn
+      - name: Install dependencies
+        run: yarn install
+      - name: Build project
+        run: yarn build

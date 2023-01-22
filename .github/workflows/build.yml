@@ -9,7 +9,11 @@ on:
 jobs:
   build-project:
     name: Build Project
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    env:
+      DATABASE_URL: "mysql://root:password@localhost/capstone"
+      NEXTAUTH_SECRET: "${{ env.SECRET }}"
+      NEXTAUTH_URL: "http://localhost:3000"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

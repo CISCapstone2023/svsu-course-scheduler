@@ -2,19 +2,25 @@ name: Build Application
 on:
   pull_request:
     branches:
+      - main
       - "feature-**"
       - "feature/**"
       - "config/**"
 jobs:
   build-project:
     name: Build Project
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    env:
+      DATABASE_URL: "mysql://root:password@localhost/capstone"
+      NEXTAUTH_SECRET: "${{ secrets.NEXTAUTH_SECRET }}"
+      NEXTAUTH_URL: "http://localhost:3000"
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: yarn
       - name: Install Yarn
         run: npm install -g yarn
       - name: Install dependencies

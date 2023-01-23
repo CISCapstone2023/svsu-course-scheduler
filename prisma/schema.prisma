@@ -104,9 +104,11 @@ model Course {
     faculty String //needs relation to faculty/courses table
     instruction_method String @db.VarChar(3) @default("LEC")
     capacity Int
-    original_state State
-    state State
+    original_state CourseState
+    state CourseState
     location String
+    notes CourseNote[]
+    rooms Room[]
 }
 
 // Permissions list 
@@ -166,9 +168,57 @@ model GuidelinesFacultyToCourses {
     course        ToCourse @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 }
 
-enum State {
+//note to self -- coop, starting here
+enum CourseState {
     UNMODIFIED
     MODIFIED
     ADDED
     REMOVED
+}
+
+model CourseNote {
+    tuid        String @id @default(cuid())
+    note        String @db.Text
+    type        CourseNoteType
+    course_tuid String
+    //basically a join
+    course      Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+
+}
+
+enum CourseNoteType {
+    ACAMDEMIC_AFFAIRS
+    DEPARTMENT
+    CHANGES
+}
+
+model GuidelineBuilding {
+    tuid            String @id @default(cuid())
+    rooms           Room[]
+    name            String
+    prefix          String
+}
+
+model GuidelineCampus{
+    tuid            String @id @default(cuid())
+    name            String
+    rooms           Room[]
+}
+
+
+model Room {
+    tuid            String @id @default(cuid())
+    room            String
+
+    building_tuid   String
+    //join
+    building      GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
+
+    campus_tuid     String
+    //join
+    campus      GuidelineCampus @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
+
+    course_tuid     String
+    //join
+    course      Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 }

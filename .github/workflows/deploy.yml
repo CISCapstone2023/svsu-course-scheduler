@@ -19,9 +19,8 @@ jobs:
           port: ${{ secrets.PORT }}
           script_stop: true
           command_timeout: 200m
-          script: /
-            cd /root/apps/
-            git pull
-            cd ..
+          script: |
+            cd /root/apps/svsu-course-scheduler
+            git pull 
             docker compose build --force-rm --no-cache --compress
             docker compose up -d

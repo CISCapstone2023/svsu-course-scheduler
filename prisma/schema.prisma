@@ -81,32 +81,36 @@ model Permission {
     user_tuid  String
     id         Permissions @default(DEFAULT)
     // This is basically a join, not a field
-    user User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
+    user       User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
 }
 
 //Course model
 model Course {
-    tuid String @id @default(cuid())
-    type String 
-    section_id Int
-    revision_tuid String //needs relation to schedule revision
-    term Int
-    div String
-    department String
-    subject String
-    course_number String
-    section String
-    start_date DateTime
-    end_date DateTime
-    credits Int
-    title String @db.VarChar(30)
-    status String @default("Active")
-    faculty String //needs relation to faculty/courses table
+    tuid               String @id @default(cuid())
+    type               String 
+    section_id         Int
+    revision_tuid      String
+    term               Int
+    div                String
+    department         String
+    subject            String
+    course_number      String
+    section            String
+    start_date         DateTime
+    end_date           DateTime
+    credits            Int
+    title              String @db.VarChar(30)
+    status             String @default("Active")
+    faculty_tuid       String
     instruction_method String @db.VarChar(3) @default("LEC")
-    capacity Int
-    original_state State
-    state State
-    location String
+    capacity           Int
+    original_state     State
+    state              State
+    location           String
+
+    //Below Are Not Fields
+    faculty            GuidelinesFacultyToCourse[]
+    revision           ScheduleRevision @relation(fields: [revision_tuid], references: [tuid], onDelete: Cascade)
 }
 
 // Permissions list 
@@ -118,6 +122,7 @@ enum Permissions {
 
 model Schedule {
     tuid       String @id @default(cuid())
+    //Below Are Not Fields
     revisions  ScheduleRevision[]
 }
 
@@ -126,12 +131,9 @@ model ScheduleRevision {
     name           String
     file           Bytes @db.Blob
     schedule_tuid  String
+    //Below Are Not Fields
     schedule       Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
-}
-
-model ToCourse {
-   tuid     String @id @default(cuid()) 
-   faculty  GuidelinesFacultyToCourses[]
+    courses        Course[]
 }
 
 model CourseLocation {
@@ -155,15 +157,17 @@ model GuidelinesFaculty {
     first_name  String
     email       String
     is_adjunct  Boolean
-    to_courses  GuidelinesFacultyToCourses[]
+    //Below Are Not Fields
+    to_courses  GuidelinesFacultyToCourse[]
 }
 
-model GuidelinesFacultyToCourses {
+model GuidelinesFacultyToCourse {
     tuid          String @id @default(cuid())
     faculty_tuid  String 
     course_tuid   String
+    //Below Are Not Fields
     faculty       GuidelinesFaculty @relation(fields: [faculty_tuid], references: [tuid], onDelete: Cascade)
-    course        ToCourse @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+    course        Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 }
 
 enum State {

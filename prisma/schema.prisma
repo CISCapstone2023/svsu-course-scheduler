@@ -166,6 +166,42 @@ model GuidelinesFacultyToCourses {
     course        ToCourse @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 }
 
+//Guidelines for courses with fields including course credits, number of meetings, days, and times of guidelines
+model GuidelinesCourses{
+    tuid String @id @default(cuid())
+    cycle Boolean
+    credits Int
+    meeting_amount Int
+    times GuidelinesCoursesTimes[]
+    days GuidelinesCoursesDays[]
+}
+
+//Table of course guideline times
+model GuidelinesCoursesTimes{
+    tuid String @id @default(cuid())
+    guideline_id String
+    start_time DateTime
+    end_time DateTime
+    //Relation to relate times to course guidelines
+    guideline GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+
+}
+
+//Table of course guideline days
+model GuidelinesCoursesDays{
+    tuid String @id @default(cuid())
+    guideline_id String
+    day_monday Boolean
+    day_tuesday Boolean
+    day_wednesday Boolean
+    day_thursday Boolean
+    day_friday Boolean
+    day_saturday Boolean
+    day_sunday Boolean
+    //Relation to relate days to course guidelines
+    guideline GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+}
+
 enum State {
     UNMODIFIED
     MODIFIED

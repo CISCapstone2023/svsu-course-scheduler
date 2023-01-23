@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 //Argon (Hashing)
-import { verify } from "argon2";
+import { compare } from "bcrypt";
 
 //Import the local files for environment files, prisma and schema
 import { env } from "src/env/server.mjs";
@@ -95,7 +95,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         //Now very the password with argon2
-        const isValidPassword = await verify(user.password, creds.password);
+        const isValidPassword = await compare(creds.password, user.password);
 
         //If the password is NOT valid, then return null
         if (!isValidPassword) {

@@ -2,74 +2,255 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "mysql"
-    // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+  provider = "mysql"
+  // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
+  // Further reading:
+  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+  url      = env("DATABASE_URL")
 }
 
 model Event {
-    id        String   @id @default(cuid())
-    name      String
-    location  String? @db.Text
-    startDate DateTime
-    endDate   DateTime
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    authorId  String
-    author    User?    @relation(fields: [authorId], references: [id])
+  id        String   @id @default(cuid())
+  name      String
+  location  String?  @db.Text
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  author    User?    @relation(fields: [authorId], references: [id])
 }
 
 // Necessary for Next auth
 model Account {
-    id                String  @id @default(cuid())
-    userId            String
-    type              String
-    provider          String
-    providerAccountId String
-    refresh_token     String? @db.Text
-    access_token      String? @db.Text
-    expires_at        Int?
-    token_type        String?
-    scope             String?
-    id_token          String? @db.Text
-    session_state     String?
-    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-    @@unique([provider, providerAccountId])
+  @@unique([provider, providerAccountId])
 }
 
 model Session {
-    id           String   @id @default(cuid())
-    sessionToken String   @unique
-    userId       String
-    expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-    id            String    @id @default(cuid())
-    name          String?
-    username      String
-    email         String?   @unique
-    emailVerified DateTime?
-    password      String
-    image         String?
-    events        Event[]
-    accounts      Account[]
-    sessions      Session[]
+  id            String       @id @default(cuid())
+  name          String?
+  username      String
+  email         String?      @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  events        Event[]
+  accounts      Account[]
+  sessions      Session[]
+  permissions   Permission[]
 }
 
 model VerificationToken {
-    identifier String
-    token      String   @unique
-    expires    DateTime
+  identifier String
+  token      String   @unique
+  expires    DateTime
 
-    @@unique([identifier, token])
+  @@unique([identifier, token])
+}
+
+// Permission model
+model Permission {
+  tuid      String      @id @default(cuid())
+  user_tuid String
+  id        Permissions @default(DEFAULT)
+  // This is basically a join, not a field
+  user      User        @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
+}
+
+//Course model
+model Course {
+  tuid               String                      @id @default(cuid())
+  type               String
+  section_id         Int
+  revision_tuid      String
+  term               Int
+  div                String
+  department         String
+  subject            String
+  course_number      String
+  section            String
+  start_date         DateTime
+  end_date           DateTime
+  credits            Int
+  title              String                      @db.VarChar(30)
+  status             String                      @default("Active")
+  faculty_tuid       String
+  instruction_method String                      @default("LEC") @db.VarChar(3)
+  capacity           Int
+  original_state     CourseState
+  state              CourseState
+  location           String
+  //Relationships
+  faculty            GuidelinesFacultyToCourse[]
+  revision           ScheduleRevision            @relation(fields: [revision_tuid], references: [tuid], onDelete: Cascade)
+  notes              CourseNote[]
+  rooms              Room[]
+}
+
+model Schedule {
+  tuid      String             @id @default(cuid())
+  //Relationships
+  revisions ScheduleRevision[]
+}
+
+model ScheduleRevision {
+  tuid          String   @id @default(cuid())
+  name          String
+  file          Bytes    @db.Blob
+  schedule_tuid String
+  //Relationships
+  schedule      Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
+  courses       Course[]
+}
+
+model CourseLocation {
+  tuid          String   @id @default(cuid())
+  start_time    DateTime
+  end_time      DateTime
+  day_monday    Boolean
+  day_tuesday   Boolean
+  day_wednesday Boolean
+  day_thursday  Boolean
+  day_friday    Boolean
+  day_saturday  Boolean
+  day_sunday    Boolean
+  is_online     Boolean
+}
+
+model GuidelinesFaculty {
+  tuid       String                      @id @default(cuid())
+  suffix     String
+  last_name  String
+  first_name String
+  email      String
+  is_adjunct Boolean
+  //Relationships
+  to_courses GuidelinesFacultyToCourse[]
+}
+
+model GuidelinesFacultyToCourse {
+  tuid         String            @id @default(cuid())
+  faculty_tuid String
+  course_tuid  String
+  //Relationships
+  faculty      GuidelinesFaculty @relation(fields: [faculty_tuid], references: [tuid], onDelete: Cascade)
+  course       Course            @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+}
+
+//Guidelines for courses with fields including course credits, number of meetings, days, and times of guidelines
+model GuidelinesCourses {
+  tuid           String                   @id @default(cuid())
+  cycle          Boolean
+  credits        Int
+  meeting_amount Int
+  times          GuidelinesCoursesTimes[]
+  days           GuidelinesCoursesDays[]
+}
+
+//Table of course guideline times
+model GuidelinesCoursesTimes {
+  tuid         String            @id @default(cuid())
+  guideline_id String
+  start_time   DateTime
+  end_time     DateTime
+  //Relation to relate times to course guidelines
+  guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+}
+
+//Table of course guideline days
+model GuidelinesCoursesDays {
+  tuid          String            @id @default(cuid())
+  guideline_id  String
+  day_monday    Boolean
+  day_tuesday   Boolean
+  day_wednesday Boolean
+  day_thursday  Boolean
+  day_friday    Boolean
+  day_saturday  Boolean
+  day_sunday    Boolean
+  //Relation to relate days to course guidelines
+  guideline     GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+}
+
+model CourseNote {
+  tuid        String         @id @default(cuid())
+  note        String         @db.Text
+  type        CourseNoteType
+  course_tuid String
+  //Relationships
+  course      Course         @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+}
+
+model GuidelineBuilding {
+  tuid   String @id @default(cuid())
+  name   String
+  prefix String
+  //Relationships
+  rooms  Room[]
+}
+
+model GuidelineCampus {
+  tuid  String @id @default(cuid())
+  name  String
+  //Relationships
+  rooms Room[]
+}
+
+model Room {
+  tuid          String            @id @default(cuid())
+  room          String
+  building_tuid String
+  campus_tuid   String
+  course_tuid   String
+  //Relationships
+  building      GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
+  campus        GuidelineCampus   @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
+  course        Course            @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+}
+
+// Permissions list 
+enum Permissions {
+  DEPARTMENT_CHAIR
+  ADMIN
+  DEFAULT
+}
+
+enum CourseState {
+  UNMODIFIED
+  MODIFIED
+  ADDED
+  REMOVED
+}
+
+enum CourseNoteType {
+  ACAMDEMIC_AFFAIRS
+  DEPARTMENT
+  CHANGES
 }

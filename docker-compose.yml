@@ -2,7 +2,7 @@ version: "2"
 services:
   web:
     build: .
-    command: npm run dev
+    command: sh -c "/wait && yarn prisma migrate deploy && yarn start"
     volumes:
       - .:/usr/app/
       - /usr/app/node_modules
@@ -11,11 +11,16 @@ services:
     depends_on:
       - database
     environment:
-      DATABASE_URL: mysql://root:password@localhost/capstone
+      DATABASE_URL: mysql://root:password@database:3306/capstone
       NEXTAUTH_SECRET: PGpzmn9Y6J+tD4BGTuY+PGjrk6rB1U5eneDSNvxbQaM=
-      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_URL: http://localhost:80
+      WAIT_HOSTS: database:3306
+      WAIT_HOSTS_TIMEOUT: 300
+      WAIT_SLEEP_INTERVAL: 30
+      WAIT_HOST_CONNECT_TIMEOUT: 30
 
   database:
     image: mysql:latest
     environment:
       MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "capstone"

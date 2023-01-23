@@ -8,6 +8,9 @@ COPY package.json .
 RUN yarn install
 #Copy all of the other code for the project
 COPY . .
+ENV DATABASE_URL=mysql://root:password@localhost/capstone
+ENV NEXTAUTH_SECRET=example
+ENV NEXTAUTH_URL=http://localhost:85
 #Add the wait for connection file for mysql to fully boot
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
 RUN chmod +x /wait

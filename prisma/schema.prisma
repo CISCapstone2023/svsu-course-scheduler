@@ -81,32 +81,36 @@ model Permission {
     user_tuid  String
     id         Permissions @default(DEFAULT)
     // This is basically a join, not a field
-    user User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
+    user       User @relation(fields: [user_tuid], references: [id], onDelete: Cascade)
 }
 
 //Course model
 model Course {
-    tuid String @id @default(cuid())
-    type String 
-    section_id Int
-    revision_tuid String //needs relation to schedule revision
-    term Int
-    div String
-    department String
-    subject String
-    course_number String
-    section String
-    start_date DateTime
-    end_date DateTime
-    credits Int
-    title String @db.VarChar(30)
-    status String @default("Active")
-    faculty String //needs relation to faculty/courses table
+    tuid               String @id @default(cuid())
+    type               String 
+    section_id         Int
+    revision_tuid      String
+    term               Int
+    div                String
+    department         String
+    subject            String
+    course_number      String
+    section            String
+    start_date         DateTime
+    end_date           DateTime
+    credits            Int
+    title              String @db.VarChar(30)
+    status             String @default("Active")
+    faculty_tuid       String
     instruction_method String @db.VarChar(3) @default("LEC")
     capacity Int
     original_state CourseState
     state CourseState
     location String
+
+    //Relationships
+    faculty            GuidelinesFacultyToCourse[]
+    revision           ScheduleRevision @relation(fields: [revision_tuid], references: [tuid], onDelete: Cascade)
     notes CourseNote[]
     rooms Room[]
 }
@@ -120,6 +124,7 @@ enum Permissions {
 
 model Schedule {
     tuid       String @id @default(cuid())
+    //Relationships
     revisions  ScheduleRevision[]
 }
 
@@ -128,12 +133,9 @@ model ScheduleRevision {
     name           String
     file           Bytes @db.Blob
     schedule_tuid  String
+    //Relationships
     schedule       Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
-}
-
-model ToCourse {
-   tuid     String @id @default(cuid()) 
-   faculty  GuidelinesFacultyToCourses[]
+    courses        Course[]
 }
 
 model CourseLocation {
@@ -157,15 +159,17 @@ model GuidelinesFaculty {
     first_name  String
     email       String
     is_adjunct  Boolean
-    to_courses  GuidelinesFacultyToCourses[]
+    //Relationships
+    to_courses  GuidelinesFacultyToCourse[]
 }
 
-model GuidelinesFacultyToCourses {
+model GuidelinesFacultyToCourse {
     tuid          String @id @default(cuid())
     faculty_tuid  String 
     course_tuid   String
+    //Relationships
     faculty       GuidelinesFaculty @relation(fields: [faculty_tuid], references: [tuid], onDelete: Cascade)
-    course        ToCourse @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+    course        Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 }
 
 //note to self -- coop, starting here
@@ -181,7 +185,7 @@ model CourseNote {
     note        String @db.Text
     type        CourseNoteType
     course_tuid String
-    //basically a join
+    //Relationships
     course      Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 
 }
@@ -194,14 +198,17 @@ enum CourseNoteType {
 
 model GuidelineBuilding {
     tuid            String @id @default(cuid())
-    rooms           Room[]
     name            String
     prefix          String
+    //Relationships
+    rooms           Room[]
+
 }
 
 model GuidelineCampus{
     tuid            String @id @default(cuid())
     name            String
+     //Relationships
     rooms           Room[]
 }
 
@@ -211,14 +218,10 @@ model Room {
     room            String
 
     building_tuid   String
-    //join
-    building      GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
-
     campus_tuid     String
-    //join
-    campus      GuidelineCampus @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
-
     course_tuid     String
-    //join
-    course      Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+    //Relationships
+    building        GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
+    campus          GuidelineCampus @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
+    course          Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
 }

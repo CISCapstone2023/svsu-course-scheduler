@@ -21,6 +21,7 @@ jobs:
           command_timeout: 200m
           script: |
             cd /root/apps/svsu-course-scheduler
-            git pull 
+            git pull
+            export NEXTAUTH_URL=${{ secrets.URL }}
             docker compose build --force-rm --no-cache --compress
             docker compose up -d

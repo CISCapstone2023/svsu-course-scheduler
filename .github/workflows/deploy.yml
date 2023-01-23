@@ -1,0 +1,27 @@
+name: Deploy Application
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Transfer Application
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          port: ${{ secrets.PORT }}
+          script_stop: true
+          command_timeout: 200m
+          script: /
+            cd /root/apps/
+            git pull
+            cd ..
+            docker compose build --force-rm --no-cache --compress
+            docker compose up -d

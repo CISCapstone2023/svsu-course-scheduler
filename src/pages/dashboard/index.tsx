@@ -1,12 +1,11 @@
 import type { NextPage } from "next";
 import { useSession, signOut } from "next-auth/react";
-import { Dropdown } from "react-daisyui";
+
 import DashboardLayout from "src/components/Dashboard";
 import ProjectFile from "src/components/recentProject/ProjectFile";
 import RecentProject from "src/components/recentProject/RecentProject";
 
 import { routeNeedsAuthSession } from "src/server/auth";
-import { Heading } from "tabler-icons-react";
 
 const Dashboard: NextPage = () => {
   /**

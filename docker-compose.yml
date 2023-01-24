@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        NEXTAUTH_URL: ${NEXTAUTH_URL:http://localhost:85}
+        NEXTAUTH_URL: $$NEXTAUTH_URL
     command: sh -c "/wait && yarn prisma migrate deploy && yarn start"
     volumes:
       - .:/usr/app/

@@ -26,4 +26,4 @@ jobs:
             cd /root/apps/svsu-course-scheduler
             git pull
             docker compose build --force-rm --no-cache --compress
-            NEXTAUTH_URL=$NEXTAUTH_URL docker compose up -d
+            NEXTAUTH_URL=${{ secrets.URL }} docker compose up -d

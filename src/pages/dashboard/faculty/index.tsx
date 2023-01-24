@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 
 //Authentication Check
 import { routeNeedsAuthSession } from "src/server/auth";
-import Dashboard from "src/components/Dashboard";
+import DashboardLayout from "src/components/Dashboard";
 import Sidebar from "src/components/Sidebar";
 
 /**
@@ -22,9 +22,9 @@ const Faculty: NextPage = () => {
   const { data } = useSession();
 
   return (
-    <Dashboard>
+    <DashboardLayout>
       <Sidebar />
-    </Dashboard>
+    </DashboardLayout>
   );
 };
 

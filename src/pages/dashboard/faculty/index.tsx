@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { routeNeedsAuthSession } from "src/server/auth";
 import Dashboard from "src/components/Dashboard";
 import Sidebar from "src/components/Sidebar";
+import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 /**
  * Faculty
@@ -23,7 +24,7 @@ const Faculty: NextPage = () => {
 
   return (
     <Dashboard>
-      <Sidebar />
+      <DashboardHomeTabs></DashboardHomeTabs>
     </Dashboard>
   );
 };

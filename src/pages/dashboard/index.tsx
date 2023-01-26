@@ -3,6 +3,7 @@ import { useSession, signOut } from "next-auth/react";
 
 import DashboardLayout from "src/components/Dashboard";
 import ProjectFile from "src/components/recentProject/ProjectFile";
+import ProjectFileChildren from "src/components/recentProject/ProjectFileChildren";
 import RecentProject from "src/components/recentProject/RecentProject";
 
 import { routeNeedsAuthSession } from "src/server/auth";
@@ -42,7 +43,22 @@ const Dashboard: NextPage = () => {
 
     <DashboardLayout>
       <RecentProject>
-        <ProjectFile></ProjectFile>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
       </RecentProject>
     </DashboardLayout>
   );

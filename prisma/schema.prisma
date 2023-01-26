@@ -15,17 +15,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Event {
-  id        String   @id @default(cuid())
-  name      String
-  location  String?  @db.Text
-  startDate DateTime
-  endDate   DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  authorId  String
-  author    User?    @relation(fields: [authorId], references: [id])
-}
+// model Event {
+//   id        String   @id @default(cuid())
+//   name      String
+//   location  String?  @db.Text
+//   startDate DateTime
+//   endDate   DateTime
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   authorId  String
+//   author    User?    @relation(fields: [authorId], references: [id])
+// }
 
 // Necessary for Next auth
 model Account {
@@ -62,7 +62,7 @@ model User {
   emailVerified DateTime?
   password      String
   image         String?
-  events        Event[]
+  // events        Event[]
   accounts      Account[]
   sessions      Session[]
   permissions   Permission[]
@@ -108,6 +108,8 @@ model Course {
   original_state     CourseState
   state              CourseState
   location           String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
   //Relationships
   faculty            GuidelinesFacultyToCourse[]
   revision           ScheduleRevision            @relation(fields: [revision_tuid], references: [tuid], onDelete: Cascade)
@@ -126,6 +128,8 @@ model ScheduleRevision {
   name          String
   file          Bytes    @db.Blob
   schedule_tuid String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   //Relationships
   schedule      Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
   courses       Course[]
@@ -171,6 +175,7 @@ model GuidelinesCourses {
   cycle          Boolean
   credits        Int
   meeting_amount Int
+  //Relationships
   times          GuidelinesCoursesTimes[]
   days           GuidelinesCoursesDays[]
 }

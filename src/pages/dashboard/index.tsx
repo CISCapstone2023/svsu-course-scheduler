@@ -1,6 +1,11 @@
 import type { NextPage } from "next";
 import { useSession, signOut } from "next-auth/react";
-import { Hero } from "react-daisyui";
+
+import DashboardLayout from "src/components/Dashboard";
+import ProjectFile from "src/components/recentProject/ProjectFile";
+import ProjectFileChildren from "src/components/recentProject/ProjectFileChildren";
+import RecentProject from "src/components/recentProject/RecentProject";
+
 import { routeNeedsAuthSession } from "src/server/auth";
 
 const Dashboard: NextPage = () => {
@@ -13,32 +18,49 @@ const Dashboard: NextPage = () => {
   const { data } = useSession();
 
   return (
-    <Hero className="min-h-screen bg-base-200">
-      <Hero.Content>
-        <div className="max-w-lg">
-          <h1 className="text-center text-5xl font-bold leading-snug text-gray-400">
-            You are logged in!
-          </h1>
-          <p className="my-4 text-center leading-loose">
-            You are allowed to visit this page because you have a session,
-            otherwise you would be redirected to the login page.
-          </p>
-          <div className="my-4 rounded-lg bg-base-100 p-4">
-            <pre>
-              <code>{JSON.stringify(data, null, 2)}</code>
-            </pre>
-          </div>
-          <div className="text-center">
-            <button
-              className="btn-secondary btn"
-              onClick={() => signOut({ callbackUrl: "/" })}
-            >
-              Logout
-            </button>
-          </div>
+    /* <div className="">
+         <h1 className="text-center text-5xl font-bold leading-snug text-gray-400">
+          You are logged in!
+        </h1>
+        <p className="my-4 text-center leading-loose">
+          You are allowed to visit this page because you have a session,
+          otherwise you would be redirected to the login page.
+        </p>
+        <div className="my-4 rounded-lg bg-base-100 p-4">
+          <pre>
+            <code>{JSON.stringify(data, null, 2)}</code>
+          </pre>
         </div>
-      </Hero.Content>
-    </Hero>
+        <div className="text-center">
+          <button
+            className="btn-secondary btn"
+            onClick={() => signOut({ callbackUrl: "/" })}
+          >
+            Logout
+          </button>
+        </div> 
+      </div> */
+
+    <DashboardLayout>
+      <RecentProject>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
+        <ProjectFile>
+          <ProjectFileChildren />
+          <ProjectFileChildren />
+        </ProjectFile>
+      </RecentProject>
+    </DashboardLayout>
   );
 };
 

@@ -4,10 +4,10 @@ interface DashboardProps {
   children?: React.ReactNode;
 }
 
-const Dashboard = ({ children }: DashboardProps) => {
+const DashboardLayout = ({ children }: DashboardProps) => {
   return (
     <div className="flex h-full w-full bg-primary-content">{children}</div>
   );
 };
 
-export default Dashboard;
+export default DashboardLayout;

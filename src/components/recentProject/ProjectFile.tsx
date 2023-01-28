@@ -39,7 +39,7 @@ const ProjectFile = ({ children }: ProjectFileProps) => {
       {isCaretDown ? (
         <></>
       ) : (
-        <div className="border-neutral-900 duration-5000 mx-auto h-auto transform flex-col rounded-lg border bg-orange-100 transition duration-1000 ease-in-out">
+        <div className="border-neutral-900 duration-5000 flex h-auto transform flex-wrap justify-end rounded-lg border bg-orange-100 transition duration-1000 ease-in-out">
           {children}
         </div>
       )}

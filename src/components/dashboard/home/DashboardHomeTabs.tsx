@@ -10,19 +10,19 @@ const DashboardHomeTabs = ({ children }: DashboardHomeTabsProps) => {
   const [tabValue, setTabValue] = React.useState(0);
   return (
     <div className="container mx-auto px-4">
-      <h1 className="font-bold">
+      <h1 className="mb-4 pt-10 font-bold">
         Welcome to the Course Scheduler and Visualizer
       </h1>
 
       <div>
-        <Stats className="bg-base-200 shadow">
+        <Stats className="mb-4 bg-base-200 shadow">
           <Stats.Stat>
             <div className="stat-title">Total Courses</div>
             <div className="stat-value">40</div>
           </Stats.Stat>
         </Stats>
 
-        <Stats className="ml-5 bg-base-200 shadow">
+        <Stats className="ml-5 mb-4 bg-base-200 shadow">
           <Stats.Stat>
             <div className="stat-title">Total Faculty Members</div>
             <div className="stat-value">672</div>
@@ -32,7 +32,7 @@ const DashboardHomeTabs = ({ children }: DashboardHomeTabsProps) => {
 
       <div className="w-full">
         <Tabs
-          className="w-full"
+          className="mb-4 w-full"
           value={tabValue}
           onChange={setTabValue}
           size="lg"
@@ -60,43 +60,43 @@ const DashboardHomeTabs = ({ children }: DashboardHomeTabsProps) => {
                 <span>CS*116</span>
                 <span>Computer Programming I</span>
                 <span>SE116</span>
-                <span>FA23</span>
+                <span>M/W 10:30AM-12:20PM</span>
               </Table.Row>
 
               <Table.Row>
                 <span>2</span>
-                <span>Hart Hagerty</span>
-                <span>Desktop Support Technician</span>
-                <span>Zemlak, Daniel and Leannon</span>
-                <span>United States</span>
-                <span>12/5/2020</span>
+                <span>James, Scott</span>
+                <span>CIS*422</span>
+                <span>System Analysis & Design Concepts</span>
+                <span>SE121</span>
+                <span>T/TH 8:30AM-10:20AM</span>
               </Table.Row>
 
               <Table.Row>
                 <span>3</span>
-                <span>Brice Swyre</span>
-                <span>Tax Accountant</span>
-                <span>Carroll Group</span>
-                <span>China</span>
-                <span>8/15/2020</span>
+                <span>Mukherjee, Avishek</span>
+                <span>CIS*355*01</span>
+                <span>Server Side Webb Dev</span>
+                <span>SE145</span>
+                <span>M/W 10:30AM-12:20PM</span>
               </Table.Row>
 
               <Table.Row>
                 <span>4</span>
-                <span>Marjy Ferencz</span>
-                <span>Office Assistant I</span>
-                <span>Rowe-Schoen</span>
-                <span>Russia</span>
-                <span>3/25/2021</span>
+                <span>Jaksa, Joseph J.</span>
+                <span>CJ*315*90</span>
+                <span>Private Security</span>
+                <span>ONL 1</span>
+                <span>Lecture-Online</span>
               </Table.Row>
 
               <Table.Row>
                 <span>5</span>
-                <span>Yancy Tear</span>
-                <span>Community Outreach Specialist</span>
-                <span>Wyman-Ledner</span>
-                <span>Brazil</span>
-                <span>5/22/2020</span>
+                <span>Rahman, Khandaker Abir</span>
+                <span>CS*433*70</span>
+                <span>Cybersecurity</span>
+                <span>ONL1, SE137 (Lecture-Hybrid)</span>
+                <span>T 2:30PM-4:20PM</span>
               </Table.Row>
             </Table.Body>
           </Table>

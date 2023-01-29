@@ -1,18 +1,14 @@
-//NextJS
 import type { NextPage } from "next";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
-//Authentication Check
+import DashboardLayout from "src/components/dashboard/DashboardLayout";
+import ProjectItem from "src/components/projects/ProjectItem";
+import ProjectRevisionItem from "src/components/projects/ProjectRevisionItem";
+import ProjectsLayout from "src/components/projects/ProjectsLayout";
+
 import { routeNeedsAuthSession } from "src/server/auth";
-import DashboardLayout from "src/components/Dashboard";
-import Sidebar from "src/components/Sidebar";
 
-/**
- * Faculty
- *
- * used for adding faculty
- */
-const Faculty: NextPage = () => {
+const Projects: NextPage = () => {
   /**
    * useSession
    *
@@ -23,12 +19,29 @@ const Faculty: NextPage = () => {
 
   return (
     <DashboardLayout>
-      <Sidebar />
+      <ProjectsLayout>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+      </ProjectsLayout>
     </DashboardLayout>
   );
 };
 
-export default Faculty;
+export default Projects;
 
 /**
  * Get Server Side Properties
@@ -44,7 +57,8 @@ export default Faculty;
  * Also the perk of server props is that it occurs at page load time.
  * Meaning any data we pass into the "props" return object, will be provided
  * as a prop to the "NextPage" below. So for example the {} of the props could
- * contain data which could be used for the front end.
+ * contain data which could be used.
+ *
  */
 
 export const getServerSideProps = routeNeedsAuthSession(async () => {

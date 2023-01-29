@@ -1,11 +1,11 @@
 import React from "react";
 
-interface ProjectFileChildrenProps {
+interface ProjectRevisionItemProps {
   children?: React.ReactNode;
   title?: string;
 }
 
-const ProjectFileChildren = ({ children }: ProjectFileChildrenProps) => {
+const ProjectRevisionItem = ({ children }: ProjectRevisionItemProps) => {
   const title = "version #";
   return (
     <div className="border-neutral-900 ml-30 flex h-12 w-11/12 rounded-lg border-2 bg-white">
@@ -26,4 +26,4 @@ const ProjectFileChildren = ({ children }: ProjectFileChildrenProps) => {
   );
 };
 
-export default ProjectFileChildren;
+export default ProjectRevisionItem;

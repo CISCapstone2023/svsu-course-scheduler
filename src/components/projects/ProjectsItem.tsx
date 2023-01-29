@@ -2,13 +2,13 @@ import classNames from "classnames";
 import React, { useState } from "react";
 import { Book2, CaretDown, CaretUp } from "tabler-icons-react";
 
-interface ProjectFileProps {
+interface ProjectItemProps {
   children?: React.ReactNode;
   strTitle?: string;
   strTimesAgo?: string;
 }
 
-const ProjectFile = ({ children }: ProjectFileProps) => {
+const ProjectItem = ({ children }: ProjectItemProps) => {
   const title = "Project";
   const [isCaretDown, setCaret] = useState(true);
 
@@ -47,4 +47,4 @@ const ProjectFile = ({ children }: ProjectFileProps) => {
   );
 };
 
-export default ProjectFile;
+export default ProjectItem;

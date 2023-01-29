@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react";
 import { routeNeedsAuthSession } from "src/server/auth";
 import Dashboard from "src/components/Dashboard";
 import Sidebar from "src/components/Sidebar";
+import { useState } from "react";
+import useRestUpload from "src/hooks/upload/useUpload";
 
 /**
  * Faculty
@@ -19,16 +21,66 @@ const Faculty: NextPage = () => {
    * A function provided by the NextJSAuth library which provides data about the user
    * assuming they are successfully signed-in. If they are it will be null.
    */
-  const { data } = useSession();
+  const {} = useSession();
 
   return (
     <Dashboard>
       <Sidebar />
+      <Rest />
     </Dashboard>
   );
 };
 
 export default Faculty;
+
+const Rest = () => {
+  const [url, setUrl] = useState("");
+  const [message, setMessage] = useState("");
+  const { upload, progress, uploading, reset } = useRestUpload(
+    `http://localhost:3000/api/revision/uploadExcel`
+  );
+
+  const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.item(0); //Get the file from the "Iterator"
+    if (file != null) {
+      //File size can't be bigger than 1mb currently
+      if (file.size > 1000000) {
+        setMessage("Sorry but that file size was a little big to test with!");
+        return;
+      }
+      //Now attempt to upload the file to the application
+      console.log("ATTEMPTING TO UPLOAD");
+      await upload(file);
+    } else {
+      setMessage("Invalid file?");
+      return;
+    }
+  };
+
+  return (
+    <>
+      {uploading && <span>uploading...</span>}
+      <input
+        max-size="1024"
+        disabled={uploading}
+        onChange={onFileChange}
+        type="file"
+      />
+      <br />
+      <progress max="100" value={progress} />
+      <span>{progress}%</span>
+      {progress === 100 && !uploading && (
+        <>
+          <p>url: {url}</p>
+          <button type="button" onClick={reset}>
+            Reset
+          </button>
+        </>
+      )}
+      {message && <p>{message}</p>}
+    </>
+  );
+};
 
 /**
  * Get Server Side Properties

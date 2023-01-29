@@ -2,8 +2,8 @@ import type { NextPage } from "next";
 import { useSession, signOut } from "next-auth/react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import ProjectItem from "src/components/projects/ProjectItem";
-import ProjectRevisionItem from "src/components/projects/ProjectRevisionItem";
+import ProjectItem from "src/components/projects/ProjectsItem";
+import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 
 import { routeNeedsAuthSession } from "src/server/auth";

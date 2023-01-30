@@ -24,6 +24,8 @@ jobs:
           envs: NEXTAUTH_URL
           script: |
             cd /root/apps/svsu-course-scheduler
-            git pull
-            docker compose build --force-rm --no-cache --compress
-            NEXTAUTH_URL=${{ secrets.URL }} docker compose up -d
+            git pull 
+            yarn refresh
+            yarn build
+            pm2 stop all
+            pm2 start npm -- start

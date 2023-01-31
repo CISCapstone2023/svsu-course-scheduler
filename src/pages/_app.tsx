@@ -12,6 +12,11 @@ import "src/styles/globals.css";
 //React DaisyUI
 import { Theme } from "react-daisyui";
 
+//Import the Notificaitons container and styles
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// minified version is also included
 /**
  * NextJS Middleware Wrapper
  *
@@ -38,6 +43,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <Theme dataTheme="light" id="theme">
       <SessionProvider session={session}>
+        <ToastContainer />
         <Component {...pageProps} />
       </SessionProvider>
     </Theme>

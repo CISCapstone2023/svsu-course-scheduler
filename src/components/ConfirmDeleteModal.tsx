@@ -6,33 +6,24 @@ interface ConfirmDeleteModalProps {
   title: string;
   message: string;
   open: boolean;
-  onConfirmDelete: () => void;
+  onConfirm: () => void;
+  onClose: () => void;
 }
 
 const ConfirmDeleteModal = ({
-  children,
   open,
-  onConfirmDelete,
+  onConfirm,
+  onClose,
   title,
   message,
 }: ConfirmDeleteModalProps) => {
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const toggleModal = () => {
-    setModalOpen(false);
-  };
-
-  useEffect(() => {
-    setModalOpen(open);
-  }, [open]);
-
   return (
-    <Modal open={modalOpen} onClickBackdrop={toggleModal}>
+    <Modal open={open} onClickBackdrop={onClose}>
       <Button
         size="sm"
         shape="circle"
         className="absolute right-2 top-2"
-        onClick={toggleModal}
+        onClick={onClose}
       >
         ✕
       </Button>
@@ -47,11 +38,16 @@ const ConfirmDeleteModal = ({
               color="error"
               type="submit"
               className="mt-2 mr-2"
-              onClick={toggleModal}
+              onClick={onClose}
             >
               Cancel
             </Button>
-            <Button color="success" type="submit" className="mt-2">
+            <Button
+              color="success"
+              type="submit"
+              className="mt-2"
+              onClick={onConfirm}
+            >
               Confirm
             </Button>
           </div>

@@ -12,6 +12,8 @@ import { api } from "src/utils/api";
 import { createCampusSchema, ICreateCampus } from "src/validation/buildings";
 
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
+import { GuidelineCampus } from "@prisma/client";
+import { toast } from "react-toastify";
 
 const CampusTab = () => {
   /**
@@ -63,47 +65,110 @@ const CampusTab = () => {
   //CREATE MODAL
   const [campusCreateModal, setCampusCreateModal] = useState<boolean>(false);
 
-  const toggleVisible = () => {
-    setCampusCreateModal(!campusCreateModal);
-  };
-
   //DELETE MODAL
   const [campusDeleteModal, setCampusDeleteModal] = useState<boolean>(false);
+  const [campusDeleteValue, setCampusDeleteValue] = useState<GuidelineCampus>();
 
   /**
-   * Forms
-   *
-   * This creates a new form using the react-form-hooks
-   *
+   * openDeleteModal -
+   * Open Modal for the current campus (which is a GuidelineCampus)
+   * @param campus
    */
-  const { register, handleSubmit, formState, reset } = useForm<ICreateCampus>({
+  const openDeleteModal = (campus: GuidelineCampus) => {
+    setCampusDeleteValue(campus);
+    setCampusDeleteModal(true);
+  };
+  /**
+   * useForm -
+   * This creates a new form using the react-form-hooks.
+   */
+  const { reset, ...campusForm } = useForm<ICreateCampus>({
     mode: "onBlur",
     resolver: zodResolver(createCampusSchema),
   });
 
-  //Create a mutation from the backend and name it as `campusMutateAsync`
-  const { mutateAsync: campusMutateAsync } =
-    api.buildings.addCampus.useMutation();
+  const toggleCampusModifyModal = () => {
+    //Reset the form so we can add (or edit a new user)
+    reset({ name: "" });
+    setCampusEditing(undefined);
+    setCampusCreateModal(!campusCreateModal);
+  };
 
-  //Called on <form> onSubmit event
-  const onSubmit = useCallback(
-    //Return a function which will send the data
-    async (data: ICreateCampus) => {
-      //Result is the campus technically
-      const result = await campusMutateAsync(data);
+  //Grab the mutations from the backend for adding, updating, and deleting
+  const campusAddMutation = api.buildings.addCampus.useMutation();
+  const campusUpdateMutation = api.buildings.updateCampus.useMutation();
+  const campusDeleteMutation = api.buildings.deleteCampus.useMutation();
+
+  /**
+   * onCampusModifySubmit
+   * A useCallback which will only update on change of the mutation.
+   * Parameters are passed through the reference
+   */
+  const onCampusModifySubmit = async (data: ICreateCampus) => {
+    //Do we have to update campus
+    console.log(campusEditing);
+
+    if (campusEditing) {
+      const result = await campusUpdateMutation.mutateAsync({
+        tuid: campusEditing?.tuid,
+        ...data,
+      });
+
+      if (result) {
+        toast.info(`Updated '${data.name}'`);
+      } else {
+        toast.error(`Failed to add campus '${data.name}'`);
+      }
+
+      //Update the list
       campuses.refetch();
-      //Toggle the modal
-      setCampusCreateModal(false);
-      reset();
-    },
-    [campusMutateAsync, router]
-  );
+    } else {
+      const result = await campusAddMutation.mutateAsync(data);
+      if (result) {
+        toast.success(`Added new campus '${data.name}'`);
+      } else {
+        toast.error(`Failed to add campus '${data.name}'`);
+      }
+    }
 
-  //TODO: Delete and edit user
+    campuses.refetch();
+    //Toggle the modal
+    setCampusCreateModal(false);
+  };
 
-  //const editCampus = (tuid: string) => {};
+  /**
+   * deleteCampus -
+   * Delete a campus based on tuid that is in the campusDeleteValue
+   */
+  const deleteCampus = async () => {
+    //Make sure the value of the campus we want to delete is not undefined
+    if (campusDeleteValue != undefined) {
+      //Now send the mutation to the server. The server will return
+      //A boolean value that either it deleted or it failed to delete
+      const response = await campusDeleteMutation.mutateAsync({
+        tuid: campusDeleteValue?.tuid,
+      });
 
-  //const deleteCampus = (tuid: string) => {};
+      //If its true, that's a good!
+      if (response) {
+        toast.success(`Succesfully deleted '${campusDeleteValue?.name}'`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        //Else its an error
+      } else {
+        toast.error(`Failed to deleted '${campusDeleteValue?.name}'`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    }
+    //Now we just need to reftech the campuses
+    campuses.refetch();
+    //And close the modal
+    setCampusDeleteModal(false);
+  };
+
+  const [campusEditing, setCampusEditing] = useState<GuidelineCampus>();
+
   return (
     <>
       <div className="m-2 flex justify-between ">
@@ -111,7 +176,11 @@ const CampusTab = () => {
           <Input onChange={onSearch} placeholder="Search" />
         </div>
         <div>
-          <Button onClick={toggleVisible}>
+          <Button
+            onClick={() => {
+              toggleCampusModifyModal();
+            }}
+          >
             <Plus />
             Add Campus
           </Button>
@@ -127,54 +196,85 @@ const CampusTab = () => {
           </Table.Head>
 
           <Table.Body>
-            {campuses.data?.map((campus, i) => {
+            {campuses.data?.result.map((campus, i) => {
               return (
                 <Table.Row key={i}>
                   <span>{i + 1}</span>
                   <span>{campus.name}</span>
-                  <div className="hover:cursor-pointer hover:text-yellow-400">
-                    <Pencil />
+                  <div className="hover:cursor-pointer">
+                    <Button
+                      color="warning"
+                      onClick={() => {
+                        toggleCampusModifyModal();
+                        setCampusEditing(campus);
+                        reset(campus);
+                      }}
+                    >
+                      <Pencil />
+                    </Button>
                   </div>
-                  <div className="hover:cursor-pointer hover:text-red-400">
-                    <Trash />
+                  <div className="hover:cursor-pointer">
+                    <Button
+                      onClick={() => {
+                        openDeleteModal(campus);
+                      }}
+                      color="error"
+                    >
+                      <Trash />
+                    </Button>
                   </div>
                 </Table.Row>
               );
             })}
           </Table.Body>
         </Table>
-        {campuses.data?.length == 0 && (
-          <div className="flex h-full w-full flex-col items-center justify-center">
+        {campuses.data?.result.length == 0 && (
+          <div className="flex h-[200px] w-full flex-col items-center justify-center">
             No campuses found!
             <div>
-              <Button onClick={toggleVisible} className="pt-2">
+              <Button onClick={toggleCampusModifyModal} className="mt-2">
                 <Plus />
                 Add Campus
               </Button>
             </div>
+             
           </div>
         )}
         <div></div>
       </div>
       {/* This dialog used for adding a user */}
-      <Modal open={campusCreateModal} onClickBackdrop={toggleVisible}>
+      <Modal
+        open={campusCreateModal}
+        onClickBackdrop={toggleCampusModifyModal}
+        className="w-[300px]"
+      >
         <Button
           size="sm"
           shape="circle"
           className="absolute right-2 top-2"
-          onClick={toggleVisible}
+          onClick={toggleCampusModifyModal}
         >
           ✕
         </Button>
-        <Modal.Header className="font-bold">Add/Edit Campus</Modal.Header>
+        <Modal.Header className="font-bold">
+          {campusEditing != undefined ? "Edit" : "Add"} Campus
+        </Modal.Header>
 
         <Modal.Body>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col">
+          <form
+            onSubmit={campusForm.handleSubmit(onCampusModifySubmit)}
+            className="flex flex-col"
+          >
             <div>
-              <h3 className="card-title">Name of Campus</h3>
-              <Input type="text" {...register("name")} />
+              <p>Campus</p>
+              <Input
+                type="text"
+                className="mt-2"
+                placeholder="Campus Name "
+                {...campusForm.register("name")}
+              />
               <ErrorMessage
-                errors={formState.errors}
+                errors={campusForm.formState.errors}
                 name="name"
                 render={({ message }) => (
                   <p className="font-semibold text-red-600">{message}</p>
@@ -183,7 +283,7 @@ const CampusTab = () => {
             </div>
             <div className="flex justify-end">
               <Button color="success" type="submit" className="mt-2">
-                Add Campus
+                {campusEditing != undefined ? "Save" : "Add"}
               </Button>
             </div>
           </form>
@@ -193,10 +293,15 @@ const CampusTab = () => {
       <ConfirmDeleteModal
         open={campusDeleteModal}
         title="Delete Campus?"
-        message="Are you sure you want to delete this thing?"
-        onConfirmDelete={() => {
-          console.log("Hello");
+        message={
+          campusDeleteValue
+            ? `Are you sure you want delete '${campusDeleteValue?.name}'?`
+            : "Error"
+        }
+        onClose={() => {
+          setCampusDeleteModal(false);
         }}
+        onConfirm={deleteCampus}
       />
     </>
   );

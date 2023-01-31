@@ -14,6 +14,7 @@ export const updateCampusSchema = createCampusSchema.extend({
 export const createBuildingSchema = z.object({
   name: z.string().min(4).max(75),
   prefix: z.string().min(1).max(4),
+  classrooms: z.string(),
 });
 
 export const updateBuildingSchema = createBuildingSchema.extend({

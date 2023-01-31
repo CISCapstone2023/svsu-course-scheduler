@@ -192,6 +192,7 @@ export const buildingsRouter = createTRPCRouter({
         data: {
           name: input.name,
           prefix: input.prefix.toUpperCase(),
+          classrooms: input.classrooms,
         },
       });
 

@@ -95,7 +95,6 @@ export const buildingsRouter = createTRPCRouter({
       //Could not delete it
       return false;
     }),
-
   updateCampus: protectedProcedure
     .input(updateCampusSchema)
     .mutation(async ({ ctx, input }) => {

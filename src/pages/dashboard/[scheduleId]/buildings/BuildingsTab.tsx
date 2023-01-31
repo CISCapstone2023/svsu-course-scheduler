@@ -10,9 +10,8 @@ import { debounce } from "lodash";
 import { api } from "src/utils/api";
 
 import {
-  createCampusSchema as createBuildingSchema,
+  createBuildingSchema,
   ICreateBuilding,
-  ICreateCampus,
 } from "src/validation/buildings";
 
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
@@ -328,9 +327,18 @@ const CampusTab = () => {
               <Select
                 className="mt-2"
                 placeholder="Campus Name"
-                {...buildingForm.register("classrooms")}
+                {...buildingForm.register("campus_tuid")}
               >
-                <Select.Option value="SVSU">SVSU</Select.Option>
+                <Select.Option value="">Select a campus</Select.Option>
+                <>
+                  {campuses.data?.result.map((campus, i) => {
+                    return (
+                      <Select.Option key={i} value={campus.tuid}>
+                        {campus.name}
+                      </Select.Option>
+                    );
+                  })}
+                </>
               </Select>
 
               <ErrorMessage

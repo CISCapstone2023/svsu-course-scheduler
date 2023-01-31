@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Input, Modal, Table } from "react-daisyui";
+import { Button, Input, Modal, Select, Table } from "react-daisyui";
 import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,8 +37,12 @@ const CampusTab = () => {
    */
 
   //Query all of the data based on the search value
-  const buildings = api.buildings.getAllCampus.useQuery({
+  const buildings = api.buildings.getAllBuildings.useQuery({
     search: searchValue,
+  });
+
+  const campuses = api.buildings.getAllCampus.useQuery({
+    search: "",
   });
 
   //The function that gets called when a input event has occured.
@@ -67,11 +71,13 @@ const CampusTab = () => {
    */
 
   //CREATE MODAL
-  const [buildingCreateModal, setCampusCreateModal] = useState<boolean>(false);
+  const [buildingCreateModal, setBuildingCreateModal] =
+    useState<boolean>(false);
 
   //DELETE MODAL
-  const [buildingDeleteModal, setCampusDeleteModal] = useState<boolean>(false);
-  const [buildingDeleteValue, setCampusDeleteValue] =
+  const [buildingDeleteModal, setBuildingDeleteModal] =
+    useState<boolean>(false);
+  const [buildingDeleteValue, setBuildingDeleteValue] =
     useState<GuidelineBuilding>();
 
   /**
@@ -80,8 +86,8 @@ const CampusTab = () => {
    * @param building
    */
   const openDeleteModal = (building: GuidelineBuilding) => {
-    setCampusDeleteValue(building);
-    setCampusDeleteModal(true);
+    setBuildingDeleteValue(building);
+    setBuildingDeleteModal(true);
   };
   /**
    * useForm -
@@ -92,29 +98,29 @@ const CampusTab = () => {
     resolver: zodResolver(createBuildingSchema),
   });
 
-  const toggleCampusModifyModal = () => {
+  const toggleBuildingModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
     reset({});
-    setCampusEditing(undefined);
-    setCampusCreateModal(!buildingCreateModal);
+    setBuildingEditing(undefined);
+    setBuildingCreateModal(!buildingCreateModal);
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting
-  const campusAddMutation = api.buildings.addCampus.useMutation();
-  const campusUpdateMutation = api.buildings.updateCampus.useMutation();
-  const campusDeleteMutation = api.buildings.deleteCampus.useMutation();
+  const buildingAddMutation = api.buildings.addBuilding.useMutation();
+  const buildingUpdateMutation = api.buildings.updateBuilding.useMutation();
+  const buildingDeleteMutation = api.buildings.deleteBuilding.useMutation();
 
   /**
    * onCampusModifySubmit
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onCampusModifySubmit = async (data: ICreateBuilding) => {
+  const onBuildingModifySubmit = async (data: ICreateBuilding) => {
     //Do we have to update campus
     console.log(buildingEditing);
 
     if (buildingEditing) {
-      const result = await campusUpdateMutation.mutateAsync({
+      const result = await buildingUpdateMutation.mutateAsync({
         tuid: buildingEditing?.tuid,
         ...data,
       });
@@ -122,35 +128,35 @@ const CampusTab = () => {
       if (result) {
         toast.info(`Updated '${data.name}'`);
       } else {
-        toast.error(`Failed to add campus '${data.name}'`);
+        toast.error(`Failed to add building '${data.name}'`);
       }
 
       //Update the list
       buildings.refetch();
     } else {
-      const result = await campusAddMutation.mutateAsync(data);
+      const result = await buildingAddMutation.mutateAsync(data);
       if (result) {
-        toast.success(`Added new campus '${data.name}'`);
+        toast.success(`Added new building '${data.name}'`);
       } else {
-        toast.error(`Failed to add campus '${data.name}'`);
+        toast.error(`Failed to add building '${data.name}'`);
       }
     }
 
     buildings.refetch();
     //Toggle the modal
-    setCampusCreateModal(false);
+    setBuildingCreateModal(false);
   };
 
   /**
    * deleteCampus -
    * Delete a campus based on tuid that is in the campusDeleteValue
    */
-  const deleteCampus = async () => {
+  const deleteBuilding = async () => {
     //Make sure the value of the campus we want to delete is not undefined
     if (buildingDeleteValue != undefined) {
       //Now send the mutation to the server. The server will return
       //A boolean value that either it deleted or it failed to delete
-      const response = await campusDeleteMutation.mutateAsync({
+      const response = await buildingDeleteMutation.mutateAsync({
         tuid: buildingDeleteValue?.tuid,
       });
 
@@ -169,10 +175,10 @@ const CampusTab = () => {
     //Now we just need to reftech the campuses
     buildings.refetch();
     //And close the modal
-    setCampusDeleteModal(false);
+    setBuildingDeleteModal(false);
   };
 
-  const [buildingEditing, setCampusEditing] = useState<GuidelineBuilding>();
+  const [buildingEditing, setBuildingEditing] = useState<GuidelineBuilding>();
 
   return (
     <>
@@ -183,11 +189,11 @@ const CampusTab = () => {
         <div>
           <Button
             onClick={() => {
-              toggleCampusModifyModal();
+              toggleBuildingModifyModal();
             }}
           >
             <Plus />
-            Add Campus
+            Add Building
           </Button>
         </div>
       </div>
@@ -196,23 +202,27 @@ const CampusTab = () => {
           <Table.Head>
             <span />
             <div className="grow">Name</div>
+            <div className="grow">Prefix</div>
+            <div className="grow">Classrooms</div>
             <div>Edit</div>
             <div>Delete</div>
           </Table.Head>
 
           <Table.Body>
-            {buildings.data?.result.map((campus, i) => {
+            {buildings.data?.result.map((building, i) => {
               return (
                 <Table.Row key={i}>
                   <span>{i + 1}</span>
-                  <span>{campus.name}</span>
+                  <span>{building.name}</span>
+                  <span>{building.prefix}</span>
+                  <span>{building.classrooms}</span>
                   <div className="hover:cursor-pointer">
                     <Button
                       color="warning"
                       onClick={() => {
-                        toggleCampusModifyModal();
-                        setCampusEditing(campus);
-                        reset(campus);
+                        toggleBuildingModifyModal();
+                        setBuildingEditing(building);
+                        reset(building);
                       }}
                     >
                       <Pencil />
@@ -221,7 +231,7 @@ const CampusTab = () => {
                   <div className="hover:cursor-pointer">
                     <Button
                       onClick={() => {
-                        openDeleteModal(campus);
+                        openDeleteModal(building);
                       }}
                       color="error"
                     >
@@ -237,7 +247,7 @@ const CampusTab = () => {
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
             No campuses found!
             <div>
-              <Button onClick={toggleCampusModifyModal} className="mt-2">
+              <Button onClick={toggleBuildingModifyModal} className="mt-2">
                 <Plus />
                 Add Campus
               </Button>
@@ -247,40 +257,85 @@ const CampusTab = () => {
         )}
         <div></div>
       </div>
-      {/* This dialog used for adding a user */}
+      {/* This dialog used for adding a building */}
       <Modal
         open={buildingCreateModal}
-        onClickBackdrop={toggleCampusModifyModal}
+        onClickBackdrop={toggleBuildingModifyModal}
         className="w-[300px]"
       >
         <Button
           size="sm"
           shape="circle"
           className="absolute right-2 top-2"
-          onClick={toggleCampusModifyModal}
+          onClick={toggleBuildingModifyModal}
         >
           ✕
         </Button>
         <Modal.Header className="font-bold">
-          {buildingEditing != undefined ? "Edit" : "Add"} Campus
+          {buildingEditing != undefined ? "Edit" : "Add"} Building
         </Modal.Header>
 
         <Modal.Body>
           <form
-            onSubmit={buildingForm.handleSubmit(onCampusModifySubmit)}
+            onSubmit={buildingForm.handleSubmit(onBuildingModifySubmit)}
             className="flex flex-col"
           >
             <div>
-              <p>Campus</p>
+              <p>Name</p>
               <Input
                 type="text"
                 className="mt-2"
-                placeholder="Campus Name "
+                placeholder="Building Name"
                 {...buildingForm.register("name")}
               />
               <ErrorMessage
                 errors={buildingForm.formState.errors}
                 name="name"
+                render={({ message }) => (
+                  <p className="font-semibold text-red-600">{message}</p>
+                )}
+              />
+              <p>Prefix</p>
+              <Input
+                type="text"
+                className="mt-2"
+                placeholder="Prefix"
+                {...buildingForm.register("prefix")}
+              />
+              <ErrorMessage
+                errors={buildingForm.formState.errors}
+                name="prefix"
+                render={({ message }) => (
+                  <p className="font-semibold text-red-600">{message}</p>
+                )}
+              />
+              <p>Classrooms</p>
+              <Input
+                type="text"
+                className="mt-2"
+                placeholder="Classrooms"
+                {...buildingForm.register("classrooms")}
+              />
+              <ErrorMessage
+                errors={buildingForm.formState.errors}
+                name="classrooms"
+                render={({ message }) => (
+                  <p className="font-semibold text-red-600">{message}</p>
+                )}
+              />
+
+              <p>Campus</p>
+              <Select
+                className="mt-2"
+                placeholder="Campus Name"
+                {...buildingForm.register("classrooms")}
+              >
+                <Select.Option value="SVSU">SVSU</Select.Option>
+              </Select>
+
+              <ErrorMessage
+                errors={buildingForm.formState.errors}
+                name="classrooms"
                 render={({ message }) => (
                   <p className="font-semibold text-red-600">{message}</p>
                 )}
@@ -297,16 +352,16 @@ const CampusTab = () => {
       {/* This dialog for deleting a campus */}
       <ConfirmDeleteModal
         open={buildingDeleteModal}
-        title="Delete Campus?"
+        title="Delete Building?"
         message={
           buildingDeleteValue
             ? `Are you sure you want delete '${buildingDeleteValue?.name}'?`
             : "Error"
         }
         onClose={() => {
-          setCampusDeleteModal(false);
+          setBuildingDeleteModal(false);
         }}
-        onConfirm={deleteCampus}
+        onConfirm={deleteBuilding}
       />
     </>
   );

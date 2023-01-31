@@ -9,10 +9,10 @@ export const createCampusSchema = z.object({
 
 export const updateCampusSchema = createCampusSchema.extend({
   tuid: z.string(),
-
 });
 
 export const createBuildingSchema = z.object({
+  campus_tuid: z.string(),
   name: z.string().min(4).max(75),
   prefix: z.string().min(1).max(4),
   classrooms: z.string(),

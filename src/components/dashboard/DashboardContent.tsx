@@ -12,7 +12,10 @@ const DashboardContent = ({
   ...args
 }: DashboardContentProps) => {
   return (
-    <div className={classNames("flex w-full flex-col", className)} {...args}>
+    <div
+      className={classNames("flex h-full w-full flex-col", className)}
+      {...args}
+    >
       {children}
     </div>
   );

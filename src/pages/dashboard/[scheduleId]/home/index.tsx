@@ -6,6 +6,8 @@ import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
 
 import { routeNeedsAuthSession } from "src/server/auth";
 import DashboardContent from "src/components/dashboard/DashboardContent";
+import { Button, Divider } from "react-daisyui";
+import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 
 const Dashboard: NextPage = () => {
   /**
@@ -16,7 +18,17 @@ const Dashboard: NextPage = () => {
    */
   const { data } = useSession();
 
-  return <DashboardLayout>This should never been seen. 404</DashboardLayout>;
+  return (
+    <DashboardLayout>
+      <DashboardSidebar />
+      <DashboardContent>
+        <DashboardContentHeader title="Home">
+          <Button>Example Button</Button>
+        </DashboardContentHeader>
+        <div className="m-3">Page Here</div>
+      </DashboardContent>
+    </DashboardLayout>
+  );
 };
 
 export default Dashboard;
@@ -43,10 +55,5 @@ export const getServerSideProps = routeNeedsAuthSession(async () => {
   //NOTE: Passing the entire session to the NextPage will error,
   //which is likely due to undefined values.
   //Ideally just hook with "useSession" in the page
-  return {
-    redirect: {
-      destination: "/projects", //Would need a slug for so 404 technically...
-      permanent: false,
-    },
-  };
+  return { props: {} };
 });

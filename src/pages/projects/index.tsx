@@ -2,12 +2,13 @@ import type { NextPage } from "next";
 import { useSession, signOut } from "next-auth/react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
+import ProjectItem from "src/components/projects/ProjectsItem";
+import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
+import ProjectsLayout from "src/components/projects/ProjectsLayout";
 
 import { routeNeedsAuthSession } from "src/server/auth";
-import DashboardContent from "src/components/dashboard/DashboardContent";
 
-const Dashboard: NextPage = () => {
+const Projects: NextPage = () => {
   /**
    * useSession
    *
@@ -16,10 +17,31 @@ const Dashboard: NextPage = () => {
    */
   const { data } = useSession();
 
-  return <DashboardLayout>This should never been seen. 404</DashboardLayout>;
+  return (
+    <DashboardLayout>
+      <ProjectsLayout>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+        <ProjectItem>
+          <ProjectRevisionItem />
+          <ProjectRevisionItem />
+        </ProjectItem>
+      </ProjectsLayout>
+    </DashboardLayout>
+  );
 };
 
-export default Dashboard;
+export default Projects;
 
 /**
  * Get Server Side Properties
@@ -43,10 +65,5 @@ export const getServerSideProps = routeNeedsAuthSession(async () => {
   //NOTE: Passing the entire session to the NextPage will error,
   //which is likely due to undefined values.
   //Ideally just hook with "useSession" in the page
-  return {
-    redirect: {
-      destination: "/projects", //Would need a slug for so 404 technically...
-      permanent: false,
-    },
-  };
+  return { props: {} };
 });

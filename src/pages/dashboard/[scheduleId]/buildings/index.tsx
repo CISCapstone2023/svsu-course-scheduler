@@ -10,6 +10,7 @@ import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
+import BuildingsTab from "./BuildingsTab";
 
 const Buildings: NextPage = () => {
   /**
@@ -42,7 +43,7 @@ const Buildings: NextPage = () => {
           <Tabs.Tab value={1}>Campus</Tabs.Tab>
         </Tabs>
         {/* Load the <BuildingTab /> Component */}
-        {tabValue == 0 && <div>Building</div>}
+        {tabValue == 0 && <BuildingsTab />}
         {/*Load the <CampusTab /> Component */}
         {tabValue == 1 && <CampusTab />}
         {/* This is the dialog for creating a campus */}

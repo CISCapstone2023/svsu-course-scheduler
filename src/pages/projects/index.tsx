@@ -19,24 +19,44 @@ const Projects: NextPage = () => {
 
   return (
     <DashboardLayout>
-      <ProjectsLayout>
-        <ProjectItem>
-          <ProjectRevisionItem />
-          <ProjectRevisionItem />
-        </ProjectItem>
-        <ProjectItem>
-          <ProjectRevisionItem />
-          <ProjectRevisionItem />
-        </ProjectItem>
-        <ProjectItem>
-          <ProjectRevisionItem />
-          <ProjectRevisionItem />
-        </ProjectItem>
-        <ProjectItem>
-          <ProjectRevisionItem />
-          <ProjectRevisionItem />
-        </ProjectItem>
-      </ProjectsLayout>
+      <div className="w-full flex-col p-5">
+        <div className="flex w-full justify-between pb-12">
+          <p className="justify-start text-lg">Welcome {data?.user?.name}, </p>
+
+          <button className="btn-active btn justify-end">Button</button>
+        </div>
+
+        <ProjectsLayout>
+          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
+            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
+            <ProjectRevisionItem
+              title="Fall 2023 V1"
+              timesAgo="100 times ago"
+            />
+          </ProjectItem>
+          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
+            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
+            <ProjectRevisionItem
+              title="Fall 2023 V1"
+              timesAgo="100 times ago"
+            />
+          </ProjectItem>
+          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
+            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
+            <ProjectRevisionItem
+              title="Fall 2023 V1"
+              timesAgo="100 times ago"
+            />
+          </ProjectItem>
+          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
+            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
+            <ProjectRevisionItem
+              title="Fall 2023 V1"
+              timesAgo="100 times ago"
+            />
+          </ProjectItem>
+        </ProjectsLayout>
+      </div>
     </DashboardLayout>
   );
 };

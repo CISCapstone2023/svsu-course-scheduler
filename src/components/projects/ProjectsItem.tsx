@@ -8,8 +8,7 @@ interface ProjectItemProps {
   strTimesAgo?: string;
 }
 
-const ProjectItem = ({ children }: ProjectItemProps) => {
-  const title = "Project";
+const ProjectItem = ({ children, strTitle, strTimesAgo }: ProjectItemProps) => {
   const [isCaretDown, setCaret] = useState(true);
 
   return (
@@ -22,12 +21,12 @@ const ProjectItem = ({ children }: ProjectItemProps) => {
               href="#!"
               className="text-lg font-semibold underline decoration-transparent transition duration-300 ease-in-out hover:decoration-inherit"
             >
-              {title}
+              {strTitle}
             </a>
           </div>
         </div>
         <div className="flex h-full w-1/2 items-center justify-end">
-          <div className="text-slate-400">3 Times Ago</div>
+          <div className="text-slate-400">{strTimesAgo}</div>
           <div
             onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
             className="m-5 inline-block rounded-full border-2 border-gray-800 px-4 py-2  text-gray-800 transition duration-150 ease-in-out hover:bg-black hover:bg-opacity-5 focus:outline-none focus:ring-0"

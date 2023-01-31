@@ -189,6 +189,7 @@ export const buildingsRouter = createTRPCRouter({
       // Add a new building
       const building = await ctx.prisma.guidelineBuilding.create({
         data: {
+          campus_tuid: input.campus_tuid,
           name: input.name,
           prefix: input.prefix.toUpperCase(),
           classrooms: input.classrooms,

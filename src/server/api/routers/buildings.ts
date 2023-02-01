@@ -213,14 +213,14 @@ export const buildingsRouter = createTRPCRouter({
       // First we need to check if we have a building via count.
       // This is done by selecting the tuid of the building passed
       // by the client
-      const hasBuilding = await ctx.prisma.guidelineCampus.count({
+      const hasBuilding = await ctx.prisma.guidelineBuilding.count({
         where: {
           tuid: input.tuid,
         },
       });
       // Make sure to delete it if it exists
       if (hasBuilding == 1) {
-        await ctx.prisma.guidelineCampus.delete({
+        await ctx.prisma.guidelineBuilding.delete({
           where: {
             tuid: input.tuid,
           },

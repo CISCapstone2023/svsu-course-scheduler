@@ -5,9 +5,11 @@ import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
 
 import { routeNeedsAuthSession } from "src/server/auth";
+
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import { Button, Divider } from "react-daisyui";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
+import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 const Dashboard: NextPage = () => {
   /**
@@ -25,7 +27,7 @@ const Dashboard: NextPage = () => {
         <DashboardContentHeader title="Home">
           <Button>Example Button</Button>
         </DashboardContentHeader>
-        <div className="m-3">Page Here</div>
+        <DashboardHomeTabs />
       </DashboardContent>
     </DashboardLayout>
   );

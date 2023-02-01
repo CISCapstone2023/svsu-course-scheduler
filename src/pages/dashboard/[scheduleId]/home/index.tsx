@@ -10,6 +10,9 @@ import DashboardContent from "src/components/dashboard/DashboardContent";
 import { Button, Divider } from "react-daisyui";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
+
+import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
+
 const Dashboard: NextPage = () => {
   /**
    * useSession

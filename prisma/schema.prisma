@@ -114,7 +114,7 @@ model Course {
   faculty            GuidelinesFacultyToCourse[]
   revision           ScheduleRevision            @relation(fields: [revision_tuid], references: [tuid], onDelete: Cascade)
   notes              CourseNote[]
-  rooms              Room[]
+  locations          CourseLocation[]
 }
 
 model Schedule {
@@ -147,6 +147,10 @@ model CourseLocation {
   day_saturday  Boolean
   day_sunday    Boolean
   is_online     Boolean
+  course_tuid   String
+  //Realtionships
+  course        Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+  rooms         Room[]
 }
 
 model GuidelinesFaculty {
@@ -215,30 +219,32 @@ model CourseNote {
 }
 
 model GuidelineBuilding {
-  tuid   String @id @default(cuid())
-  name   String
-  prefix String
+  tuid       String @id @default(cuid())
+  name       String
+  prefix     String
+  campus_tuid   String
+  //classrooms listing will be regexed
+  classrooms String
   //Relationships
-  rooms  Room[]
+  campus     GuidelineCampus   @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
+  rooms      Room[]
 }
 
 model GuidelineCampus {
   tuid  String @id @default(cuid())
   name  String
   //Relationships
-  rooms Room[]
+  buldings GuidelineBuilding[]
 }
 
 model Room {
   tuid          String            @id @default(cuid())
   room          String
   building_tuid String
-  campus_tuid   String
-  course_tuid   String
+  location_tuid String
   //Relationships
   building      GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
-  campus        GuidelineCampus   @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
-  course        Course            @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+  location      CourseLocation    @relation(fields: [location_tuid], references: [tuid], onDelete: Cascade)
 }
 
 // Permissions list 

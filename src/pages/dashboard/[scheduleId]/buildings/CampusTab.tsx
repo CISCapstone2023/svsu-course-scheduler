@@ -33,6 +33,12 @@ const CampusTab = () => {
    * Data
    */
 
+  /**
+   * Campus Page for pagination
+   *
+   * Set the current page for the pagination with a default page
+   * of 1. This is consumed by the pagination component and then updated.
+   */
   const [campusPage, setCampusPage] = useState(1);
 
   //Query all of the data based on the search value
@@ -55,6 +61,7 @@ const CampusTab = () => {
     //is an arrow function
     debounce((value: string) => {
       //Now we actually update the search so we don't keep fetching the server
+      setCampusPage(1);
       setSearchValue(value);
     }, 500), //This waits 500 ms (half a second) before the function inside (aka above) gets called
     []
@@ -203,9 +210,7 @@ const CampusTab = () => {
             {campuses.data?.result.map((campus, i) => {
               return (
                 <Table.Row key={i}>
-                  <span>
-                    {(campusPage - 1) * 10 * (campusPage - 1) + (i + 1)}
-                  </span>
+                  <span>{i + 1}</span>
                   <span>{campus.name}</span>
                   <div className="hover:cursor-pointer">
                     <Button
@@ -245,7 +250,7 @@ const CampusTab = () => {
             </div>
           </div>
         )}
-        <div>
+        <div className="flex w-full justify-center p-2">
           {campuses.data != undefined && (
             <PaginationBar
               totalPageCount={campuses.data?.totalPages}

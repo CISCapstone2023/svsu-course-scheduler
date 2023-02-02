@@ -2,6 +2,7 @@ import { NextConfig, type NextApiRequest, type NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
 import formidable from "formidable";
+import multiparty from "multiparty";
 /**
  * UploadExcelFile
  *
@@ -14,9 +15,12 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await unstable_getServerSession(req, res, authOptions);
   if (session) {
     console.log("Signed in");
-    const form = new formidable.IncomingForm();
-    form.parse(req, (err, fields, files) => {
-      console.log(err, fields, files);
+    const form = new multiparty.Form();
+
+    await form.parse(req, (error, fields, file) => {
+      console.log(error);
+      console.log(fields);
+      console.log(file);
     });
     res.status(200);
   } else {

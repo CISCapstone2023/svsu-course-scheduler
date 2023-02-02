@@ -16,11 +16,16 @@ const useRestUpload = (url: string) => {
 
   const upload = async (file: File) => {
     setUploading(true);
-    console.log({ url, file });
-    await axios.put(url, file, {
+
+    const dataForm = new FormData();
+    dataForm.append("excel", file);
+
+    await axios({
+      method: "post",
+      data: dataForm,
       url,
       headers: {
-        "Content-Type": file.type,
+        "Content-Type": "multipart/form-data",
       },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total != undefined) {

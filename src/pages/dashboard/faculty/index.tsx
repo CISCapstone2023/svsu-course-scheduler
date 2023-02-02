@@ -36,6 +36,7 @@ export default Faculty;
 const Rest = () => {
   const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
+
   const { upload, progress, uploading, reset } = useRestUpload(
     `http://localhost:3000/api/revision/uploadExcel`
   );
@@ -44,7 +45,7 @@ const Rest = () => {
     const file = event.target.files?.item(0); //Get the file from the "Iterator"
     if (file != null) {
       //File size can't be bigger than 1mb currently
-      if (file.size > 1000000) {
+      if (file.size > 5000000) {
         setMessage("Sorry but that file size was a little big to test with!");
         return;
       }

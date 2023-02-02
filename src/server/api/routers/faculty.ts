@@ -76,6 +76,7 @@ export const facultyRouter = createTRPCRouter({
           take: 10,
           //we start at 0
           skip: input.page * 10,
+          //check if the first name and/or last name are being searched for
           where: {
             first_name: {
               contains: input.search,

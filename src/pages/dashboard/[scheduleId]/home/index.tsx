@@ -1,20 +1,19 @@
-//NextJS
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 
-//Authentication Check
+import DashboardLayout from "src/components/dashboard/DashboardLayout";
+import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
+
 import { routeNeedsAuthSession } from "src/server/auth";
-import Dashboard from "src/components/Dashboard";
-import Sidebar from "src/components/Sidebar";
 import { useState } from "react";
 import useRestUpload from "src/hooks/upload/useUpload";
 
-/**
- * Faculty
- *
- * used for adding faculty
- */
-const Faculty: NextPage = () => {
+import DashboardContent from "src/components/dashboard/DashboardContent";
+import { Button } from "react-daisyui";
+import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
+import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
+
+const Dashboard: NextPage = () => {
   /**
    * useSession
    *
@@ -24,14 +23,19 @@ const Faculty: NextPage = () => {
   const {} = useSession();
 
   return (
-    <Dashboard>
-      <Sidebar />
-      <Rest />
-    </Dashboard>
+    <DashboardLayout>
+      <DashboardSidebar />
+      <DashboardContent>
+        <DashboardContentHeader title="Home">
+          <Button>Example Button</Button>
+        </DashboardContentHeader>
+        <DashboardHomeTabs />
+      </DashboardContent>
+    </DashboardLayout>
   );
 };
 
-export default Faculty;
+export default Dashboard;
 
 const Rest = () => {
   const [url, setUrl] = useState("");
@@ -97,7 +101,8 @@ const Rest = () => {
  * Also the perk of server props is that it occurs at page load time.
  * Meaning any data we pass into the "props" return object, will be provided
  * as a prop to the "NextPage" below. So for example the {} of the props could
- * contain data which could be used for the front end.
+ * contain data which could be used.
+ *
  */
 
 export const getServerSideProps = routeNeedsAuthSession(async () => {

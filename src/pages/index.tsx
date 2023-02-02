@@ -87,7 +87,7 @@ const Home: NextPage = () => {
       //If its a success they logged in was verified
       if (value?.status === 200) {
         //Send the use to the dashboard
-        router.push("/dashboard");
+        router.push("/projects");
       } else {
         //If it was wrong, show an error
         setError("password", {

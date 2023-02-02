@@ -33,6 +33,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
@@ -106,6 +107,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           email: user.email,
+          name: user.name,
           username: user.username,
         };
       },

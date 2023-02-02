@@ -22,13 +22,24 @@ const Projects: NextPage = () => {
   const toggleVisible = () => {
     setVisible(!visible);
   };
+  const [stage, setStage] = useState<number>(1);
+
+  //if stage is not finalize yet
+  const toggleStage = () => {
+    if (stage == 3) {
+      toggleVisible();
+      setStage(1);
+    } else {
+      setStage(stage + 1);
+    }
+  };
 
   return (
     <DashboardLayout>
       <div className="w-full flex-col p-5">
         <div className="flex w-full justify-between pb-12">
           <p className="justify-start text-lg">
-            Welcome {data?.user?.id == null ? "User" : data?.user?.id},
+            Welcome {data?.user?.name == null ? "User" : data?.user?.name},
           </p>
 
           <button
@@ -47,29 +58,58 @@ const Projects: NextPage = () => {
             Recent Project:{" "}
           </p>
 
-          <Button
-            color="success"
-            variant="outline"
-            className="mr-20"
-            onClick={toggleVisible}
-          >
+          <Button color="success" className="mr-20" onClick={toggleVisible}>
             <FilePlus size={30} /> Create New Project
           </Button>
         </div>
-        <Modal open={visible}>
-          <Modal.Header className="font-bold">
+        <Modal open={visible} className="h-full  w-11/12 max-w-5xl ">
+          <Modal.Header className="flex justify-center font-bold">
             <Steps>
-              <Steps.Step color="info">Import Excel</Steps.Step>
-              <Steps.Step color="info">Organize Column</Steps.Step>
-              <Steps.Step>Finalize</Steps.Step>
+              <Steps.Step
+                color={stage >= 1 ? "success" : "ghost"}
+                value={stage > 1 ? "✓" : "1"}
+              >
+                Import Excel
+              </Steps.Step>
+              <Steps.Step
+                color={stage >= 2 ? "success" : "ghost"}
+                value={stage > 2 ? "✓" : "2"}
+              >
+                Organize Column
+              </Steps.Step>
+              <Steps.Step
+                color={stage >= 3 ? "success" : "ghost"}
+                value={stage > 3 ? "✓" : "3"}
+              >
+                Finalize
+              </Steps.Step>
             </Steps>
+
+            <Button
+              size="sm"
+              shape="circle"
+              className="absolute right-2 top-2"
+              onClick={toggleVisible}
+            >
+              ✕
+            </Button>
           </Modal.Header>
 
-          <Modal.Body>EXCEL SHEET</Modal.Body>
-
-          <Modal.Actions>
-            <Button onClick={toggleVisible}>Yay!</Button>
-          </Modal.Actions>
+          <Modal.Body>
+            <div className="h-full w-full">
+              <div id="Imported" className="h-11/12 w-11/12"></div>
+              <div className="flex justify-self-end">
+                <Modal.Actions>
+                  <Button
+                    className="absolute right-3 bottom-5"
+                    onClick={toggleStage}
+                  >
+                    {stage >= 3 ? "Finalize" : "Next"}
+                  </Button>
+                </Modal.Actions>
+              </div>
+            </div>
+          </Modal.Body>
         </Modal>
 
         <ProjectsLayout>

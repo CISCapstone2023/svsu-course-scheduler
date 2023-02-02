@@ -1,7 +1,7 @@
 import { NextConfig, type NextApiRequest, type NextApiResponse } from "next";
 import { unstable_getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]";
-import formidable from "formidable";
+import { prisma } from "src/server/db";
 import multiparty from "multiparty";
 /**
  * UploadExcelFile
@@ -21,6 +21,7 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
       console.log(error);
       console.log(fields);
       console.log(file);
+      return;
     });
     res.status(200);
   } else {

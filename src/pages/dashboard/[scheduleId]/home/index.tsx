@@ -10,6 +10,7 @@ import DashboardContentHeader from "src/components/dashboard/DashboardContentHea
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import useRestUpload from "src/hooks/upload/useUpload";
+import { routeNeedsAuthSession } from "src/server/auth";
 const Dashboard: NextPage = () => {
   /**
    * useSession

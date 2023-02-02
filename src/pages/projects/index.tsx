@@ -7,7 +7,6 @@ import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { FilePlus, Logout } from "tabler-icons-react";
 import { Button, Modal, Steps } from "react-daisyui";
-import ModalLayout from "src/components/ImportModal/ModalLayout";
 import { useState } from "react";
 
 const Projects: NextPage = () => {

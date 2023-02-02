@@ -1,9 +1,8 @@
-import { z } from "zod";
-
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import {
   createFacultySchemaNoTUID,
   createFacultySchemaWithTUID,
+  createFacultySchemaTUID,
 } from "src/validation/faculty";
 
 //faculty router that will add, delete, update, and get faculty from database
@@ -32,11 +31,7 @@ export const facultyRouter = createTRPCRouter({
   //delete one faculty protected procedure to delete a single faculty memeber
   deleteOneFaculty: protectedProcedure
     //here we will take in just the tuid as an input from client
-    .input(
-      z.object({
-        tuid: z.string(),
-      })
-    )
+    .input(createFacultySchemaTUID)
     //async mutation to handle the deletion
     .mutation(async ({ ctx, input }) => {
       //first get the count of current list of faculty in the database
@@ -68,6 +63,20 @@ export const facultyRouter = createTRPCRouter({
     //send said list to the client
     return data;
   }),
+
+  //get one faculty protected procedure to retrieve and return a single faculty member
+  getOneFaculty: protectedProcedure
+    .input(createFacultySchemaTUID)
+    .query(async ({ ctx, input }) => {
+      //set constant as a faculty object
+      const data = await ctx.prisma.guidelinesFaculty.findUnique({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+      //send the found faculty object to the client
+      return data;
+    }),
 
   //updated faculty protected procedure to update a single faculty member retrieved from
   //the client and return the updated faculty member

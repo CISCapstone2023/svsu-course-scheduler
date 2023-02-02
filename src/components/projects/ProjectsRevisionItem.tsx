@@ -12,7 +12,7 @@ const ProjectRevisionItem = ({
   timesAgo,
 }: ProjectRevisionItemProps) => {
   return (
-    <div className="border-neutral-900 ml-30 flex h-12 w-11/12 rounded-lg border-2 bg-white">
+    <div className="border-neutral-900 ml-30  flex h-12 w-11/12 rounded-md border-b-2 bg-sky-50">
       <div className="flex h-full w-1/2 items-center justify-start">
         <div className="pl-3">
           <a

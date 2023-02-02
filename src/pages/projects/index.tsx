@@ -1,12 +1,11 @@
 import type { NextPage } from "next";
-import { useSession, signOut } from "next-auth/react";
-
+import { signOut, useSession } from "next-auth/react";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
-
 import { routeNeedsAuthSession } from "src/server/auth";
+import { Logout } from "tabler-icons-react";
 
 const Projects: NextPage = () => {
   /**
@@ -21,9 +20,19 @@ const Projects: NextPage = () => {
     <DashboardLayout>
       <div className="w-full flex-col p-5">
         <div className="flex w-full justify-between pb-12">
-          <p className="justify-start text-lg">Welcome {data?.user?.name}, </p>
+          <p className="justify-start text-lg">
+            Welcome {data?.user?.id == null ? "User" : data?.user?.id},
+          </p>
 
-          <button className="btn-active btn justify-end">Button</button>
+          <button
+            className="justify-ends btn-active btn"
+            onClick={() => {
+              signOut();
+            }}
+          >
+            <Logout size={30} />
+            Log Out
+          </button>
         </div>
 
         <ProjectsLayout>

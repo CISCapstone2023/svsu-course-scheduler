@@ -1,6 +1,7 @@
-import { map } from "lodash";
+import { last, map } from "lodash";
 import React from "react";
 import { Button, Pagination } from "react-daisyui";
+import { ChevronLeft, ChevronRight } from "tabler-icons-react";
 
 interface PaginationProps {
   children?: React.ReactNode;
@@ -40,19 +41,40 @@ const PaginationBar = ({
   return (
     <div>
       <Pagination>
-        {pages.map((num, i) => {
-          return (
+        <>
+          {currentPage != 1 && (
             <Button
-              key={i}
-              active={num == currentPage}
               onClick={() => {
-                onClick(num);
+                onClick(currentPage - 1);
               }}
             >
-              {num}
+              <ChevronLeft />
             </Button>
-          );
-        })}
+          )}
+          {pages.map((num, i) => {
+            return (
+              <Button
+                key={i}
+                active={num == currentPage}
+                onClick={() => {
+                  onClick(num);
+                }}
+              >
+                {num}
+              </Button>
+            );
+          })}
+          {currentPage != totalPageCount && (
+            <Button
+              onClick={() => {
+                onClick(currentPage + 1);
+              }}
+            >
+              <ChevronRight />
+            </Button>
+          )}
+        </>
+        <></>
       </Pagination>
     </div>
   );

@@ -14,6 +14,7 @@ import { createCampusSchema, ICreateCampus } from "src/validation/buildings";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import { GuidelineCampus } from "@prisma/client";
 import { toast } from "react-toastify";
+import PaginationBar from "src/components/Pagination";
 
 const CampusTab = () => {
   /**
@@ -32,9 +33,12 @@ const CampusTab = () => {
    * Data
    */
 
+  const [campusPage, setCampusPage] = useState(1);
+
   //Query all of the data based on the search value
   const campuses = api.buildings.getAllCampus.useQuery({
     search: searchValue,
+    page: campusPage,
   });
 
   //The function that gets called when a input event has occured.
@@ -199,7 +203,9 @@ const CampusTab = () => {
             {campuses.data?.result.map((campus, i) => {
               return (
                 <Table.Row key={i}>
-                  <span>{i + 1}</span>
+                  <span>
+                    {(campusPage - 1) * 10 * (campusPage - 1) + (i + 1)}
+                  </span>
                   <span>{campus.name}</span>
                   <div className="hover:cursor-pointer">
                     <Button
@@ -237,10 +243,19 @@ const CampusTab = () => {
                 Add Campus
               </Button>
             </div>
-             
           </div>
         )}
-        <div></div>
+        <div>
+          {campuses.data != undefined && (
+            <PaginationBar
+              totalPageCount={campuses.data?.totalPages}
+              currentPage={campuses.data?.page}
+              onClick={(page) => {
+                setCampusPage(page);
+              }}
+            />
+          )}
+        </div>
       </div>
       {/* This dialog used for adding a user */}
       <Modal

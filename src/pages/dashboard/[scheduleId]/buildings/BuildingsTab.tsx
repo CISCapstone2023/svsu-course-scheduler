@@ -17,6 +17,7 @@ import {
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import { GuidelineCampus as GuidelineBuilding } from "@prisma/client";
 import { toast } from "react-toastify";
+import PaginationBar from "src/components/Pagination";
 
 const CampusTab = () => {
   /**
@@ -35,9 +36,12 @@ const CampusTab = () => {
    * Data
    */
 
+  const [buildingPage, setBuildingPage] = useState(1);
+
   //Query all of the data based on the search value
   const buildings = api.buildings.getAllBuildings.useQuery({
     search: searchValue,
+    page: buildingPage,
   });
 
   const campuses = api.buildings.getAllCampus.useQuery({
@@ -59,6 +63,7 @@ const CampusTab = () => {
     debounce((value: string) => {
       //Now we actually update the search so we don't keep fetching the server
       setSearchValue(value);
+      setBuildingPage(1);
     }, 500), //This waits 500 ms (half a second) before the function inside (aka above) gets called
     []
   );
@@ -254,7 +259,17 @@ const CampusTab = () => {
              
           </div>
         )}
-        <div></div>
+        <div className="flex w-full justify-center p-2">
+          {buildings.data != undefined && (
+            <PaginationBar
+              totalPageCount={buildings.data?.totalPages}
+              currentPage={buildings.data?.page}
+              onClick={(page) => {
+                setBuildingPage(page);
+              }}
+            />
+          )}
+        </div>
       </div>
       {/* This dialog used for adding a building */}
       <Modal

@@ -5,9 +5,13 @@ import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
+
 import { FilePlus, Logout } from "tabler-icons-react";
 import { Button, Modal, Steps } from "react-daisyui";
 import { useState } from "react";
+
+import { api } from "src/utils/api";
+
 
 const Projects: NextPage = () => {
   /**
@@ -17,6 +21,7 @@ const Projects: NextPage = () => {
    * assuming they are successfully signed-in. If they are it will be null.
    */
   const { data } = useSession();
+
   const [visible, setVisible] = useState<boolean>(false);
 
   const toggleVisible = () => {
@@ -33,6 +38,12 @@ const Projects: NextPage = () => {
       setStage(stage + 1);
     }
   };
+
+
+  const result = api.projects.getAllScheduleRevisions.useQuery({
+    search: "",
+    page: 0,
+  });
 
   return (
     <DashboardLayout>

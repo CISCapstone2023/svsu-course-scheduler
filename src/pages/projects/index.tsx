@@ -7,6 +7,7 @@ import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 
 import { routeNeedsAuthSession } from "src/server/auth";
+import { api } from "src/utils/api";
 
 const Projects: NextPage = () => {
   /**
@@ -16,7 +17,10 @@ const Projects: NextPage = () => {
    * assuming they are successfully signed-in. If they are it will be null.
    */
   const { data } = useSession();
-
+  const result = api.projects.getAllScheduleRevisions.useQuery({
+    search: "",
+    page: 0,
+  });
   return (
     <DashboardLayout>
       <ProjectsLayout>

@@ -62,10 +62,22 @@ model User {
   emailVerified DateTime?
   password      String
   image         String?
-  // events        Event[]
+  owned_revisions ScheduleRevision[]
+  schedules     SchedulesOnUsers[]
   accounts      Account[]
   sessions      Session[]
   permissions   Permission[]
+}
+
+model SchedulesOnUsers {
+  user       User     @relation(fields: [user_tuid], references: [id])
+  user_tuid  String // relation scalar field (used in the `@relation` attribute above)
+  schedule   Schedule @relation(fields: [schedule_tuid], references: [tuid])
+  schedule_tuid String // relation scalar field (used in the `@relation` attribute above)
+  assignedAt DateTime @default(now())
+  assignedBy String
+
+  @@id([user_tuid, schedule_tuid])
 }
 
 model VerificationToken {
@@ -120,19 +132,25 @@ model Course {
 model Schedule {
   tuid      String             @id @default(cuid())
   //Relationships
+  users SchedulesOnUsers[]
   revisions ScheduleRevision[]
 }
 
 model ScheduleRevision {
   tuid          String   @id @default(cuid())
   name          String
-  file          Bytes    @db.Blob
-  schedule_tuid String
+  file          Bytes?    @db.Blob
+  schedule_tuid String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  onboarding    Boolean  @default(true)
+  creator_tuid String //The creator of this revision
+
   //Relationships
-  schedule      Schedule @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
+  schedule      Schedule? @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
   courses       Course[]
+  
+  user User? @relation(fields: [creator_tuid], references: [id])
 }
 
 model CourseLocation {

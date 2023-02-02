@@ -5,7 +5,10 @@ import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
-import { Logout } from "tabler-icons-react";
+import { FilePlus, Logout } from "tabler-icons-react";
+import { Button, Modal, Steps } from "react-daisyui";
+import ModalLayout from "src/components/ImportModal/ModalLayout";
+import { useState } from "react";
 
 const Projects: NextPage = () => {
   /**
@@ -15,6 +18,11 @@ const Projects: NextPage = () => {
    * assuming they are successfully signed-in. If they are it will be null.
    */
   const { data } = useSession();
+  const [visible, setVisible] = useState<boolean>(false);
+
+  const toggleVisible = () => {
+    setVisible(!visible);
+  };
 
   return (
     <DashboardLayout>
@@ -34,6 +42,36 @@ const Projects: NextPage = () => {
             Log Out
           </button>
         </div>
+
+        <div className=" mb-2 flex w-full justify-between">
+          <p className=" ml-20 justify-start text-3xl font-bold">
+            Recent Project:{" "}
+          </p>
+
+          <Button
+            color="success"
+            variant="outline"
+            className="mr-20"
+            onClick={toggleVisible}
+          >
+            <FilePlus size={30} /> Create New Project
+          </Button>
+        </div>
+        <Modal open={visible}>
+          <Modal.Header className="font-bold">
+            <Steps>
+              <Steps.Step color="info">Import Excel</Steps.Step>
+              <Steps.Step color="info">Organize Column</Steps.Step>
+              <Steps.Step>Finalize</Steps.Step>
+            </Steps>
+          </Modal.Header>
+
+          <Modal.Body>EXCEL SHEET</Modal.Body>
+
+          <Modal.Actions>
+            <Button onClick={toggleVisible}>Yay!</Button>
+          </Modal.Actions>
+        </Modal>
 
         <ProjectsLayout>
           <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">

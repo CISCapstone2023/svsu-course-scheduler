@@ -1,18 +1,15 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
+import { Button } from "react-daisyui";
+import { useState } from "react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
-
-import { routeNeedsAuthSession } from "src/server/auth";
-import { useState } from "react";
-import useRestUpload from "src/hooks/upload/useUpload";
-
 import DashboardContent from "src/components/dashboard/DashboardContent";
-import { Button } from "react-daisyui";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
+import useRestUpload from "src/hooks/upload/useUpload";
 const Dashboard: NextPage = () => {
   /**
    * useSession

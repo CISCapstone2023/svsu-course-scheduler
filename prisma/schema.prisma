@@ -222,9 +222,11 @@ model GuidelineBuilding {
   tuid       String @id @default(cuid())
   name       String
   prefix     String
+  campus_tuid   String
   //classrooms listing will be regexed
   classrooms String
   //Relationships
+  campus     GuidelineCampus   @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
   rooms      Room[]
 }
 
@@ -232,18 +234,16 @@ model GuidelineCampus {
   tuid  String @id @default(cuid())
   name  String
   //Relationships
-  rooms Room[]
+  buldings GuidelineBuilding[]
 }
 
 model Room {
   tuid          String            @id @default(cuid())
   room          String
   building_tuid String
-  campus_tuid   String
   location_tuid String
   //Relationships
   building      GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
-  campus        GuidelineCampus   @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
   location      CourseLocation    @relation(fields: [location_tuid], references: [tuid], onDelete: Cascade)
 }
 

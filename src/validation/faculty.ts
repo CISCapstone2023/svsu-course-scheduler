@@ -6,7 +6,7 @@ export const createFacultySchemaTUID = z.object({
 });
 
 //zod faculty schema without tuid for reusability in api's
-export const createFacultySchemaNoTUID = z.object({
+export const createFacultySchema = z.object({
   //use all of GuidlelinesFactuly's fields except tuid
   suffix: z.string(),
   last_name: z.string(),
@@ -16,7 +16,10 @@ export const createFacultySchemaNoTUID = z.object({
 });
 
 //zod faculty schema with tuid added for reusability in api's
-export const createFacultySchemaWithTUID = createFacultySchemaNoTUID.extend({
+export const createFacultySchemaWithTUID = createFacultySchema.extend({
   //after extending from the above schema, add tuid to this one
   tuid: z.string(),
 });
+
+export type ICreateFaculty = z.infer<typeof createFacultySchema>;
+export type IUpdateFaculty = z.infer<typeof createFacultySchemaWithTUID>;

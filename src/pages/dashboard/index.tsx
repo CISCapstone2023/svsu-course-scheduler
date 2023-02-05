@@ -1,11 +1,9 @@
 import type { NextPage } from "next";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
 
 import { routeNeedsAuthSession } from "src/server/auth";
-import DashboardContent from "src/components/dashboard/DashboardContent";
 
 const Dashboard: NextPage = () => {
   /**

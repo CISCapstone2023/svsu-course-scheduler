@@ -13,8 +13,14 @@ export const updateCampusSchema = createCampusSchema.extend({
 
 export const createBuildingSchema = z.object({
   campus_tuid: z.string(),
-  name: z.string().min(4).max(75),
-  prefix: z.string().min(1).max(4),
+  name: z
+    .string()
+    .min(4, { message: "Building name must be at least 4 characters" })
+    .max(75, { message: "Building name must be no more than 75 characters" }),
+  prefix: z
+    .string()
+    .min(1, { message: "Building prefix must be at least 1 character" })
+    .max(4, { message: "Building prefix must be no more than 4 characters" }),
   classrooms: z.string(),
 });
 

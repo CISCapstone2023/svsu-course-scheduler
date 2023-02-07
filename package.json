@@ -33,6 +33,7 @@
     "react-toastify": "^9.1.1",
     "superjson": "1.9.1",
     "tabler-icons-react": "^1.56.0",
+    "trpc-playground": "^1.0.4",
     "zod": "^3.20.2"
   },
   "devDependencies": {

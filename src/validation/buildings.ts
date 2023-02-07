@@ -1,4 +1,7 @@
+import { Regex } from "tabler-icons-react";
 import { z } from "zod";
+
+const regex = /^\d+\w?(-\d+\w?)?(,\d+\w?(-\d+\w?)?)*$/;
 
 export const createCampusSchema = z.object({
   name: z
@@ -21,7 +24,11 @@ export const createBuildingSchema = z.object({
     .string()
     .min(1, { message: "Building prefix must be at least 1 character" })
     .max(4, { message: "Building prefix must be no more than 4 characters" }),
-  classrooms: z.string(),
+  classrooms: z
+    .string()
+    .regex(regex, {
+      message: "Must contain a list of rooms like: 1-10,30a-40c or 1,5,20-40",
+    }),
 });
 
 export const updateBuildingSchema = createBuildingSchema.extend({

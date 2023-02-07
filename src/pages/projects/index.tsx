@@ -13,6 +13,7 @@ import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectsUpload from "src/components/projects/ProjectsUpload";
+import ProjectDataTableEdit from "src/components/ProjectDataTableEdit";
 
 const Projects: NextPage = () => {
   /**
@@ -37,6 +38,15 @@ const Projects: NextPage = () => {
       setStage(1);
     } else {
       setStage(stage + 1);
+    }
+  };
+
+  //
+  const backStage = () => {
+    if (stage <= 1) {
+      setStage(1);
+    } else {
+      setStage(stage - 1);
     }
   };
 
@@ -115,16 +125,22 @@ const Projects: NextPage = () => {
 
           <Modal.Body>
             <div className="h-full w-full">
-              <div id="Imported" className="h-11/12 w-full">
-                <div
-                  className={
-                    (stage == 1 ? "visible" : "invisible") +
-                    " flex justify-center align-middle"
-                  }
-                >
-                  <ProjectsUpload />
-                </div>
+              <div className="flex h-full w-full justify-center align-middle">
+                {stage === 1 ? <ProjectsUpload /> : <></>}
+                {stage === 2 ? <ProjectDataTableEdit /> : <></>}
+                {stage === 3 ? <p>FINALIZE</p> : <></>}
               </div>
+
+              {stage > 1 ? (
+                <Button
+                  className="absolute left-3 bottom-5"
+                  onClick={backStage}
+                >
+                  Back
+                </Button>
+              ) : (
+                <></>
+              )}
 
               <Button
                 className="absolute right-3 bottom-5"

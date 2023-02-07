@@ -56,13 +56,13 @@ const Rest = () => {
         onChange={onFileChange}
         type="file"
       />
+      <br />
       {uploading ? (
         <Progress color="success" />
       ) : (
         <Progress max="100" value={progress} color="success" />
       )}
-
-      <span>{progress}%</span>
+      <span className="justify-center">{progress}%</span>
 
       {progress === 100 && !uploading && (
         <>

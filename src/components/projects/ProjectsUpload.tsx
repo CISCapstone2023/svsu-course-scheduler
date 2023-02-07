@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Button, FileInput, Progress } from "react-daisyui";
 import useRestUpload from "src/hooks/upload/useUpload";
 
 interface ProjectsUploadProps {
@@ -14,12 +15,17 @@ const ProjectsUpload = ({ children }: ProjectsUploadProps) => {
 };
 
 const Rest = () => {
-  const [url, setUrl] = useState("");
+  // const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
 
   const { upload, progress, uploading, reset } = useRestUpload(
-    `http://localhost:3000/api/revision/uploadExcel`
+    `/api/revision/uploadExcel`
   );
+
+  const ResetUploading = () => {
+    setMessage("");
+    reset();
+  };
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.item(0); //Get the file from the "Iterator"
@@ -41,27 +47,33 @@ const Rest = () => {
   };
 
   return (
-    <>
+    <div className="flex flex-col justify-between justify-items-center">
       {uploading && <span>uploading...</span>}
-      <input
+      <FileInput
+        accept=".csv,.xlsx,.xls"
         max-size="1024"
-        disabled={uploading}
+        disabled={progress === 100 ? true : false}
         onChange={onFileChange}
         type="file"
       />
-      <br />
-      <progress max="100" value={progress} />
+      {uploading ? (
+        <Progress color="success" />
+      ) : (
+        <Progress max="100" value={progress} color="success" />
+      )}
+
       <span>{progress}%</span>
+
       {progress === 100 && !uploading && (
         <>
-          <p>url: {url}</p>
-          <button type="button" onClick={reset}>
+          {/* <p >url: {url}</p> */}
+          <Button onClick={ResetUploading} color="ghost">
             Reset
-          </button>
+          </Button>
         </>
       )}
-      {message && <p>{message}</p>}
-    </>
+      {message && <p className="font-thin">{message}</p>}
+    </div>
   );
 };
 

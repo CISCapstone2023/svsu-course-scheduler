@@ -1,17 +1,18 @@
 import type { NextPage } from "next";
 import { signOut, useSession } from "next-auth/react";
-import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
 
 import { FilePlus, Logout } from "tabler-icons-react";
-import { Button, Modal, Steps } from "react-daisyui";
+import { Button, FileInput, Form, Modal, Steps } from "react-daisyui";
 import { useState } from "react";
 
 import { api } from "src/utils/api";
-
+import PaginationBar from "src/components/Pagination";
+import DashboardLayout from "src/components/dashboard/DashboardLayout";
+import ProjectsUpload from "src/components/projects/ProjectsUpload";
 
 const Projects: NextPage = () => {
   /**
@@ -39,11 +40,17 @@ const Projects: NextPage = () => {
     }
   };
 
-
   const result = api.projects.getAllScheduleRevisions.useQuery({
     search: "",
     page: 0,
   });
+
+  const onCLickPage = () => {
+    console.log("click Page");
+  };
+  const goToMain = () => {
+    window.location = "/dashboard/1/home";
+  };
 
   return (
     <DashboardLayout>
@@ -108,17 +115,23 @@ const Projects: NextPage = () => {
 
           <Modal.Body>
             <div className="h-full w-full">
-              <div id="Imported" className="h-11/12 w-11/12"></div>
-              <div className="flex justify-self-end">
-                <Modal.Actions>
-                  <Button
-                    className="absolute right-3 bottom-5"
-                    onClick={toggleStage}
-                  >
-                    {stage >= 3 ? "Finalize" : "Next"}
-                  </Button>
-                </Modal.Actions>
+              <div id="Imported" className="h-11/12 w-full">
+                <div
+                  className={
+                    (stage == 1 ? "visible" : "invisible") +
+                    " flex justify-center align-middle"
+                  }
+                >
+                  <ProjectsUpload />
+                </div>
               </div>
+
+              <Button
+                className="absolute right-3 bottom-5"
+                onClick={stage == 3 ? goToMain : toggleStage}
+              >
+                {stage >= 3 ? "Finalize" : "Next"}
+              </Button>
             </div>
           </Modal.Body>
         </Modal>
@@ -153,6 +166,14 @@ const Projects: NextPage = () => {
             />
           </ProjectItem>
         </ProjectsLayout>
+
+        <div className="mt-3 flex justify-center">
+          <PaginationBar
+            totalPageCount={10}
+            currentPage={1}
+            onClick={onCLickPage}
+          />
+        </div>
       </div>
     </DashboardLayout>
   );

@@ -2,8 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
-    binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -92,6 +92,10 @@ model Course {
   section_id         Int
   revision_tuid      String
   term               Int
+  semester_summer    Boolean                     @default(false)
+  semester_fall      Boolean                     @default(false)
+  semester_winter    Boolean                     @default(false)
+  semester_spring    Boolean                     @default(false)
   div                String
   department         String
   subject            String
@@ -108,8 +112,8 @@ model Course {
   original_state     CourseState
   state              CourseState
   location           String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
   //Relationships
   faculty            GuidelinesFacultyToCourse[]
   revision           ScheduleRevision            @relation(fields: [revision_tuid], references: [tuid], onDelete: Cascade)
@@ -149,7 +153,7 @@ model CourseLocation {
   is_online     Boolean
   course_tuid   String
   //Realtionships
-  course        Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+  course        Course   @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
   rooms         Room[]
 }
 
@@ -175,16 +179,16 @@ model GuidelinesFacultyToCourse {
 
 //Guidelines for courses with fields including course credits, number of meetings, days, and times of guidelines
 model GuidelinesCourses {
-  tuid           String                   @id @default(cuid())
-  semester_SU    Boolean
-  semester_FA    Boolean
-  semester_WI    Boolean
-  semester_SP    Boolean
-  credits        Int
-  meeting_amount Int
+  tuid            String                   @id @default(cuid())
+  semester_summer Boolean                  @default(false)
+  semester_fall   Boolean                  @default(false)
+  semester_winter Boolean                  @default(false)
+  semester_spring Boolean                  @default(false)
+  credits         Int
+  meeting_amount  Int
   //Relationships
-  times          GuidelinesCoursesTimes[]
-  days           GuidelinesCoursesDays[]
+  times           GuidelinesCoursesTimes[]
+  days            GuidelinesCoursesDays[]
 }
 
 //Table of course guideline times
@@ -222,20 +226,20 @@ model CourseNote {
 }
 
 model GuidelineBuilding {
-  tuid       String @id @default(cuid())
-  name       String
-  prefix     String
-  campus_tuid   String
+  tuid        String          @id @default(cuid())
+  name        String
+  prefix      String
+  campus_tuid String
   //classrooms listing will be regexed
-  classrooms String
+  classrooms  String
   //Relationships
-  campus     GuidelineCampus   @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
-  rooms      Room[]
+  campus      GuidelineCampus @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
+  rooms       Room[]
 }
 
 model GuidelineCampus {
-  tuid  String @id @default(cuid())
-  name  String
+  tuid     String              @id @default(cuid())
+  name     String
   //Relationships
   buldings GuidelineBuilding[]
 }

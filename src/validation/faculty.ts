@@ -11,13 +11,13 @@ export const createFacultySchema = z.object({
   suffix: z.string(),
   last_name: z
     .string()
-    .min(3, { message: "Faculty's last name must be at least 3 characters" })
+    .min(2, { message: "Faculty's last name must be at least 2 characters" })
     .max(30, {
       message: "Faculty's first name must be no more than 30 characters",
     }),
   first_name: z
     .string()
-    .min(3, { message: "Faculty's first name must be at least 3 characters" })
+    .min(2, { message: "Faculty's first name must be at least 2 characters" })
     .max(30, {
       message: "Faculty's first name must be no more than 30 characters",
     }),

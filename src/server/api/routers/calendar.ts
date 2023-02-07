@@ -16,18 +16,20 @@ export const calendarRouter = createTRPCRouter({
     .input(
       z.object({
         tuid: z.string(),
+        fall: z.boolean(),
+        winter: z.boolean(),
+        spring: z.boolean(),
+        summer: z.boolean(),
       })
     )
     .query(async ({ ctx, input }) => {
-      // let revisionResult: RevisionWithCourses | null;
-
       const revisionResult: RevisionWithCourses | null =
         await ctx.prisma.scheduleRevision.findUnique({
           where: {
             tuid: input.tuid,
           },
           include: {
-            courses: true,
+            courses: {},
           },
         });
 

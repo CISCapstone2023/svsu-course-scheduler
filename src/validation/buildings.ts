@@ -1,6 +1,7 @@
-import { Regex } from "tabler-icons-react";
 import { z } from "zod";
 
+//this will ensure the user is only inputting one or multiple numbers followed by 0 or 1
+//letter followed by 0 or 1 comma or followed by a hyphen and another number(s) followed by 0 or 1 letter
 const regex = /^\d+\w?(-\d+\w?)?(,\d+\w?(-\d+\w?)?)*$/;
 
 export const createCampusSchema = z.object({

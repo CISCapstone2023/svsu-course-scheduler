@@ -176,7 +176,10 @@ model GuidelinesFacultyToCourse {
 //Guidelines for courses with fields including course credits, number of meetings, days, and times of guidelines
 model GuidelinesCourses {
   tuid           String                   @id @default(cuid())
-  cycle          Boolean
+  semester_SU    Boolean
+  semester_FA    Boolean
+  semester_WI    Boolean
+  semester_SP    Boolean
   credits        Int
   meeting_amount Int
   //Relationships

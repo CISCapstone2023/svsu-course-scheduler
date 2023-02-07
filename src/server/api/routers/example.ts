@@ -5,6 +5,7 @@ import {
   publicProcedure,
   protectedProcedure,
 } from "src/server/api/trpc";
+import { Schedule } from "@prisma/client";
 
 export const exampleRouter = createTRPCRouter({
   hello: publicProcedure
@@ -20,6 +21,7 @@ export const exampleRouter = createTRPCRouter({
   }),
 
   getSecretMessage: protectedProcedure.query(() => {
+    const test: Schedule[] = [];
     return "you can now see this secret message!";
   }),
 });

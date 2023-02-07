@@ -14,6 +14,7 @@ import { createCampusSchema, ICreateCampus } from "src/validation/buildings";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import { GuidelineCampus } from "@prisma/client";
 import { toast } from "react-toastify";
+import PaginationBar from "src/components/Pagination";
 
 const CampusTab = () => {
   /**
@@ -32,9 +33,18 @@ const CampusTab = () => {
    * Data
    */
 
+  /**
+   * Campus Page for pagination
+   *
+   * Set the current page for the pagination with a default page
+   * of 1. This is consumed by the pagination component and then updated.
+   */
+  const [campusPage, setCampusPage] = useState(1);
+
   //Query all of the data based on the search value
   const campuses = api.buildings.getAllCampus.useQuery({
     search: searchValue,
+    page: campusPage,
   });
 
   //The function that gets called when a input event has occured.
@@ -51,6 +61,7 @@ const CampusTab = () => {
     //is an arrow function
     debounce((value: string) => {
       //Now we actually update the search so we don't keep fetching the server
+      setCampusPage(1);
       setSearchValue(value);
     }, 500), //This waits 500 ms (half a second) before the function inside (aka above) gets called
     []
@@ -237,10 +248,19 @@ const CampusTab = () => {
                 Add Campus
               </Button>
             </div>
-             
           </div>
         )}
-        <div></div>
+        <div className="flex w-full justify-center p-2">
+          {campuses.data != undefined && (
+            <PaginationBar
+              totalPageCount={campuses.data?.totalPages}
+              currentPage={campuses.data?.page}
+              onClick={(page) => {
+                setCampusPage(page);
+              }}
+            />
+          )}
+        </div>
       </div>
       {/* This dialog used for adding a user */}
       <Modal

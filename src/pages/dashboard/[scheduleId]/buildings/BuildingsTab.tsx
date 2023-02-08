@@ -15,11 +15,11 @@ import {
 } from "src/validation/buildings";
 
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
-import { GuidelineCampus as GuidelineBuilding } from "@prisma/client";
+import { GuidelineBuilding } from "@prisma/client";
 import { toast } from "react-toastify";
 import PaginationBar from "src/components/Pagination";
 
-const CampusTab = () => {
+const BuildingsTab = () => {
   /**
    * Router
    * Get the context of the current NextJS Router
@@ -85,8 +85,8 @@ const CampusTab = () => {
     useState<GuidelineBuilding>();
 
   /**
-   * openDeleteModal -
-   * Open Modal for the current campus (which is a GuidelineCampus)
+   * openDeleteModal
+   * Open Modal for the current campus (which is a GuidelineBuilding)
    * @param building
    */
   const openDeleteModal = (building: GuidelineBuilding) => {
@@ -94,7 +94,7 @@ const CampusTab = () => {
     setBuildingDeleteModal(true);
   };
   /**
-   * useForm -
+   * useForm
    * This creates a new form using the react-form-hooks.
    */
   const { reset, ...buildingForm } = useForm<ICreateBuilding>({
@@ -115,7 +115,7 @@ const CampusTab = () => {
   const buildingDeleteMutation = api.buildings.deleteBuilding.useMutation();
 
   /**
-   * onCampusModifySubmit
+   * onBuildingModifySubmit
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
@@ -152,8 +152,8 @@ const CampusTab = () => {
   };
 
   /**
-   * deleteCampus -
-   * Delete a campus based on tuid that is in the campusDeleteValue
+   * deleteBuilding
+   * Delete a building based on tuid that is in the campusDeleteValue
    */
   const deleteBuilding = async () => {
     //Make sure the value of the campus we want to delete is not undefined
@@ -249,11 +249,11 @@ const CampusTab = () => {
         </Table>
         {buildings.data?.result.length == 0 && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
-            No campuses found!
+            No buildings found!
             <div>
               <Button onClick={toggleBuildingModifyModal} className="mt-2">
                 <Plus />
-                Add Campus
+                Add Building
               </Button>
             </div>
              
@@ -390,4 +390,4 @@ const CampusTab = () => {
   );
 };
 
-export default CampusTab;
+export default BuildingsTab;

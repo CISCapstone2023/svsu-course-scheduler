@@ -5,6 +5,7 @@ import { prisma } from "src/server/db";
 import xlsx from "node-xlsx";
 import multiparty from "multiparty";
 import fs from "fs";
+import { number } from "zod";
 /**
  * UploadExcelFile
  *
@@ -14,7 +15,9 @@ import fs from "fs";
  */
 const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await unstable_getServerSession(req, res, authOptions);
-  if (session) {
+  if (session && session.user) {
+    const id = session.user?.id;
+
     const form = new multiparty.Form();
 
     const [fields, files] = await promisifyUpload(req);
@@ -25,24 +28,34 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
       files.file[0].headers["content-type"] == "application/vnd.ms-excel"
     ) {
       const result = xlsx.parse(fs.readFileSync(files.file[0].path));
-      if (result.length <= 1) {
+      if (result.length >= 1) {
         const revision = await prisma.scheduleRevision.create({
           data: {
             file: fs.readFileSync(files.file[0].path),
             name: "test",
-            creator_tuid: session.user?.id,
-            //
+            user: {
+              connect: {
+                id: id,
+              },
+            },
           },
         });
-        //Return the data to the hook
-        res.json({
-          tuid: revision.tuid,
-          columns: result[0]?.data,
-        });
-      } else {
-        res.status(401);
+
+        //console.log(result[0]?.data);
+        if (result[0] != undefined) {
+          // console.log("inside if statement");
+          // const transposed = (result[0].data[0] as any).map(
+          //   (_: any, colIndex: number) =>
+          //     (result[0]?.data as any).map((row: any) => row[colIndex])
+          // );
+          // console.log(transposed);
+
+          res.json({
+            tuid: revision.tuid,
+            table: result[0]?.data,
+          });
+        }
       }
-      console.log(result[0]?.data);
     }
     res.status(401);
   } else {

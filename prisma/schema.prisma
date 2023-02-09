@@ -144,17 +144,17 @@ model ScheduleRevision {
   tuid          String   @id @default(cuid())
   name          String
   file          Bytes?    @db.Blob
-  schedule_tuid String?
+  schedule_tuid String?   @map("schedule")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   onboarding    Boolean  @default(true)
-  creator_tuid String //The creator of this revision
+  creator_tuid String    @map("user")
 
   //Relationships
-  schedule      Schedule? @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
+  schedule      Schedule? @relation(fields: [schedule_tuid], references: [tuid])
   courses       Course[]
   
-  user User? @relation(fields: [creator_tuid], references: [id])
+  user User @relation(fields: [creator_tuid], references: [id])
 }
 
 model CourseLocation {

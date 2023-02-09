@@ -55,27 +55,27 @@ model Session {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  name          String?
-  username      String
-  email         String?      @unique
-  emailVerified DateTime?
-  password      String
-  image         String?
+  id              String             @id @default(cuid())
+  name            String?
+  username        String
+  email           String?            @unique
+  emailVerified   DateTime?
+  password        String
+  image           String?
   owned_revisions ScheduleRevision[]
-  schedules     SchedulesOnUsers[]
-  accounts      Account[]
-  sessions      Session[]
-  permissions   Permission[]
+  schedules       SchedulesOnUsers[]
+  accounts        Account[]
+  sessions        Session[]
+  permissions     Permission[]
 }
 
 model SchedulesOnUsers {
-  user       User     @relation(fields: [user_tuid], references: [id])
-  user_tuid  String // relation scalar field (used in the `@relation` attribute above)
-  schedule   Schedule @relation(fields: [schedule_tuid], references: [tuid])
+  user          User     @relation(fields: [user_tuid], references: [id])
+  user_tuid     String // relation scalar field (used in the `@relation` attribute above)
+  schedule      Schedule @relation(fields: [schedule_tuid], references: [tuid])
   schedule_tuid String // relation scalar field (used in the `@relation` attribute above)
-  assignedAt DateTime @default(now())
-  assignedBy String
+  assignedAt    DateTime @default(now())
+  assignedBy    String
 
   @@id([user_tuid, schedule_tuid])
 }
@@ -115,6 +115,10 @@ model Course {
   section            String
   start_date         DateTime
   end_date           DateTime
+  start_time_min     Int
+  start_time_hour    Int
+  end_time_min       Int
+  end_time_hour      Int
   credits            Int
   title              String                      @db.VarChar(30)
   status             String                      @default("Active")
@@ -136,25 +140,25 @@ model Course {
 model Schedule {
   tuid      String             @id @default(cuid())
   //Relationships
-  users SchedulesOnUsers[]
+  users     SchedulesOnUsers[]
   revisions ScheduleRevision[]
 }
 
 model ScheduleRevision {
   tuid          String   @id @default(cuid())
   name          String
-  file          Bytes?    @db.Blob
-  schedule_tuid String?
+  file          Bytes?   @db.Blob
+  schedule_tuid String?  @map("schedule")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   onboarding    Boolean  @default(true)
-  creator_tuid String //The creator of this revision
+  creator_tuid  String   @map("user")
 
   //Relationships
-  schedule      Schedule? @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
-  courses       Course[]
-  
-  user User? @relation(fields: [creator_tuid], references: [id])
+  schedule Schedule? @relation(fields: [schedule_tuid], references: [tuid])
+  courses  Course[]
+
+  user User @relation(fields: [creator_tuid], references: [id])
 }
 
 model CourseLocation {
@@ -213,8 +217,10 @@ model GuidelinesCourses {
 model GuidelinesCoursesTimes {
   tuid         String            @id @default(cuid())
   guideline_id String
-  start_time   DateTime
-  end_time     DateTime
+  start_time_min     Int
+  start_time_hour    Int
+  end_time_min       Int
+  end_time_hour      Int
   //Relation to relate times to course guidelines
   guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
 }

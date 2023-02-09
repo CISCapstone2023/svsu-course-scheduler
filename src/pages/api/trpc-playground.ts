@@ -8,6 +8,7 @@ const setupHandler = nextHandler({
   trpcApiEndpoint: "/api/trpc",
   playgroundEndpoint: "/api/trpc-playground",
   //uncomment this if you're using superjson
+  // uncomment this if you're using superjson
   request: {
     superjson: true,
   },

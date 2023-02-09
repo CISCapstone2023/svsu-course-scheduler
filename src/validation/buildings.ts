@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+//this will ensure the user is only inputting one or multiple numbers followed by 0 or 1
+//letter followed by 0 or 1 comma or followed by a hyphen and another number(s) followed by 0 or 1 letter
+const regex = /^\d+\w?(-\d+\w?)?(,\d+\w?(-\d+\w?)?)*$/;
+
 export const createCampusSchema = z.object({
   name: z
     .string()
@@ -13,9 +17,18 @@ export const updateCampusSchema = createCampusSchema.extend({
 
 export const createBuildingSchema = z.object({
   campus_tuid: z.string(),
-  name: z.string().min(4).max(75),
-  prefix: z.string().min(1).max(4),
-  classrooms: z.string(),
+  name: z
+    .string()
+    .min(4, { message: "Building name must be at least 4 characters" })
+    .max(75, { message: "Building name must be no more than 75 characters" }),
+  prefix: z
+    .string()
+    .min(1, { message: "Building prefix must be at least 1 character" })
+    .max(4, { message: "Building prefix must be no more than 4 characters" }),
+  classrooms: z.string().regex(regex, {
+    message:
+      "Must contain a single room number like: 143 or a single range like: 20-40 or a list of rooms like: 1,10,30a-40c",
+  }),
 });
 
 export const updateBuildingSchema = createBuildingSchema.extend({

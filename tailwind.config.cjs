@@ -22,6 +22,16 @@ module.exports = {
           secondary: "gray",
         },
       },
+      {
+        dark: {
+          ...daisyThemes["[data-theme=dark]"],
+        },
+      },
+      {
+        emerald: {
+          ...daisyThemes["[data-theme=emerald]"],
+        },
+      },
     ],
   },
   plugins: [require("daisyui")],

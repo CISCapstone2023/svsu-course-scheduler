@@ -24,21 +24,25 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
       files.file[0].headers["content-type"] == "application/vnd.ms-excel"
     ) {
-      /*
-      await prisma.scheduleRevision.create({
-        data: {
-          file: fs.readFileSync(files.file[0].path),
-          name: "hello",
-        },
-      });*/
-
       const result = xlsx.parse(fs.readFileSync(files.file[0].path));
+      if (result.length <= 1) {
+        const revision = await prisma.scheduleRevision.create({
+          data: {
+            file: fs.readFileSync(files.file[0].path),
+            name: "test",
+            creator_tuid: session.user?.id,
+            //
+          },
+        });
+        //Return the data to the hook
+        res.json({
+          tuid: revision.tuid,
+          columns: result[0]?.data,
+        });
+      } else {
+        res.status(401);
+      }
       console.log(result[0]?.data);
-      //Return the data to the hook
-      res.json({
-        tuid: [],
-        columns: result[0]?.data,
-      });
     }
     res.status(401);
   } else {

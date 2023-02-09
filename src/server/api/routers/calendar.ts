@@ -63,6 +63,24 @@ export const calendarRouter = createTRPCRouter({
         sunday_courses: sunday_courses?.courses,
       };
     }),
+
+  getCourse: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const course = await ctx.prisma.course.findUnique({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+
+      return {
+        course,
+      };
+    }),
 });
 
 async function queryCoursesByDay(

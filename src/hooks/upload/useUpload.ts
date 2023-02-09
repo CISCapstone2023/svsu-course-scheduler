@@ -20,7 +20,7 @@ const useRestUpload = <T>(url: string) => {
   const [uploading, setUploading] = useState(false);
   const [data, setData] = useState<T>();
 
-  const upload = async (file: File, params?: UploadParameters) => {
+  const upload = async (file: File, params?: UploadParameters): Promise<T> => {
     setUploading(true);
 
     //Create a form for uploading to the database

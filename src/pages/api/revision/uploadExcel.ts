@@ -5,6 +5,7 @@ import { prisma } from "src/server/db";
 import xlsx from "node-xlsx";
 import multiparty from "multiparty";
 import fs from "fs";
+import { number } from "zod";
 /**
  * UploadExcelFile
  *
@@ -14,7 +15,9 @@ import fs from "fs";
  */
 const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
   const session = await unstable_getServerSession(req, res, authOptions);
-  if (session) {
+  if (session && session.user) {
+    const id = session.user?.id;
+
     const form = new multiparty.Form();
 
     const [fields, files] = await promisifyUpload(req);
@@ -24,21 +27,35 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
       files.file[0].headers["content-type"] == "application/vnd.ms-excel"
     ) {
-      /*
-      await prisma.scheduleRevision.create({
-        data: {
-          file: fs.readFileSync(files.file[0].path),
-          name: "hello",
-        },
-      });*/
-
       const result = xlsx.parse(fs.readFileSync(files.file[0].path));
-      console.log(result[0]?.data);
-      //Return the data to the hook
-      res.json({
-        tuid: [],
-        columns: result[0]?.data,
-      });
+      if (result.length >= 1) {
+        const revision = await prisma.scheduleRevision.create({
+          data: {
+            file: fs.readFileSync(files.file[0].path),
+            name: "test",
+            user: {
+              connect: {
+                id: id,
+              },
+            },
+          },
+        });
+
+        //console.log(result[0]?.data);
+        if (result[0] != undefined) {
+          // console.log("inside if statement");
+          // const transposed = (result[0].data[0] as any).map(
+          //   (_: any, colIndex: number) =>
+          //     (result[0]?.data as any).map((row: any) => row[colIndex])
+          // );
+          // console.log(transposed);
+
+          res.json({
+            tuid: revision.tuid,
+            table: result[0]?.data,
+          });
+        }
+      }
     }
     res.status(401);
   } else {

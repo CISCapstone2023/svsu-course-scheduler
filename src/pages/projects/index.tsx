@@ -1,17 +1,20 @@
 import type { NextPage } from "next";
 import { signOut, useSession } from "next-auth/react";
-import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
 
 import { FilePlus, Logout } from "tabler-icons-react";
-import { Button, Modal, Steps } from "react-daisyui";
+import { Button, FileInput, Form, Modal, Steps } from "react-daisyui";
 import { useState } from "react";
 
 import { api } from "src/utils/api";
-
+import PaginationBar from "src/components/Pagination";
+import DashboardLayout from "src/components/dashboard/DashboardLayout";
+import ProjectsUpload from "src/components/projects/ProjectsUpload";
+import ProjectDataTableEdit from "src/components/ProjectDataTableEdit";
+import { useRouter } from "next/router";
 
 const Projects: NextPage = () => {
   /**
@@ -21,6 +24,7 @@ const Projects: NextPage = () => {
    * assuming they are successfully signed-in. If they are it will be null.
    */
   const { data } = useSession();
+  const router = useRouter();
 
   const [visible, setVisible] = useState<boolean>(false);
 
@@ -34,16 +38,33 @@ const Projects: NextPage = () => {
     if (stage == 3) {
       toggleVisible();
       setStage(1);
+    } else if (stage == 1.5) {
+      setStage(stage + 0.5);
     } else {
       setStage(stage + 1);
     }
   };
 
+  //
+  const backStage = () => {
+    if (stage <= 1) {
+      setStage(1);
+    } else {
+      setStage(stage - 1);
+    }
+  };
 
   const result = api.projects.getAllScheduleRevisions.useQuery({
     search: "",
     page: 0,
   });
+
+  const onCLickPage = () => {
+    console.log("click Page");
+  };
+  const goToMain = () => {
+    router.push("/dashboard/1/home");
+  };
 
   return (
     <DashboardLayout>
@@ -64,15 +85,6 @@ const Projects: NextPage = () => {
           </button>
         </div>
 
-        <div className=" mb-2 flex w-full justify-between">
-          <p className=" ml-20 justify-start text-3xl font-bold">
-            Recent Project:{" "}
-          </p>
-
-          <Button color="success" className="mr-20" onClick={toggleVisible}>
-            <FilePlus size={30} /> Create New Project
-          </Button>
-        </div>
         <Modal open={visible} className="h-full  w-11/12 max-w-5xl ">
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
@@ -108,21 +120,50 @@ const Projects: NextPage = () => {
 
           <Modal.Body>
             <div className="h-full w-full">
-              <div id="Imported" className="h-11/12 w-11/12"></div>
-              <div className="flex justify-self-end">
-                <Modal.Actions>
-                  <Button
-                    className="absolute right-3 bottom-5"
-                    onClick={toggleStage}
-                  >
-                    {stage >= 3 ? "Finalize" : "Next"}
-                  </Button>
-                </Modal.Actions>
+              <div className="flex h-full w-full justify-center align-middle">
+                {stage <= 1.5 ? (
+                  <ProjectsUpload
+                    onFinish={(data) => {
+                      console.log({ data });
+                      setStage(stage + 0.5);
+                    }}
+                  />
+                ) : (
+                  <></>
+                )}
+                {stage === 2 ? <ProjectDataTableEdit /> : <></>}
+                {stage === 3 ? <p>FINALIZE</p> : <></>}
               </div>
+
+              {stage > 1.5 ? (
+                <Button
+                  className="absolute left-3 bottom-5"
+                  onClick={backStage}
+                >
+                  Back
+                </Button>
+              ) : (
+                <></>
+              )}
+
+              <Button
+                className="absolute right-3 bottom-5"
+                disabled={stage < 1.5}
+                onClick={stage == 3 ? goToMain : toggleStage}
+              >
+                {stage >= 3 ? "Finalize" : "Next"}
+              </Button>
             </div>
           </Modal.Body>
         </Modal>
 
+        <div className="container mx-auto  flex justify-between p-4">
+          <p className=" j text-3xl font-bold">Recent Project: </p>
+
+          <Button color="success" className="" onClick={toggleVisible}>
+            <FilePlus size={30} /> Create New Project
+          </Button>
+        </div>
         <ProjectsLayout>
           <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
             <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
@@ -153,6 +194,14 @@ const Projects: NextPage = () => {
             />
           </ProjectItem>
         </ProjectsLayout>
+
+        <div className="mt-3 flex justify-center">
+          <PaginationBar
+            totalPageCount={10}
+            currentPage={1}
+            onClick={onCLickPage}
+          />
+        </div>
       </div>
     </DashboardLayout>
   );

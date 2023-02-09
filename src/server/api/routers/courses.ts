@@ -32,39 +32,57 @@ export const coursesRouter = createTRPCRouter({
         semester_spring: z.boolean().default(false),
 
         //Defines the min and max value for the credits along with defaults
-        credits: z.object({
-          min: z.number().min(1).default(1),
-          max: z.number().max(4).default(4),
-        }),
+        credits: z
+          .object({
+            min: z.number().min(1).default(1),
+            max: z.number().max(4).default(4),
+          })
+          .default({ min: 1, max: 4 }),
 
         //Defines the min and max values for the meeting amounts including defaults
-        meeting_total: z.object({
-          min: z.number().min(1).default(1),
-          max: z.number().max(4).default(4),
-        }),
+        meeting_total: z
+          .object({
+            min: z.number().min(1).default(1),
+            max: z.number().max(4).default(4),
+          })
+          .default({ min: 1, max: 4 }),
 
         //Defines the min and max hours and minutes for the course guideline start time
-        start_time: z.object({
-          hour: z.number().min(0).max(24).default(8),
-          minute: z.number().min(0).min(60).default(30),
-        }),
+        start_time: z
+          .object({
+            hour: z.number().min(0).max(24).default(8),
+            minute: z.number().min(0).max(60).default(30),
+          })
+          .default({ hour: 1, minute: 30 }),
 
         //Defines the min and max hours and minutes for the course guideline end time
-        end_time: z.object({
-          hour: z.number().min(0).max(24).default(22),
-          minute: z.number().min(0).min(60).default(0),
-        }),
+        end_time: z
+          .object({
+            hour: z.number().min(0).max(24).default(22),
+            minute: z.number().min(0).max(60).default(0),
+          })
+          .default({ hour: 23, minute: 30 }),
 
         //Defines the booleans for the day of the week the guideline applies to
-        days: z.object({
-          monday: z.boolean().default(false),
-          tuesday: z.boolean().default(false),
-          wednesday: z.boolean().default(false),
-          thursday: z.boolean().default(false),
-          friday: z.boolean().default(false),
-          saturday: z.boolean().default(false),
-          sunday: z.boolean().default(false),
-        }),
+        days: z
+          .object({
+            monday: z.boolean().default(false),
+            tuesday: z.boolean().default(false),
+            wednesday: z.boolean().default(false),
+            thursday: z.boolean().default(false),
+            friday: z.boolean().default(false),
+            saturday: z.boolean().default(false),
+            sunday: z.boolean().default(false),
+          })
+          .default({
+            monday: false,
+            tuesday: false,
+            wednesday: false,
+            thursday: false,
+            friday: false,
+            saturday: false,
+            sunday: false,
+          }),
 
         //Defines the page number and default value
         page: z.number().default(0),
@@ -72,53 +90,123 @@ export const coursesRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       let courseGuidelinesResult: CourseGuidelinesTimeAndDays[] = [];
-
       //Defines the query to find the guidelines based on the selected filters
       courseGuidelinesResult = await ctx.prisma.guidelinesCourses.findMany({
         where: {
           OR: [
             {
-              semester_summer: input.semester_summer,
-            },
-            {
-              semester_fall: input.semester_fall,
-            },
-            {
-              semester_winter: input.semester_winter,
-            },
-            {
-              semester_spring: input.semester_spring,
-            },
-            {
-              credits: {
-                lte: input.credits.max,
+              days: {
+                some: {
+                  day_monday: input.days.monday,
+                },
               },
             },
             {
-              credits: {
-                gte: input.credits.min,
+              days: {
+                some: {
+                  day_tuesday: input.days.tuesday,
+                },
               },
             },
             {
-              meeting_amount: {
-                lte: input.meeting_total.max,
-              },
-            },
-            {
-              meeting_amount: {
-                gte: input.meeting_total.min,
+              days: {
+                some: {
+                  day_wednesday: input.days.wednesday,
+                },
               },
             },
           ],
-          times: {
-            every: {},
-          },
         },
+        //where: {
+        // AND: [
+        //   {
+        //     days: {
+        //       some: {
+        //         OR: [
+        //           {
+        //             day_monday: input.days.monday,
+        //           },
+        //           {
+        //             day_tuesday: input.days.tuesday,
+        //           },
+        //           {
+        //             day_wednesday: input.days.wednesday,
+        //           },
+        //           {
+        //             day_thursday: input.days.thursday,
+        //           },
+        //           {
+        //             day_friday: input.days.friday,
+        //           },
+        //           {
+        //             day_saturday: input.days.saturday,
+        //           },
+        //           {
+        //             day_sunday: input.days.sunday,
+        //           },
+        //         ],
+        //       },
+        //     },
+        //   },
+        // ],
+
+        // times: {
+        //   some: {
+        //     start_time_hour: { gte: input.start_time.hour },
+        //     start_time_min: { gte: input.start_time.minute },
+        //     end_time_hour: { lte: input.end_time.hour },
+        //     end_time_min: { lte: input.end_time.minute },
+        //   },
+        // },
+        // OR: [
+        //   {
+        //     semester_summer: input.semester_summer,
+        //   },
+        //   {
+        //     semester_fall: input.semester_fall,
+        //   },
+        //   {
+        //     semester_winter: input.semester_winter,
+        //   },
+        //   {
+        //     semester_spring: input.semester_spring,
+        //   },
+        //   {
+        //     credits: {
+        //       lte: input.credits.max,
+        //     },
+        //   },
+        //   {
+        //     credits: {
+        //       gte: input.credits.min,
+        //     },
+        //   },
+        //   {
+        //     meeting_amount: {
+        //       lte: input.meeting_total.max,
+        //     },
+        //   },
+        //   {
+        //     meeting_amount: {
+        //       gte: input.meeting_total.min,
+        //     },
+        //   },
+        // ],
+        //},
+
         take: 10,
         skip: input.page * 10,
 
         include: {
           days: true,
+          // times: {
+          //   where: {
+          //     start_time_hour: input.start_time.hour,
+          //     start_time_min: input.start_time.minute,
+          //     end_time_hour: input.end_time.hour,
+          //     end_time_min: input.end_time.minute,
+          //   },
+          // },
           times: true,
         },
       });
@@ -143,6 +231,9 @@ export const coursesRouter = createTRPCRouter({
           semester_spring: input.semester_spring,
           credits: input.credits,
           meeting_amount: input.meeting_total,
+          times: {
+            create: [],
+          },
         },
       });
 

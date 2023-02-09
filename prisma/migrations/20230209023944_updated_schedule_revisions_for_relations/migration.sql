@@ -7,13 +7,13 @@
 
 */
 -- DropForeignKey
-ALTER TABLE `schedulerevision` DROP FOREIGN KEY `ScheduleRevision_creator_tuid_fkey`;
+ALTER TABLE `ScheduleRevision` DROP FOREIGN KEY `ScheduleRevision_creator_tuid_fkey`;
 
 -- DropForeignKey
-ALTER TABLE `schedulerevision` DROP FOREIGN KEY `ScheduleRevision_schedule_tuid_fkey`;
+ALTER TABLE `ScheduleRevision` DROP FOREIGN KEY `ScheduleRevision_schedule_tuid_fkey`;
 
 -- AlterTable
-ALTER TABLE `schedulerevision` DROP COLUMN `creator_tuid`,
+ALTER TABLE `ScheduleRevision` DROP COLUMN `creator_tuid`,
     DROP COLUMN `schedule_tuid`,
     ADD COLUMN `schedule` VARCHAR(191) NULL,
     ADD COLUMN `user` VARCHAR(191) NOT NULL;

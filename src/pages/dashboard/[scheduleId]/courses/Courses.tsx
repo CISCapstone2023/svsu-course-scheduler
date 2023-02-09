@@ -171,7 +171,7 @@ const Courses = () => {
    * Delete a faculty based on tuid that is in the facultyDeleteValue
    */
   const deleteCourse = async () => {
-    //Make sure the value of the faculty we want to delete is not undefined
+    //Make sure the value of the course we want to delete is not undefined
     if (courseDeleteValue != undefined) {
       //Now send the mutation to the server. The server will return
       //A boolean value that either it deleted or it failed to delete
@@ -197,7 +197,7 @@ const Courses = () => {
         );
       }
     }
-    //Now we just need to reftech the faculty
+    //Now we just need to refetch the course
     courses.refetch();
     //And close the modal
     openCourseDeleteModal(false);
@@ -305,7 +305,7 @@ const Courses = () => {
           )}
         </div>
       </div>
-      {/* This dialog used for adding a faculty */}
+      {/* This dialog used for adding a course */}
       <Modal
         open={isCourseCreateModalOpen}
         onClickBackdrop={toggleCourseModifyModal}
@@ -404,10 +404,10 @@ const Courses = () => {
           </form>
         </Modal.Body>
       </Modal>
-      {/* This dialog for deleting a faculty */}
+      {/* This dialog for deleting a course */}
       <ConfirmDeleteModal
         open={isCourseDeleteModalOpen}
-        title="Delete Faculty?"
+        title="Delete Course?"
         message={
           courseDeleteValue
             ? `Are you sure you want delete '${courseDeleteValue?.first_name} ${courseDeleteValue?.last_name}'?`

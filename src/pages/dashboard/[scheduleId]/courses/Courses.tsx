@@ -1,10 +1,20 @@
 //Import component libraries and react
 import { useCallback, useEffect, useState } from "react";
-import { Button, Checkbox, Input, Modal, Select, Table } from "react-daisyui";
+import {
+  Button,
+  ButtonGroup,
+  Card,
+  Checkbox,
+  Dropdown,
+  Input,
+  Modal,
+  Select,
+  Table,
+} from "react-daisyui";
 import { toast } from "react-toastify";
 
 //Import icons
-import { Check, Pencil, Plus, Trash, X } from "tabler-icons-react";
+import { CaretDown, Check, Pencil, Plus, Trash, X } from "tabler-icons-react";
 
 //Import form information
 import { useForm } from "react-hook-form";
@@ -13,10 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from "lodash";
 
 //Import types
-import {
-  createFacultySchema as createCourseSchema,
-  type ICreateFaculty as ICreateCourse,
-} from "src/validation/faculty";
+import { addGuidelineSchema, type IAddGuideline } from "src/validation/courses";
 import { type GuidelinesFaculty as GuidelinesCourse } from "@prisma/client";
 
 //Import local components
@@ -25,20 +32,39 @@ import PaginationBar from "src/components/Pagination";
 
 //Import backend api
 import { api } from "src/utils/api";
+import { CourseGuidelinesTimeAndDays } from "src/server/api/routers/courses";
 
 const Courses = () => {
   /**
    * Filter values
    * The value which will be searching that is set by the debouncing below
    */
-  const [filterSemester, setFilterSemester] = useState<
-    "Fall" | "Winter" | "Spring" | "Summer"[]
-  >();
-  const [filterCredits, setFilterCredits] = useState(4);
-  const [filterMeetings, setFilterMeetings] = useState(3);
-  const [filterStartTime, setFilterStartTime] = useState<Date>();
-  const [filterEndTime, setFilterEndTime] = useState<Date>();
-  const [filterDays, setFilterDays] = useState(2);
+  const [filterFallSemester, setFilterFallSemester] = useState(true);
+  const [filterWinterSemester, setFilterWinterSemester] = useState(true);
+  const [filterSpringSemester, setFilterSpringSemester] = useState(true);
+  const [filterSummerSemester, setFilterSummerSemester] = useState(true);
+
+  const [filterSemesterDropdown, setFilterSemesterDropdown] = useState(false);
+
+  const [filterCreditsMax, setFilterCreditsMax] = useState(4);
+  const [filterCreditsMin, setFilterCreditsMin] = useState(1);
+
+  const [filterMeetingsMax, setFilterMeetingsMax] = useState(4);
+  const [filterMeetingsMin, setFilterMeetingsMin] = useState(1);
+
+  const [filterStartTimeHour, setFilterStartTimeHour] = useState(8);
+  const [filterStartTimeMinute, setFilterStartTimeMinute] = useState(30);
+
+  const [filterEndTimeHour, setFilterEndTimeHour] = useState(22);
+  const [filterEndTimeMinute, setFilterEndTimeMinute] = useState(5);
+
+  const [filterDaysMonday, setFilterDaysMonday] = useState(true);
+  const [filterDaysTuesday, setFilterDaysTuesday] = useState(true);
+  const [filterDaysWednesday, setFilterDaysWednesday] = useState(true);
+  const [filterDaysThursday, setFilterDaysThursday] = useState(true);
+  const [filterDaysFriday, setFilterDaysFriday] = useState(true);
+  const [filterDaysSaturday, setFilterDaysSaturday] = useState(true);
+  const [filterDaysSunday, setFilterDaysSunday] = useState(true);
 
   /**
    * Pagination
@@ -49,9 +75,23 @@ const Courses = () => {
 
   //Query all of the data based on the search value
 
-  const courses = api.faculty.getAllFaculty.useQuery({
-    page: currentPage,
-    search: "",
+  const courses = api.courses.getAllCourseGuidelines.useQuery({
+    page: 0,
+    days: {
+      monday: filterDaysMonday,
+      tuesday: filterDaysTuesday,
+      wednesday: filterDaysWednesday,
+      thursday: filterDaysThursday,
+      friday: filterDaysFriday,
+      saturday: filterDaysSaturday,
+      sunday: filterDaysSunday,
+    },
+    semester_fall: filterFallSemester,
+    semester_winter: filterWinterSemester,
+    semester_spring: filterSpringSemester,
+    semester_summer: filterSummerSemester,
+
+    //search: "",
   });
 
   //The function that gets called when a input event has occured.
@@ -89,14 +129,14 @@ const Courses = () => {
   const [isCourseDeleteModalOpen, openCourseDeleteModal] =
     useState<boolean>(false);
   const [courseDeleteValue, setCourseDeleteValue] =
-    useState<GuidelinesCourse>();
+    useState<CourseGuidelinesTimeAndDays>();
 
   /**
    * openDeleteModal
    * Open the deletion modal for the current faculty member
    * @param course
    */
-  const openDeleteModal = (course: GuidelinesCourse) => {
+  const openDeleteModal = (course: CourseGuidelinesTimeAndDays) => {
     setCourseDeleteValue(course);
     openCourseDeleteModal(true);
   };
@@ -107,9 +147,9 @@ const Courses = () => {
    * This form hook will provide all the needed function to validate and parse
    * the data on the form
    */
-  const { reset, ...courseForm } = useForm<ICreateCourse>({
+  const { reset, ...courseForm } = useForm<CourseGuidelinesTimeAndDays>({
     mode: "onBlur",
-    resolver: zodResolver(createCourseSchema),
+    resolver: zodResolver(addGuidelineSchema),
   });
 
   const toggleCourseModifyModal = () => {
@@ -129,35 +169,34 @@ const Courses = () => {
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onCourseModifySubmit = async (data: ICreateCourse) => {
+  const onCourseModifySubmit = async (data: IAddGuideline) => {
     //Do we have to update said faculty
     console.log("Wooo!");
     console.log(isCourseEditing);
 
     if (isCourseEditing) {
-      const result = await courseUpdateMutation.mutateAsync({
-        tuid: isCourseEditing?.tuid,
-        ...data,
-      });
-
-      if (result) {
-        toast.info(`Updated '${data.first_name} ${data.last_name}'`);
-      } else {
-        toast.error(
-          `Failed to add Course '${data.first_name} ${data.last_name}'`
-        );
-      }
-    } else {
-      const result = await courseAddMutation.mutateAsync(data);
-      if (result) {
-        toast.success(
-          `Added new course '${data.first_name} ${data.last_name}'`
-        );
-      } else {
-        toast.error(
-          `Failed to add course '${data.first_name} ${data.last_name}'`
-        );
-      }
+      // const result = await courseUpdateMutation.mutateAsync({
+      //   tuid: isCourseEditing?.tuid,
+      //   ...data,
+      // });
+      //   if (result) {
+      //     toast.info(`Updated '${data.first_name} ${data.last_name}'`);
+      //   } else {
+      //     toast.error(
+      //       `Failed to add Course '${data.first_name} ${data.last_name}'`
+      //     );
+      //   }
+      // } else {
+      //   const result = await courseAddMutation.mutateAsync(data);
+      //   if (result) {
+      //     toast.success(
+      //       `Added new course '${data.first_name} ${data.last_name}'`
+      //     );
+      //   } else {
+      //     toast.error(
+      //       `Failed to add course '${data.first_name} ${data.last_name}'`
+      //     );
+      //   }
     }
 
     //Update the list after either an add or edit
@@ -181,20 +220,14 @@ const Courses = () => {
 
       //If its true, that's a good!
       if (response) {
-        toast.success(
-          `Succesfully deleted '${courseDeleteValue?.first_name} ${courseDeleteValue?.last_name}'`,
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+        toast.success(`Succesfully deleted `, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
         //Else its an error
       } else {
-        toast.error(
-          `Failed to deleted '${courseDeleteValue?.first_name} ${courseDeleteValue?.last_name}'`,
-          {
-            position: toast.POSITION.TOP_RIGHT,
-          }
-        );
+        toast.error(`Failed to delete`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
       }
     }
     //Now we just need to refetch the course
@@ -208,13 +241,181 @@ const Courses = () => {
    *
    * Are we editing a faculty member? If so its null or the faculty object
    */
-  const [isCourseEditing, setCourseEditing] = useState<GuidelinesCourse>();
+  const [isCourseEditing, setCourseEditing] =
+    useState<CourseGuidelinesTimeAndDays>();
 
   return (
     <>
       <div className="m-2 flex justify-between ">
-        <div>
-          <Input onChange={onSearch} placeholder="Search" />
+        <div className="flex space-x-2">
+          <Dropdown>
+            <Button
+              onClick={() => {
+                setFilterSemesterDropdown(true);
+              }}
+            >
+              Semester
+              <CaretDown />
+            </Button>
+            <Dropdown.Menu>
+              <Card.Body>
+                <div className="flex space-x-4">
+                  <p>Fall</p>
+                  <Checkbox
+                    checked={filterFallSemester}
+                    onChange={(e) => {
+                      setFilterFallSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+                <div className="flex">
+                  <p>Winter</p>
+                  <Checkbox
+                    checked={filterWinterSemester}
+                    onChange={(e) => {
+                      setFilterWinterSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+                <div className="flex">
+                  <p>Spring</p>
+                  <Checkbox
+                    checked={filterSpringSemester}
+                    onChange={(e) => {
+                      setFilterSpringSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+                <div className="flex space-x-4">
+                  <p>Summer</p>
+                  <Checkbox
+                    checked={filterSummerSemester}
+                    onChange={(e) => {
+                      setFilterSummerSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+              </Card.Body>
+            </Dropdown.Menu>
+          </Dropdown>
+          <Dropdown>
+            <Button>
+              Credits
+              <CaretDown />
+            </Button>
+            <Dropdown.Menu>
+              <Card.Body>
+                <p>Min Credits</p>
+                <Input
+                  onChange={(e) => {
+                    setFilterCreditsMin(parseInt(e.currentTarget.value));
+                  }}
+                  value={filterCreditsMin}
+                  className="w-36"
+                  type="number"
+                  placeholder="Min Credits"
+                />
+                <p>Max Credits</p>
+                <Input
+                  onChange={(e) => {
+                    setFilterCreditsMax(parseInt(e.currentTarget.value));
+                  }}
+                  value={filterCreditsMax}
+                  className="w-36"
+                  type="number"
+                  placeholder="Max Credits"
+                />
+              </Card.Body>
+            </Dropdown.Menu>
+          </Dropdown>
+          <Dropdown>
+            <Button>
+              Meetings
+              <CaretDown />
+            </Button>
+            <Dropdown.Menu>
+              <Card.Body>
+                <p>Min Meeting Amount</p>
+                <Input
+                  onChange={(e) => {
+                    setFilterMeetingsMin(parseInt(e.currentTarget.value));
+                  }}
+                  value={filterMeetingsMin}
+                  className="w-38"
+                  type="number"
+                  placeholder="Min Meetings"
+                />
+                <p>Max Meeting Amount</p>
+                <Input
+                  onChange={(e) => {
+                    setFilterMeetingsMax(parseInt(e.currentTarget.value));
+                  }}
+                  value={filterMeetingsMax}
+                  className="w-38"
+                  type="number"
+                  placeholder="Max Meetings"
+                />
+              </Card.Body>
+            </Dropdown.Menu>
+          </Dropdown>
+          <ButtonGroup>
+            <Button
+              onClick={() => {
+                setFilterDaysMonday(!filterDaysMonday);
+              }}
+              active={filterDaysMonday}
+            >
+              M
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterDaysTuesday(!filterDaysTuesday);
+              }}
+              active={filterDaysTuesday}
+            >
+              T
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterDaysWednesday(!filterDaysWednesday);
+              }}
+              active={filterDaysWednesday}
+            >
+              W
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterDaysThursday(!filterDaysThursday);
+              }}
+              active={filterDaysThursday}
+            >
+              TH
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterDaysFriday(!filterDaysFriday);
+              }}
+              active={filterDaysFriday}
+            >
+              F
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterDaysSaturday(!filterDaysSaturday);
+              }}
+              active={filterDaysSaturday}
+            >
+              SAT
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterDaysSunday(!filterDaysSunday);
+              }}
+              active={filterDaysSunday}
+            >
+              SUN
+            </Button>
+          </ButtonGroup>
         </div>
         <div>
           <Button
@@ -247,13 +448,32 @@ const Courses = () => {
                   <span>{i + 1}</span>
                   <span>{course.credits}</span>
                   <span>{course.meeting_amount}</span>
-                  <span>{course.course_length}</span>
+                  <span>course legnth 1 hour</span>
                   <span>
                     {course.times.map((time) => {
-                      return <span>{time}</span>;
+                      return (
+                        <span key={time.tuid}>
+                          {time.start_time_hour}:{time.start_time_min} to{" "}
+                          {time.end_time_hour}:{time.end_time_min}
+                        </span>
+                      );
                     })}
                   </span>
-                  <span>{course.days}</span>
+                  <span>
+                    {course.days.map((day) => {
+                      return (
+                        <span key={day.tuid}>
+                          {day.day_monday ? "M" : null}{" "}
+                          {day.day_tuesday ? "T" : null}
+                          {day.day_wednesday ? "W" : null}
+                          {day.day_thursday ? "TH" : null}
+                          {day.day_friday ? "F" : null}
+                          {day.day_saturday ? "SAT" : null}
+                          {day.day_sunday ? "SUN" : null}
+                        </span>
+                      );
+                    })}
+                  </span>
                   <div className="hover:cursor-pointer">
                     <Button
                       color="warning"
@@ -296,7 +516,7 @@ const Courses = () => {
         <div className="flex w-full justify-center p-2">
           {courses.data != undefined && (
             <PaginationBar
-              totalPageCount={courses.data?.totalPages}
+              totalPageCount={0}
               currentPage={courses.data?.page}
               onClick={(page) => {
                 setCurrentPage(page);
@@ -404,15 +624,12 @@ const Courses = () => {
           </form>
         </Modal.Body>
       </Modal>
+
       {/* This dialog for deleting a course */}
       <ConfirmDeleteModal
         open={isCourseDeleteModalOpen}
         title="Delete Course?"
-        message={
-          courseDeleteValue
-            ? `Are you sure you want delete '${courseDeleteValue?.first_name} ${courseDeleteValue?.last_name}'?`
-            : "Error"
-        }
+        message={courseDeleteValue ? `Are you sure you want delete` : "Error"}
         onClose={() => {
           openCourseDeleteModal(false);
         }}

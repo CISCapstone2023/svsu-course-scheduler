@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { set } from "date-fns";
+//import { set } from "date-fns";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import {
@@ -14,7 +14,8 @@ import { addGuidelineSchema } from "src/validation/courses";
 const courseGuidelinesTD = Prisma.validator<Prisma.GuidelinesCoursesArgs>()({
   include: { times: true, days: true },
 });
-type CourseGuidelinesTimeAndDays = Prisma.GuidelinesCoursesGetPayload<
+
+export type CourseGuidelinesTimeAndDays = Prisma.GuidelinesCoursesGetPayload<
   typeof courseGuidelinesTD
 >;
 
@@ -93,29 +94,29 @@ export const coursesRouter = createTRPCRouter({
       //Defines the query to find the guidelines based on the selected filters
       courseGuidelinesResult = await ctx.prisma.guidelinesCourses.findMany({
         where: {
-          OR: [
-            {
-              days: {
-                some: {
-                  day_monday: input.days.monday,
-                },
-              },
-            },
-            {
-              days: {
-                some: {
-                  day_tuesday: input.days.tuesday,
-                },
-              },
-            },
-            {
-              days: {
-                some: {
-                  day_wednesday: input.days.wednesday,
-                },
-              },
-            },
-          ],
+          // OR: [
+          //   {
+          //     days: {
+          //       some: {
+          //         day_monday: input.days.monday,
+          //       },
+          //     },
+          //   },
+          //   {
+          //     days: {
+          //       some: {
+          //         day_tuesday: input.days.tuesday,
+          //       },
+          //     },
+          //   },
+          //   {
+          //     days: {
+          //       some: {
+          //         day_wednesday: input.days.wednesday,
+          //       },
+          //     },
+          //   },
+          // ],
         },
         //where: {
         // AND: [
@@ -230,7 +231,7 @@ export const coursesRouter = createTRPCRouter({
           semester_winter: input.semester_winter,
           semester_spring: input.semester_spring,
           credits: input.credits,
-          meeting_amount: input.meeting_total,
+          meeting_amount: input.meeting_amount,
           times: {
             create: [],
           },

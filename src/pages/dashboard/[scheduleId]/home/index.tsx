@@ -28,12 +28,6 @@ const Dashboard: NextPage = () => {
         <DashboardContentHeader title="Home">
           <Button>Example Button</Button>
         </DashboardContentHeader>
-        <ProjectsUpload
-          onFinish={(data) => {
-            console.log("Done");
-            console.log(data);
-          }}
-        />
         <DashboardHomeTabs />
       </DashboardContent>
     </DashboardLayout>

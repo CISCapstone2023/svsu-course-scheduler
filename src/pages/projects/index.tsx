@@ -14,6 +14,7 @@ import PaginationBar from "src/components/Pagination";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectsUpload from "src/components/projects/ProjectsUpload";
 import ProjectDataTableEdit from "src/components/ProjectDataTableEdit";
+import { useRouter } from "next/router";
 
 const Projects: NextPage = () => {
   /**
@@ -23,6 +24,7 @@ const Projects: NextPage = () => {
    * assuming they are successfully signed-in. If they are it will be null.
    */
   const { data } = useSession();
+  const router = useRouter();
 
   const [visible, setVisible] = useState<boolean>(false);
 
@@ -36,6 +38,8 @@ const Projects: NextPage = () => {
     if (stage == 3) {
       toggleVisible();
       setStage(1);
+    } else if (stage == 1.5) {
+      setStage(stage + 0.5);
     } else {
       setStage(stage + 1);
     }
@@ -59,7 +63,7 @@ const Projects: NextPage = () => {
     console.log("click Page");
   };
   const goToMain = () => {
-    window.location = "/dashboard/1/home";
+    router.push("/dashboard/1/home");
   };
 
   return (
@@ -126,12 +130,21 @@ const Projects: NextPage = () => {
           <Modal.Body>
             <div className="h-full w-full">
               <div className="flex h-full w-full justify-center align-middle">
-                {stage === 1 ? <ProjectsUpload /> : <></>}
+                {stage <= 1.5 ? (
+                  <ProjectsUpload
+                    onFinish={(data) => {
+                      console.log({ data });
+                      setStage(stage + 0.5);
+                    }}
+                  />
+                ) : (
+                  <></>
+                )}
                 {stage === 2 ? <ProjectDataTableEdit /> : <></>}
                 {stage === 3 ? <p>FINALIZE</p> : <></>}
               </div>
 
-              {stage > 1 ? (
+              {stage > 1.5 ? (
                 <Button
                   className="absolute left-3 bottom-5"
                   onClick={backStage}
@@ -144,6 +157,7 @@ const Projects: NextPage = () => {
 
               <Button
                 className="absolute right-3 bottom-5"
+                disabled={stage < 1.5}
                 onClick={stage == 3 ? goToMain : toggleStage}
               >
                 {stage >= 3 ? "Finalize" : "Next"}

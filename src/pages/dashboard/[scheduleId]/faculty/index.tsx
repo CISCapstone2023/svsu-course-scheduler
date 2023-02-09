@@ -1,46 +1,37 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { Button } from "react-daisyui";
+import { Tabs } from "react-daisyui";
+import { routeNeedsAuthSession } from "src/server/auth";
 import { useState } from "react";
 
-import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
-import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
+import DashboardLayout from "src/components/dashboard/DashboardLayout";
+import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
+import Faculty from "./Faculty";
 
-import useRestUpload from "src/hooks/upload/useUpload";
-import { routeNeedsAuthSession } from "src/server/auth";
-import ProjectsUpload from "src/components/projects/ProjectsUpload";
-const Dashboard: NextPage = () => {
+const Buildings: NextPage = () => {
   /**
-   * useSession
+   * JSX
    *
-   * A function provided by the NextJSAuth library which provides data about the user
-   * assuming they are successfully signed-in. If they are it will be null.
+   * In the UI layout we are wrapping our dashboard with the
+   * sidebar and contnent to display this faculty page as its
+   * a child of the content. We also have a header (which is technically optional)
    */
-  const {} = useSession();
-
   return (
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
-        <DashboardContentHeader title="Home">
-          <Button>Example Button</Button>
-        </DashboardContentHeader>
-        <ProjectsUpload
-          onFinish={(data) => {
-            console.log("Done");
-            console.log(data);
-          }}
-        />
-        <DashboardHomeTabs />
+        <DashboardContentHeader title="Faculty" />
+        <div className="container mx-auto px-4">
+          <Faculty />
+        </div>
       </DashboardContent>
     </DashboardLayout>
   );
 };
 
-export default Dashboard;
+export default Buildings;
 
 /**
  * Get Server Side Properties

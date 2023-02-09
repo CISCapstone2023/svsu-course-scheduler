@@ -14,10 +14,11 @@ interface UploadParameters {
   [name: string]: string;
 }
 
-const useRestUpload = (url: string) => {
+const useRestUpload = <T>(url: string) => {
   //Progress and uploading state
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [data, setData] = useState<T>();
 
   const upload = async (file: File, params?: UploadParameters) => {
     setUploading(true);
@@ -34,8 +35,9 @@ const useRestUpload = (url: string) => {
         dataForm.append(param, value);
       }
     }
+
     //Now set the axios post out
-    await axios({
+    const res = await axios<T>({
       method: "post",
       data: dataForm,
       url,
@@ -52,8 +54,10 @@ const useRestUpload = (url: string) => {
       },
     });
 
+    setData(res.data);
     //Now we are not uploading anymore
     setUploading(false);
+    return res.data;
   };
 
   //Progress reset
@@ -62,7 +66,7 @@ const useRestUpload = (url: string) => {
   };
 
   //Upload the files
-  return { upload, progress, uploading, reset };
+  return { upload, progress, uploading, reset, data };
 };
 
 export default useRestUpload;

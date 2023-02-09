@@ -1,21 +1,20 @@
+import { ScheduleRevision } from "@prisma/client";
 import React, { useState } from "react";
 import { Button, FileInput, Progress } from "react-daisyui";
 import useRestUpload from "src/hooks/upload/useUpload";
 
 interface ProjectsUploadProps {
   children?: React.ReactNode;
+  onFinish?: (data: IOnboarding | undefined) => void;
 }
 
-const ProjectsUpload = ({ children }: ProjectsUploadProps) => {
-  return (
-    <div>
-      <Rest />
-    </div>
-  );
-};
+interface IOnboarding {
+  tuid: string;
+  columns: Array<Array<ScheduleRevision>>;
+}
 
-const Rest = () => {
-  // const [url, setUrl] = useState("");
+const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {
+  const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
 
   const { upload, progress, uploading, reset } = useRestUpload(
@@ -37,9 +36,9 @@ const Rest = () => {
       }
       //Now attempt to upload the file to the application
       console.log("ATTEMPTING TO UPLOAD");
-      await upload(file, {
-        id: "thing",
-      });
+      const data = await upload(file, {});
+
+      if (onFinish) onFinish(data);
     } else {
       setMessage("Invalid file?");
       return;

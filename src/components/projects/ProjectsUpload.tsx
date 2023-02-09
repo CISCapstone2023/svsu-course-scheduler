@@ -17,7 +17,7 @@ const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {
   const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
 
-  const { upload, progress, uploading, reset } = useRestUpload(
+  const { upload, progress, uploading, reset } = useRestUpload<IOnboarding>(
     `/api/revision/uploadExcel`
   );
 

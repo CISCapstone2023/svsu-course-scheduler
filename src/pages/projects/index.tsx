@@ -85,15 +85,6 @@ const Projects: NextPage = () => {
           </button>
         </div>
 
-        <div className=" mb-2 flex w-full justify-between">
-          <p className=" ml-20 justify-start text-3xl font-bold">
-            Recent Project:{" "}
-          </p>
-
-          <Button color="success" className="mr-20" onClick={toggleVisible}>
-            <FilePlus size={30} /> Create New Project
-          </Button>
-        </div>
         <Modal open={visible} className="h-full  w-11/12 max-w-5xl ">
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
@@ -166,6 +157,13 @@ const Projects: NextPage = () => {
           </Modal.Body>
         </Modal>
 
+        <div className="container mx-auto  flex justify-between p-4">
+          <p className=" j text-3xl font-bold">Recent Project: </p>
+
+          <Button color="success" className="" onClick={toggleVisible}>
+            <FilePlus size={30} /> Create New Project
+          </Button>
+        </div>
         <ProjectsLayout>
           <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
             <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />

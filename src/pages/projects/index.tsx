@@ -15,6 +15,8 @@ import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectsUpload from "src/components/projects/ProjectsUpload";
 import ProjectDataTableEdit from "src/components/ProjectDataTableEdit";
 import { useRouter } from "next/router";
+import { ScheduleRevision } from "@prisma/client";
+import { Url } from "url";
 
 const Projects: NextPage = () => {
   /**
@@ -25,6 +27,12 @@ const Projects: NextPage = () => {
    */
   const { data } = useSession();
   const router = useRouter();
+
+  interface IOnboarding {
+    tuid: string;
+    table: Array<Array<string>>;
+  }
+  const [uploadedData, setData] = useState<IOnboarding>();
 
   const [visible, setVisible] = useState<boolean>(false);
 
@@ -63,7 +71,8 @@ const Projects: NextPage = () => {
     console.log("click Page");
   };
   const goToMain = () => {
-    router.push("/dashboard/1/home");
+    const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
+    router.push(urlMain);
   };
 
   return (
@@ -118,36 +127,37 @@ const Projects: NextPage = () => {
             </Button>
           </Modal.Header>
 
-          <Modal.Body>
-            <div className="h-full w-full">
-              <div className="flex h-full w-full justify-center align-middle">
-                {stage <= 1.5 ? (
-                  <ProjectsUpload
-                    onFinish={(data) => {
-                      console.log({ data });
-                      setStage(stage + 0.5);
-                    }}
-                  />
-                ) : (
-                  <></>
-                )}
-                {stage === 2 ? <ProjectDataTableEdit /> : <></>}
-                {stage === 3 ? <p>FINALIZE</p> : <></>}
-              </div>
-
-              {stage > 1.5 ? (
-                <Button
-                  className="absolute left-3 bottom-5"
-                  onClick={backStage}
-                >
-                  Back
-                </Button>
+          <Modal.Body className="min-h-full w-full flex-col">
+            <div className="flex h-[90%] w-full justify-center align-middle">
+              {stage <= 1.5 ? (
+                <ProjectsUpload
+                  onFinish={(data) => {
+                    console.log({ data });
+                    setData(data);
+                    setStage(stage + 0.5);
+                  }}
+                />
               ) : (
                 <></>
               )}
-
+              {stage === 2 ? (
+                <ProjectDataTableEdit uploaded={uploadedData?.table} />
+              ) : (
+                <></>
+              )}
+              {stage === 3 ? <p>FINALIZE</p> : <></>}
+            </div>
+            <div className="container flex justify-between justify-self-end">
+              {" "}
+              {stage > 1.5 ? (
+                <Button className="" onClick={backStage}>
+                  Back
+                </Button>
+              ) : (
+                <div></div>
+              )}
               <Button
-                className="absolute right-3 bottom-5"
+                className=""
                 disabled={stage < 1.5}
                 onClick={stage == 3 ? goToMain : toggleStage}
               >

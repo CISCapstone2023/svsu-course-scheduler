@@ -10,7 +10,7 @@ interface ProjectsUploadProps {
 
 interface IOnboarding {
   tuid: string;
-  columns: Array<Array<ScheduleRevision>>;
+  table: Array<Array<string>>;
 }
 
 const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {

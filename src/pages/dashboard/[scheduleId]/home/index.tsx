@@ -1,16 +1,17 @@
 import type { NextPage } from "next";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { Button } from "react-daisyui";
+import { useState } from "react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
-
-import { routeNeedsAuthSession } from "src/server/auth";
-
 import DashboardContent from "src/components/dashboard/DashboardContent";
-import { Button, Divider } from "react-daisyui";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
+import useRestUpload from "src/hooks/upload/useUpload";
+import { routeNeedsAuthSession } from "src/server/auth";
+import ProjectsUpload from "src/components/projects/ProjectsUpload";
 const Dashboard: NextPage = () => {
   /**
    * useSession
@@ -18,7 +19,7 @@ const Dashboard: NextPage = () => {
    * A function provided by the NextJSAuth library which provides data about the user
    * assuming they are successfully signed-in. If they are it will be null.
    */
-  const { data } = useSession();
+  const {} = useSession();
 
   return (
     <DashboardLayout>

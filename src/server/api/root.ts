@@ -2,6 +2,7 @@ import { createTRPCRouter } from "./trpc";
 import { exampleRouter } from "./routers/example";
 import { routerAuth } from "./routers/auth";
 import { buildingsRouter } from "./routers/buildings";
+import { coursesRouter } from "./routers/courses";
 import { projectsRouter } from "./routers/projects";
 import { facultyRouter } from "./routers/faculty";
 import { calendarRouter } from "./routers/calendar";
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   example: exampleRouter,
   auth: routerAuth,
   buildings: buildingsRouter,
+  courses: coursesRouter,
   projects: projectsRouter,
   faculty: facultyRouter,
   calendar: calendarRouter,

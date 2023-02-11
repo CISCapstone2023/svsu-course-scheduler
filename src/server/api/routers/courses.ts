@@ -95,118 +95,45 @@ export const coursesRouter = createTRPCRouter({
         where: {
           OR: [
             {
-              days: {
-                some: {
-                  day_monday: input.days.monday,
-                },
+              semester_summer: input.semester_summer,
+            },
+            {
+              semester_fall: input.semester_fall,
+            },
+            {
+              semester_winter: input.semester_winter,
+            },
+            {
+              semester_spring: input.semester_spring,
+            },
+            {
+              credits: {
+                lte: input.credits.max,
               },
             },
             {
-              days: {
-                some: {
-                  day_tuesday: input.days.tuesday,
-                },
+              credits: {
+                gte: input.credits.min,
               },
             },
             {
-              days: {
-                some: {
-                  day_wednesday: input.days.wednesday,
-                },
+              meeting_amount: {
+                lte: input.meeting_total.max,
+              },
+            },
+            {
+              meeting_amount: {
+                gte: input.meeting_total.min,
               },
             },
           ],
         },
-        //where: {
-        // AND: [
-        //   {
-        //     days: {
-        //       some: {
-        //         OR: [
-        //           {
-        //             day_monday: input.days.monday,
-        //           },
-        //           {
-        //             day_tuesday: input.days.tuesday,
-        //           },
-        //           {
-        //             day_wednesday: input.days.wednesday,
-        //           },
-        //           {
-        //             day_thursday: input.days.thursday,
-        //           },
-        //           {
-        //             day_friday: input.days.friday,
-        //           },
-        //           {
-        //             day_saturday: input.days.saturday,
-        //           },
-        //           {
-        //             day_sunday: input.days.sunday,
-        //           },
-        //         ],
-        //       },
-        //     },
-        //   },
-        // ],
-
-        // times: {
-        //   some: {
-        //     start_time_hour: { gte: input.start_time.hour },
-        //     start_time_min: { gte: input.start_time.minute },
-        //     end_time_hour: { lte: input.end_time.hour },
-        //     end_time_min: { lte: input.end_time.minute },
-        //   },
-        // },
-        // OR: [
-        //   {
-        //     semester_summer: input.semester_summer,
-        //   },
-        //   {
-        //     semester_fall: input.semester_fall,
-        //   },
-        //   {
-        //     semester_winter: input.semester_winter,
-        //   },
-        //   {
-        //     semester_spring: input.semester_spring,
-        //   },
-        //   {
-        //     credits: {
-        //       lte: input.credits.max,
-        //     },
-        //   },
-        //   {
-        //     credits: {
-        //       gte: input.credits.min,
-        //     },
-        //   },
-        //   {
-        //     meeting_amount: {
-        //       lte: input.meeting_total.max,
-        //     },
-        //   },
-        //   {
-        //     meeting_amount: {
-        //       gte: input.meeting_total.min,
-        //     },
-        //   },
-        // ],
-        //},
 
         take: 10,
         skip: input.page * 10,
 
         include: {
           days: true,
-          // times: {
-          //   where: {
-          //     start_time_hour: input.start_time.hour,
-          //     start_time_min: input.start_time.minute,
-          //     end_time_hour: input.end_time.hour,
-          //     end_time_min: input.end_time.minute,
-          //   },
-          // },
           times: true,
         },
       });

@@ -8,7 +8,12 @@ import {
   GuidelinesCoursesDays,
   Prisma,
 } from "@prisma/client";
-import { addGuidelineSchema } from "src/validation/courses";
+import {
+  addGuidelineSchema,
+  updateCourseGuidelineSchema,
+} from "src/validation/courses";
+import { updateCampusSchema } from "src/validation/buildings";
+import { cssTransition } from "react-toastify";
 
 //Imports course guidelines schema with days and times
 const courseGuidelinesTD = Prisma.validator<Prisma.GuidelinesCoursesArgs>()({
@@ -93,18 +98,30 @@ export const coursesRouter = createTRPCRouter({
       //Defines the query to find the guidelines based on the selected filters
       courseGuidelinesResult = await ctx.prisma.guidelinesCourses.findMany({
         where: {
-          OR: [
+          AND: [
             {
-              semester_summer: input.semester_summer,
-            },
-            {
-              semester_fall: input.semester_fall,
-            },
-            {
-              semester_winter: input.semester_winter,
-            },
-            {
-              semester_spring: input.semester_spring,
+              OR: [
+                input.semester_summer
+                  ? {
+                      semester_summer: input.semester_summer,
+                    }
+                  : {},
+                input.semester_fall
+                  ? {
+                      semester_fall: input.semester_fall,
+                    }
+                  : {},
+                input.semester_winter
+                  ? {
+                      semester_winter: input.semester_winter,
+                    }
+                  : {},
+                input.semester_spring
+                  ? {
+                      semester_spring: input.semester_spring,
+                    }
+                  : {},
+              ],
             },
             {
               credits: {
@@ -126,11 +143,70 @@ export const coursesRouter = createTRPCRouter({
                 gte: input.meeting_total.min,
               },
             },
+            {
+              days: {
+                some: {
+                  OR: [
+                    input.days.monday
+                      ? {
+                          day_monday: {
+                            equals: input.days.monday,
+                          },
+                        }
+                      : {},
+                    input.days.tuesday
+                      ? {
+                          day_tuesday: {
+                            equals: input.days.tuesday,
+                          },
+                        }
+                      : {},
+                    input.days.wednesday
+                      ? {
+                          day_wednesday: {
+                            equals: input.days.wednesday,
+                          },
+                        }
+                      : {},
+                    input.days.thursday
+                      ? {
+                          day_thursday: {
+                            equals: input.days.thursday,
+                          },
+                        }
+                      : {},
+                  ],
+                },
+              },
+
+              times: {
+                some: {
+                  AND: [
+                    {
+                      start_time_hour: {
+                        gte: input.start_time.hour,
+                      },
+                      // start_time_min: {
+                      //   gte: input.start_time.minute,
+                      // },
+                    },
+                    {
+                      end_time_hour: {
+                        lte: input.end_time.hour,
+                      },
+                      // end_time_min: {
+                      //   lte: input.end_time.minute,
+                      // },
+                    },
+                  ],
+                },
+              },
+            },
           ],
         },
 
         take: 10,
-        skip: input.page * 10,
+        skip: (input.page - 1) * 10,
 
         include: {
           days: true,
@@ -142,6 +218,7 @@ export const coursesRouter = createTRPCRouter({
       return {
         result: courseGuidelinesResult,
         page: input.page,
+        totalPages: courseGuidelinesResult.length,
       };
     }),
 
@@ -159,11 +236,13 @@ export const coursesRouter = createTRPCRouter({
           credits: input.credits,
           meeting_amount: input.meeting_total,
           times: {
-            create: [],
+            create: [...input.times],
+          },
+          days: {
+            create: [...input.days],
           },
         },
       });
-
       //Returns if the guideline was successfully added
       return true;
     }),
@@ -176,7 +255,7 @@ export const coursesRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       //Counts the number of results in the course guidelines table based on the passed tuid
-      const hasCourseGuideline = await ctx.prisma.guidelineCampus.count({
+      const hasCourseGuideline = await ctx.prisma.guidelinesCourses.count({
         where: {
           tuid: input.tuid,
         },
@@ -184,30 +263,33 @@ export const coursesRouter = createTRPCRouter({
 
       //Checks to see if the course guideline exists and if there is only 1
       if (hasCourseGuideline == 1) {
-        //Delete all days associated with the one guideline
-        await ctx.prisma.guidelinesCoursesDays.deleteMany({
-          //Where tuid for the days entry matches that of the deleted guideline
+        //Deletes the entered guideline
+        await ctx.prisma.guidelinesCourses.delete({
+          //Where the guideline tuid equals the tuid of the requested guideline to be deleted
           where: {
-            guideline_id: input.tuid,
+            tuid: input.tuid,
           },
-        }),
-          //Delete all times associated with the one guideline
-          await ctx.prisma.guidelinesCoursesTimes.deleteMany({
-            //Where the tuid for the times entry matches that of the deleted guideline
-            where: {
-              guideline_id: input.tuid,
-            },
-          }),
-          //Deletes the entered guideline
-          await ctx.prisma.guidelinesCourses.delete({
-            //Where the guideline tuid equals the tuid of the requested guideline to be deleted
-            where: {
-              tuid: input.tuid,
-            },
-          });
+        });
 
         //Returns if the delete was successful
         return true;
+      }
+      return false;
+    }),
+
+  updateCourseGuideline: protectedProcedure
+    .input(updateCourseGuidelineSchema)
+    .mutation(async ({ ctx, input }) => {
+      //updateCourseGuidelineSchema
+
+      const hasCourseGuideline = await ctx.prisma.guidelinesCourses.count({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+
+      if (hasCourseGuideline == 1) {
+        //await ctx.prisma.guidelinesCourses.update({});
       }
     }),
 });

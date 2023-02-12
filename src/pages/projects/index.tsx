@@ -17,6 +17,7 @@ import ProjectDataTableEdit from "src/components/ProjectDataTableEdit";
 import { useRouter } from "next/router";
 import { ScheduleRevision } from "@prisma/client";
 import { Url } from "url";
+import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 
 const Projects: NextPage = () => {
   /**
@@ -33,11 +34,16 @@ const Projects: NextPage = () => {
     table: Array<Array<string>>;
   }
   const [uploadedData, setData] = useState<IOnboarding>();
+  const [confirmationCancel, setComfirmation] = useState<boolean>(false);
 
   const [visible, setVisible] = useState<boolean>(false);
 
   const toggleVisible = () => {
-    setVisible(!visible);
+    if (visible) {
+      setComfirmation(true);
+    } else {
+      setVisible(!visible);
+    }
   };
   const [stage, setStage] = useState<number>(1);
 
@@ -57,6 +63,8 @@ const Projects: NextPage = () => {
   const backStage = () => {
     if (stage <= 1) {
       setStage(1);
+    } else if (stage == 2) {
+      setComfirmation(true);
     } else {
       setStage(stage - 1);
     }
@@ -95,6 +103,21 @@ const Projects: NextPage = () => {
         </div>
 
         <Modal open={visible} className="h-full  w-11/12 max-w-5xl ">
+          <ConfirmDeleteModal
+            title="Cancellation Confirmation"
+            message="Are you sure you want to close?"
+            open={stage >= 2 && confirmationCancel}
+            onClose={() => {
+              setComfirmation(false);
+            }}
+            onConfirm={() => {
+              if (stage == 2) setStage(stage - 1);
+
+              setComfirmation(false);
+              setVisible(false);
+              setStage(1);
+            }}
+          />
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
               <Steps.Step
@@ -147,7 +170,7 @@ const Projects: NextPage = () => {
               )}
               {stage === 3 ? <p>FINALIZE</p> : <></>}
             </div>
-            <div className="container flex justify-between justify-self-end">
+            <div className="container mt-3 flex justify-between justify-self-end">
               {" "}
               {stage > 1.5 ? (
                 <Button className="" onClick={backStage}>

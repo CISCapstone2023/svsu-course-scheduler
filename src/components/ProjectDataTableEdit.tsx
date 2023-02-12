@@ -21,6 +21,7 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
       {uploaded != undefined ? (
         <Table className="table-fixed border-collapse">
           <thead>
+            <span />
             {uploaded[0].map((columnName, index) => {
               return (
                 <th className="border border-slate-600" key={index}>
@@ -33,9 +34,10 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
             {tableBody.map((item, index) => {
               return (
                 <tr key={index}>
+                  <span />
                   {item?.map((value, index) => {
                     return (
-                      <td className="" key={index}>
+                      <td className="border border-slate-600" key={index}>
                         {value}
                       </td>
                     );

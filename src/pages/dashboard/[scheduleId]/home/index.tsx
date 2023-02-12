@@ -11,7 +11,6 @@ import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import useRestUpload from "src/hooks/upload/useUpload";
 import { routeNeedsAuthSession } from "src/server/auth";
-import ProjectsUpload from "src/components/projects/ProjectsUpload";
 const Dashboard: NextPage = () => {
   /**
    * useSession

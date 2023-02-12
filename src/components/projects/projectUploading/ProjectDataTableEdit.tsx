@@ -4,7 +4,7 @@ import { NoteOff } from "tabler-icons-react";
 import DropdownCol from "./DropdownColumn";
 
 interface ProjectDataTableEditProps {
-  uploaded: Array<Array<string>>;
+  uploaded: Array<Array<string>> | undefined;
 }
 
 const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
@@ -24,8 +24,13 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
             <span />
             {uploaded[0].map((columnName, index) => {
               return (
-                <th className="border border-slate-600" key={index}>
+                <th
+                  className="w-1/3 flex-wrap border border-slate-600"
+                  key={index}
+                >
                   {columnName}
+                  <br />
+                  <DropdownCol />
                 </th>
               );
             })}
@@ -37,7 +42,10 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
                   <span />
                   {item?.map((value, index) => {
                     return (
-                      <td className="border border-slate-600" key={index}>
+                      <td
+                        className=" w-1/3 border border-slate-600"
+                        key={index}
+                      >
                         {value}
                       </td>
                     );

@@ -4,20 +4,17 @@ import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
-
 import { FilePlus, Logout } from "tabler-icons-react";
-import { Button, FileInput, Form, Modal, Steps } from "react-daisyui";
+import { Button, Modal, Steps } from "react-daisyui";
 import { useState } from "react";
-
 import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import ProjectsUpload from "src/components/projects/ProjectsUpload";
-import ProjectDataTableEdit from "src/components/ProjectDataTableEdit";
+import ProjectsUpload from "src/components/projects/projectUploading/ProjectsUpload";
+import ProjectDataTableEdit from "src/components/projects/projectUploading/ProjectDataTableEdit";
 import { useRouter } from "next/router";
-import { ScheduleRevision } from "@prisma/client";
-import { Url } from "url";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
+import ProjectFinalize from "src/components/projects/projectUploading/ProjectFinalize";
 
 const Projects: NextPage = () => {
   /**
@@ -39,7 +36,9 @@ const Projects: NextPage = () => {
   const [visible, setVisible] = useState<boolean>(false);
 
   const toggleVisible = () => {
-    if (visible) {
+    if (stage == 1) {
+      setVisible(!visible);
+    } else if (visible) {
       setComfirmation(true);
     } else {
       setVisible(!visible);
@@ -82,13 +81,17 @@ const Projects: NextPage = () => {
     const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
     router.push(urlMain);
   };
-
+  console.log(data);
   return (
     <DashboardLayout>
       <div className="w-full flex-col p-5">
         <div className="flex w-full justify-between pb-12">
-          <p className="justify-start text-lg">
-            Welcome {data?.user?.name == null ? "User" : data?.user?.name},
+          <p className="justify-start text-lg font-medium">
+            Welcome to Class Scheduling Program!
+            <br />
+            <span className="font-thin text-inherit">
+              {data?.user?.email == null ? "User" : data?.user?.email},
+            </span>
           </p>
 
           <button
@@ -168,7 +171,7 @@ const Projects: NextPage = () => {
               ) : (
                 <></>
               )}
-              {stage === 3 ? <p>FINALIZE</p> : <></>}
+              {stage === 3 ? <ProjectFinalize /> : <></>}
             </div>
             <div className="container mt-3 flex justify-between justify-self-end">
               {" "}

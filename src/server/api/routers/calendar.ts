@@ -31,16 +31,38 @@ export const calendarRouter = createTRPCRouter({
     .input(
       z.object({
         tuid: z.string(),
-        faculty: z.string().array(),
-        buildings: z.string().array(),
-        departments: z.string().array(),
+        faculty: z.string().array(), // tuids
+        buildings: z.string().array(), // tuids
+        departments: z.string().array(), // name
         credits: z.number(),
-        minRoomNum: z.string(),
+        minRoomNum: z.string(), // Look into the regex that Chris made for this
         maxRoomNum: z.string(),
-        fall: z.boolean(),
-        winter: z.boolean(),
-        spring: z.boolean(),
-        summer: z.boolean(),
+
+        semester_fall: z.boolean().default(false),
+        semester_winter: z.boolean().default(false),
+        semester_spring: z.boolean().default(false),
+        semester_summer: z.boolean().default(false),
+
+        //Defines the booleans for the day of the week the guideline applies to (Thanks Sam)
+        days: z
+          .object({
+            monday: z.boolean().default(false),
+            tuesday: z.boolean().default(false),
+            wednesday: z.boolean().default(false),
+            thursday: z.boolean().default(false),
+            friday: z.boolean().default(false),
+            saturday: z.boolean().default(false),
+            sunday: z.boolean().default(false),
+          })
+          .default({
+            monday: false,
+            tuesday: false,
+            wednesday: false,
+            thursday: false,
+            friday: false,
+            saturday: false,
+            sunday: false,
+          }),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -101,16 +123,16 @@ export const calendarRouter = createTRPCRouter({
 // Funtion simply takes client input and returns a two letter code for whichever semester was marked true
 function getSemester(input: {
   tuid: string;
-  fall: boolean;
-  winter: boolean;
-  spring: boolean;
-  summer: boolean;
+  semester_fall: boolean;
+  semester_winter: boolean;
+  semester_spring: boolean;
+  semester_summer: boolean;
 }) {
   let semester = "";
-  if (input.fall) semester = "FA";
-  else if (input.winter) semester = "WI";
-  else if (input.spring) semester = "SP";
-  else if (input.summer) semester = "SU";
+  if (input.semester_fall) semester = "FA";
+  else if (input.semester_winter) semester = "WI";
+  else if (input.semester_spring) semester = "SP";
+  else if (input.semester_summer) semester = "SU";
   return semester;
 }
 
@@ -139,10 +161,10 @@ async function queryCoursesByDay(
   >,
   input: {
     tuid: string;
-    fall: boolean;
-    winter: boolean;
-    spring: boolean;
-    summer: boolean;
+    semester_fall: boolean;
+    semester_winter: boolean;
+    semester_spring: boolean;
+    semester_summer: boolean;
   },
   day: string
 ) {

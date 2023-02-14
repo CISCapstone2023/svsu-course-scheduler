@@ -54,20 +54,9 @@ export const coursesRouter = createTRPCRouter({
           .default({ min: 1, max: 4 }),
 
         //Defines the min and max hours and minutes for the course guideline start time
-        start_time: z
-          .object({
-            hour: z.number().min(0).max(24).default(8),
-            minute: z.number().min(0).max(60).default(30),
-          })
-          .default({ hour: 1, minute: 30 }),
-
+        start_time: z.number().min(0).max(23_59).default(30),
         //Defines the min and max hours and minutes for the course guideline end time
-        end_time: z
-          .object({
-            hour: z.number().min(0).max(24).default(22),
-            minute: z.number().min(0).max(60).default(0),
-          })
-          .default({ hour: 23, minute: 30 }),
+        end_time: z.number().min(0).max(23_59).default(22),
 
         //Defines the booleans for the day of the week the guideline applies to
         days: z
@@ -194,7 +183,7 @@ export const coursesRouter = createTRPCRouter({
                   AND: [
                     {
                       start_time: {
-                        gte: input.start_time.hour, //Grabs the start times that are greater than or equal to the start hour passed in
+                        gte: input.start_time, //Grabs the start times that are greater than or equal to the start hour passed in
                       },
                       //NOT WORKING CURRENTLY
                       // start_time_min: {
@@ -203,7 +192,7 @@ export const coursesRouter = createTRPCRouter({
                     },
                     {
                       end_time: {
-                        lte: input.end_time.hour, //Grabs the end times that are less than or equal to the end hour passed in
+                        lte: input.end_time, //Grabs the end times that are less than or equal to the end hour passed in
                       },
                       //NOT WORKING CURRENTLY
                       // end_time_min: {
@@ -315,7 +304,7 @@ export const coursesRouter = createTRPCRouter({
             semester_winter: input.semester_winter,
             semester_spring: input.semester_spring,
             credits: input.credits,
-            meeting_amount: input.meeting_total,
+            meeting_amount: input.meeting_amount,
           },
         });
 

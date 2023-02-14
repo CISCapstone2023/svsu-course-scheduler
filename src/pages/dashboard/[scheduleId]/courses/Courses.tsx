@@ -1,5 +1,5 @@
 //Import component libraries and react
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -14,16 +14,27 @@ import {
 import { toast } from "react-toastify";
 
 //Import icons
-import { CaretDown, Check, Pencil, Plus, Trash, X } from "tabler-icons-react";
+import {
+  CaretDown,
+  Check,
+  Pencil,
+  Plus,
+  TransitionRight,
+  Trash,
+  X,
+} from "tabler-icons-react";
 
 //Import form information
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { debounce } from "lodash";
+import { debounce, min } from "lodash";
 
 //Import types
-import { addGuidelineSchema, type IAddGuideline } from "src/validation/courses";
+import {
+  addGuidelineSchema,
+  type IAddGuidelineCourse,
+} from "src/validation/courses";
 import { type GuidelinesFaculty as GuidelinesCourse } from "@prisma/client";
 
 //Import local components
@@ -76,7 +87,7 @@ const Courses = () => {
   //Query all of the data based on the search value
 
   const courses = api.courses.getAllCourseGuidelines.useQuery({
-    page: 0,
+    page: 1,
     days: {
       monday: filterDaysMonday,
       tuesday: filterDaysTuesday,
@@ -90,8 +101,14 @@ const Courses = () => {
     semester_winter: filterWinterSemester,
     semester_spring: filterSpringSemester,
     semester_summer: filterSummerSemester,
-
+    credits: {
+      min: 1,
+      max: 4,
+    },
+    meeting_total: { min: 1, max: 4 },
     //search: "",
+    end_time: 20_30,
+    start_time: 0,
   });
 
   //The function that gets called when a input event has occured.
@@ -152,6 +169,15 @@ const Courses = () => {
     resolver: zodResolver(addGuidelineSchema),
   });
 
+  const dayFields = useFieldArray({
+    name: "days",
+    control: courseForm.control,
+  });
+  const timeFields = useFieldArray({
+    name: "times",
+    control: courseForm.control,
+  });
+
   const toggleCourseModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
     setCourseEditing(undefined);
@@ -169,7 +195,7 @@ const Courses = () => {
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onCourseModifySubmit = async (data: IAddGuideline) => {
+  const onCourseModifySubmit = async (data: IAddGuidelineCourse) => {
     //Do we have to update said faculty
     console.log("Wooo!");
     console.log(isCourseEditing);
@@ -244,6 +270,32 @@ const Courses = () => {
   const [isCourseEditing, setCourseEditing] =
     useState<CourseGuidelinesTimeAndDays>();
 
+  // function for splitting course times
+  const militaryToTime = (time: number) => {
+    //initializes hour variable to parse integer time numbers
+    let hour =
+      parseInt(
+        time >= 1000
+          ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
+          : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
+      ) % 12; // mods time to convert from military time to standard time
+
+    // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
+    if (hour == 0) {
+      hour = 12;
+    }
+
+    //initializes constant for getting the minutes of time
+    const minute = time.toString().substring(time.toString().length - 2);
+
+    //initializes constant to be used for AM/PM tagging on time
+    const anteMeridiem = time >= 1300 ? "PM" : "AM";
+    return {
+      hour,
+      minute,
+      anteMeridiem,
+    };
+  };
   return (
     <>
       <div className="m-2 flex justify-between ">
@@ -452,25 +504,35 @@ const Courses = () => {
                   <span>
                     {course.times.map((time) => {
                       return (
-                        <span key={time.tuid}>
-                          {time.start_time_hour}:{time.start_time_min} to{" "}
-                          {time.end_time_hour}:{time.end_time_min}
-                        </span>
+                        <>
+                          <span key={time.tuid}>
+                            {militaryToTime(time.start_time).hour}:
+                            {militaryToTime(time.start_time).minute}{" "}
+                            {militaryToTime(time.start_time).anteMeridiem}
+                            {} to {militaryToTime(time.end_time).hour}:
+                            {militaryToTime(time.end_time).minute}{" "}
+                            {militaryToTime(time.end_time).anteMeridiem}
+                          </span>
+                          <br />
+                        </>
                       );
                     })}
                   </span>
                   <span>
                     {course.days.map((day) => {
                       return (
-                        <span key={day.tuid}>
-                          {day.day_monday ? "M" : null}{" "}
-                          {day.day_tuesday ? "T" : null}
-                          {day.day_wednesday ? "W" : null}
-                          {day.day_thursday ? "TH" : null}
-                          {day.day_friday ? "F" : null}
-                          {day.day_saturday ? "SAT" : null}
-                          {day.day_sunday ? "SUN" : null}
-                        </span>
+                        <>
+                          <span key={day.tuid}>
+                            {day.day_monday ? "M" : null}{" "}
+                            {day.day_tuesday ? "T" : null}{" "}
+                            {day.day_wednesday ? "W" : null}{" "}
+                            {day.day_thursday ? "TH" : null}{" "}
+                            {day.day_friday ? "F" : null}{" "}
+                            {day.day_saturday ? "SAT" : null}{" "}
+                            {day.day_sunday ? "SUN" : null}{" "}
+                          </span>
+                          <br />
+                        </>
                       );
                     })}
                   </span>
@@ -529,7 +591,7 @@ const Courses = () => {
       <Modal
         open={isCourseCreateModalOpen}
         onClickBackdrop={toggleCourseModifyModal}
-        className="w-[400px]"
+        className="h-full  w-11/12 max-w-5xl"
       >
         <Button
           size="sm"
@@ -550,12 +612,12 @@ const Courses = () => {
           >
             <div>
               <div className="flex w-full space-x-2">
-                <div className="w-1/2">
+                <div className="w-1/3">
                   <p>Credits</p>
                   <Input
                     type="text"
                     className="mt-2 w-full"
-                    placeholder="Suffix"
+                    placeholder="Credit Hours"
                     {...courseForm.register("credits")}
                   />
                   <ErrorMessage
@@ -565,13 +627,12 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
-                </div>
-                <div className="w-1/2">
+
                   <p>Total Meetings</p>
                   <Input
                     type="text"
                     className="mt-2 w-full"
-                    placeholder="First Name"
+                    placeholder="Meetings per week"
                     {...courseForm.register("meeting_amount")}
                   />
                   <ErrorMessage
@@ -581,6 +642,80 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
+                </div>
+                <div className="w-1/3">
+                  <div className="flex">
+                    <div className="grow">
+                      <p>Times</p>
+                    </div>
+                    <div>
+                      <Button
+                        size="xs"
+                        onClick={() => {
+                          timeFields.append({
+                            end_time: 830,
+                            start_time: 1020,
+                            tuid: "",
+                            guideline_id: "",
+                          });
+                        }}
+                      >
+                        {" "}
+                        Add Time
+                      </Button>
+                    </div>
+                  </div>
+
+                  {dayFields.fields.map(() => {
+                    return (
+                      <>
+                        {" "}
+                        <div className="m-2 flex flex-row items-center justify-center space-x-2 rounded-md bg-base-200 p-4">
+                          <div>
+                            <p>Start Time</p>
+                            <Input
+                              className="w-20"
+                              type="number"
+                              placeholder="Hour"
+                            />{" "}
+                            <Input
+                              className="w-20"
+                              type="number"
+                              placeholder="Minute"
+                            />
+                          </div>
+                          <div>
+                            <p>End Time</p>
+                            <Input
+                              className="w-20"
+                              type="number"
+                              placeholder="Hour"
+                            />{" "}
+                            <Input
+                              className="w-20"
+                              type="number"
+                              placeholder="Minute"
+                            />
+                          </div>
+                          <div>
+                            <Button color="error">
+                              <Trash />
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })}
+                </div>
+                <div className="w-1/3">
+                  <div className="flex">
+                    <div className="grow">
+                      <p>Days</p>
+                    </div>
+                    <div>
+                      <Button size="xs"> Add Day </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
 

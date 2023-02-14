@@ -40,6 +40,7 @@ export const addGuidelineSchema = z.object({
 
   days: z.array(daysSchema),
 });
+
 export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
   tuid: z.string(),
   days: z.array(
@@ -52,19 +53,8 @@ export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
       tuid: z.string(),
     })
   ),
-
-  days: z.array(
-    z.object({
-      day_monday: z.boolean().default(false),
-      day_tuesday: z.boolean().default(false),
-      day_wednesday: z.boolean().default(false),
-      day_thursday: z.boolean().default(false),
-      day_friday: z.boolean().default(false),
-      day_saturday: z.boolean().default(false),
-      day_sunday: z.boolean().default(false),
-    })
-  ),
 });
+
 export type IAddGuidelineCourse = z.infer<typeof addGuidelineSchema>;
 export type IUpdateGuidelineCourse = z.infer<
   typeof updateCourseGuidelineSchema

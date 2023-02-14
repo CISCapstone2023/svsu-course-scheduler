@@ -34,6 +34,7 @@ const Projects: NextPage = () => {
   const [confirmationCancel, setComfirmation] = useState<boolean>(false);
 
   const [visible, setVisible] = useState<boolean>(false);
+  const [error, setError] = useState(false);
 
   const toggleVisible = () => {
     if (stage == 1) {
@@ -81,7 +82,6 @@ const Projects: NextPage = () => {
     const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
     router.push(urlMain);
   };
-  console.log(data);
   return (
     <DashboardLayout>
       <div className="w-full flex-col p-5">
@@ -106,21 +106,6 @@ const Projects: NextPage = () => {
         </div>
 
         <Modal open={visible} className="h-full  w-11/12 max-w-5xl ">
-          <ConfirmDeleteModal
-            title="Cancellation Confirmation"
-            message="Are you sure you want to close?"
-            open={stage >= 2 && confirmationCancel}
-            onClose={() => {
-              setComfirmation(false);
-            }}
-            onConfirm={() => {
-              if (stage == 2) setStage(stage - 1);
-
-              setComfirmation(false);
-              setVisible(false);
-              setStage(1);
-            }}
-          />
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
               <Steps.Step
@@ -153,14 +138,20 @@ const Projects: NextPage = () => {
             </Button>
           </Modal.Header>
 
-          <Modal.Body className="min-h-full w-full flex-col">
+          <Modal.Body className="max-h-full w-full flex-col">
             <div className="flex h-[90%] w-full justify-center align-middle">
               {stage <= 1.5 ? (
                 <ProjectsUpload
                   onFinish={(data) => {
-                    console.log({ data });
-                    setData(data);
-                    setStage(stage + 0.5);
+                    if (data !== undefined && data.tuid === undefined) {
+                      console.log({ data });
+                      setError(true);
+                    } else {
+                      console.log({ data });
+                      setData(data);
+                      setError(false);
+                      setStage(stage + 0.5);
+                    }
                   }}
                 />
               ) : (
@@ -192,7 +183,21 @@ const Projects: NextPage = () => {
             </div>
           </Modal.Body>
         </Modal>
+        <ConfirmDeleteModal
+          title="Cancellation Confirmation"
+          message="Are you sure you want to close?"
+          open={stage >= 2 && confirmationCancel}
+          onClose={() => {
+            setComfirmation(false);
+          }}
+          onConfirm={() => {
+            if (stage == 2) setStage(stage - 1);
 
+            setComfirmation(false);
+            setVisible(false);
+            setStage(1);
+          }}
+        />
         <div className="container mx-auto  flex justify-between p-4">
           <p className=" j text-3xl font-bold">Recent Project: </p>
 

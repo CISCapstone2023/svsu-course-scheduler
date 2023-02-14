@@ -4,7 +4,7 @@ import { Button } from "react-daisyui";
 import { useState } from "react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
+import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";

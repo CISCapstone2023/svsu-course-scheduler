@@ -31,9 +31,9 @@ export const calendarRouter = createTRPCRouter({
     .input(
       z.object({
         tuid: z.string(),
-        faculty: z.string().array(), // tuids
-        buildings: z.string().array(), // tuids
-        departments: z.string().array(), // name
+        faculty: z.string().array().optional(), // tuids
+        buildings: z.string().array().optional(), // tuids
+        departments: z.string().array().optional(), // name
         credits: z.number(),
         minRoomNum: z.string(), // Look into the regex that Chris made for this
         maxRoomNum: z.string(),
@@ -68,35 +68,49 @@ export const calendarRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Running queries to find all courses on a specific revision that occur on a specific day. There is one of these queries
       // for each day of the week (A course that is taught on both Monday and Wednesday will appear in both queries, and so on)
-      const monday_courses: RevisionWithCourses | null =
-        await queryCoursesByDay(ctx, input, "day_monday");
-      const tuesday_courses: RevisionWithCourses | null =
-        await queryCoursesByDay(ctx, input, "day_tuesday");
-      const wednesday_courses: RevisionWithCourses | null =
-        await queryCoursesByDay(ctx, input, "day_wednesday");
-      const thursday_courses: RevisionWithCourses | null =
-        await queryCoursesByDay(ctx, input, "day_thursday");
-      const friday_courses: RevisionWithCourses | null =
-        await queryCoursesByDay(ctx, input, "day_friday");
-      const saturday_courses: RevisionWithCourses | null =
-        await queryCoursesByDay(ctx, input, "day_saturday");
-      const sunday_courses: RevisionWithCourses | null =
-        await queryCoursesByDay(ctx, input, "day_sunday");
+
+      // Throw all of these into a transaction
+      const coursesByDay = await ctx.prisma.$transaction(async (tx) => {
+        const monday_courses: RevisionWithCourses | null =
+          await queryCoursesByDay(tx, input, "day_monday");
+        const tuesday_courses: RevisionWithCourses | null =
+          await queryCoursesByDay(tx, input, "day_tuesday");
+        const wednesday_courses: RevisionWithCourses | null =
+          await queryCoursesByDay(tx, input, "day_wednesday");
+        const thursday_courses: RevisionWithCourses | null =
+          await queryCoursesByDay(tx, input, "day_thursday");
+        const friday_courses: RevisionWithCourses | null =
+          await queryCoursesByDay(tx, input, "day_friday");
+        const saturday_courses: RevisionWithCourses | null =
+          await queryCoursesByDay(tx, input, "day_saturday");
+        const sunday_courses: RevisionWithCourses | null =
+          await queryCoursesByDay(tx, input, "day_sunday");
+
+        return {
+          monday_courses,
+          tuesday_courses,
+          wednesday_courses,
+          thursday_courses,
+          friday_courses,
+          saturday_courses,
+          sunday_courses,
+        };
+      });
 
       // Use the semester input booleans to return what specific semester we are looking for
       const semester = getSemester(input);
 
       // Send the client back the ame of the revision, the semester, and the results of each of the course-by-day queries
       return {
-        revision_name: monday_courses?.name,
+        revision_name: coursesByDay.monday_courses?.name,
         semesters: semester,
-        monday_courses: monday_courses?.courses,
-        tuesday_courses: tuesday_courses?.courses,
-        wednesday_courses: wednesday_courses?.courses,
-        thursday_courses: thursday_courses?.courses,
-        friday_courses: friday_courses?.courses,
-        saturday_courses: saturday_courses?.courses,
-        sunday_courses: sunday_courses?.courses,
+        monday_courses: coursesByDay.monday_courses?.courses,
+        tuesday_courses: coursesByDay.tuesday_courses?.courses,
+        wednesday_courses: coursesByDay.wednesday_courses?.courses,
+        thursday_courses: coursesByDay.thursday_courses?.courses,
+        friday_courses: coursesByDay.friday_courses?.courses,
+        saturday_courses: coursesByDay.saturday_courses?.courses,
+        sunday_courses: coursesByDay.sunday_courses?.courses,
       };
     }),
 
@@ -139,28 +153,24 @@ function getSemester(input: {
 // Function contains the query logic for finding courses attahced to a revision by day. The query is the same for each day, apart from the
 // actual day being searched
 async function queryCoursesByDay(
-  ctx: Overwrite<
-    {
-      session: Session | null;
-      prisma: PrismaClient<
-        Prisma.PrismaClientOptions,
-        never,
-        Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
-      >;
-    },
-    {
-      session: {
-        user: { id: string } & {
-          name?: string | null | undefined;
-          email?: string | null | undefined;
-          image?: string | null | undefined;
-        };
-        expires: string;
-      };
-    }
-  >,
+  tx: Prisma.TransactionClient,
   input: {
+    faculty?: string[] | undefined;
+    buildings?: string[] | undefined;
+    departments?: string[] | undefined;
     tuid: string;
+    credits: number;
+    days: {
+      monday: boolean;
+      tuesday: boolean;
+      wednesday: boolean;
+      thursday: boolean;
+      friday: boolean;
+      saturday: boolean;
+      sunday: boolean;
+    };
+    minRoomNum: string;
+    maxRoomNum: string;
     semester_fall: boolean;
     semester_winter: boolean;
     semester_spring: boolean;
@@ -172,7 +182,7 @@ async function queryCoursesByDay(
     // Query will find a revision based on tuid, then will find every course linked to that revision on the specified day, along with the faculty
     // teaching each course and the location(s)/time(s) the course is taught on the specified day (If a course is taught on Monday in one location
     // and on Wednesday in another location, only the Monday location will result from the Monday query, and so on)
-    await ctx.prisma.scheduleRevision.findUnique({
+    await tx.scheduleRevision.findUnique({
       where: {
         tuid: input.tuid,
       },

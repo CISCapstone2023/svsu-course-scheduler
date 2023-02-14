@@ -2,8 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
-    binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -55,27 +55,27 @@ model Session {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  name          String?
-  username      String
-  email         String?      @unique
-  emailVerified DateTime?
-  password      String
-  image         String?
+  id              String             @id @default(cuid())
+  name            String?
+  username        String
+  email           String?            @unique
+  emailVerified   DateTime?
+  password        String
+  image           String?
   owned_revisions ScheduleRevision[]
-  schedules     SchedulesOnUsers[]
-  accounts      Account[]
-  sessions      Session[]
-  permissions   Permission[]
+  schedules       SchedulesOnUsers[]
+  accounts        Account[]
+  sessions        Session[]
+  permissions     Permission[]
 }
 
 model SchedulesOnUsers {
-  user       User     @relation(fields: [user_tuid], references: [id])
-  user_tuid  String // relation scalar field (used in the `@relation` attribute above)
-  schedule   Schedule @relation(fields: [schedule_tuid], references: [tuid])
+  user          User     @relation(fields: [user_tuid], references: [id])
+  user_tuid     String // relation scalar field (used in the `@relation` attribute above)
+  schedule      Schedule @relation(fields: [schedule_tuid], references: [tuid])
   schedule_tuid String // relation scalar field (used in the `@relation` attribute above)
-  assignedAt DateTime @default(now())
-  assignedBy String
+  assignedAt    DateTime @default(now())
+  assignedBy    String
 
   @@id([user_tuid, schedule_tuid])
 }
@@ -104,6 +104,10 @@ model Course {
   section_id         Int
   revision_tuid      String
   term               Int
+  semester_summer    Boolean                     @default(false)
+  semester_fall      Boolean                     @default(false)
+  semester_winter    Boolean                     @default(false)
+  semester_spring    Boolean                     @default(false)
   div                String
   department         String
   subject            String
@@ -111,6 +115,8 @@ model Course {
   section            String
   start_date         DateTime
   end_date           DateTime
+  start_time Int
+  end_time Int
   credits            Int
   title              String                      @db.VarChar(30)
   status             String                      @default("Active")
@@ -120,8 +126,8 @@ model Course {
   original_state     CourseState
   state              CourseState
   location           String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
   //Relationships
   faculty            GuidelinesFacultyToCourse[]
   revision           ScheduleRevision            @relation(fields: [revision_tuid], references: [tuid], onDelete: Cascade)
@@ -132,25 +138,25 @@ model Course {
 model Schedule {
   tuid      String             @id @default(cuid())
   //Relationships
-  users SchedulesOnUsers[]
+  users     SchedulesOnUsers[]
   revisions ScheduleRevision[]
 }
 
 model ScheduleRevision {
   tuid          String   @id @default(cuid())
   name          String
-  file          Bytes?    @db.Blob
-  schedule_tuid String?
+  file          Bytes?   @db.Blob
+  schedule_tuid String?  @map("schedule")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   onboarding    Boolean  @default(true)
-  creator_tuid String //The creator of this revision
+  creator_tuid  String   @map("user")
 
   //Relationships
-  schedule      Schedule? @relation(fields: [schedule_tuid], references: [tuid], onDelete: Cascade)
-  courses       Course[]
-  
-  user User? @relation(fields: [creator_tuid], references: [id])
+  schedule Schedule? @relation(fields: [schedule_tuid], references: [tuid])
+  courses  Course[]
+
+  user User @relation(fields: [creator_tuid], references: [id])
 }
 
 model CourseLocation {
@@ -167,7 +173,7 @@ model CourseLocation {
   is_online     Boolean
   course_tuid   String
   //Realtionships
-  course        Course @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+  course        Course   @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
   rooms         Room[]
 }
 
@@ -193,21 +199,24 @@ model GuidelinesFacultyToCourse {
 
 //Guidelines for courses with fields including course credits, number of meetings, days, and times of guidelines
 model GuidelinesCourses {
-  tuid           String                   @id @default(cuid())
-  cycle          Boolean
-  credits        Int
-  meeting_amount Int
+  tuid            String                   @id @default(cuid())
+  semester_summer Boolean                  @default(false)
+  semester_fall   Boolean                  @default(false)
+  semester_winter Boolean                  @default(false)
+  semester_spring Boolean                  @default(false)
+  credits         Int
+  meeting_amount  Int
   //Relationships
-  times          GuidelinesCoursesTimes[]
-  days           GuidelinesCoursesDays[]
+  times           GuidelinesCoursesTimes[]
+  days            GuidelinesCoursesDays[]
 }
 
 //Table of course guideline times
 model GuidelinesCoursesTimes {
   tuid         String            @id @default(cuid())
   guideline_id String
-  start_time   DateTime
-  end_time     DateTime
+  start_time Int
+  end_time Int
   //Relation to relate times to course guidelines
   guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
 }
@@ -237,20 +246,20 @@ model CourseNote {
 }
 
 model GuidelineBuilding {
-  tuid       String @id @default(cuid())
-  name       String
-  prefix     String
-  campus_tuid   String
+  tuid        String          @id @default(cuid())
+  name        String
+  prefix      String
+  campus_tuid String
   //classrooms listing will be regexed
-  classrooms String
+  classrooms  String
   //Relationships
-  campus     GuidelineCampus   @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
-  rooms      Room[]
+  campus      GuidelineCampus @relation(fields: [campus_tuid], references: [tuid], onDelete: Cascade)
+  rooms       Room[]
 }
 
 model GuidelineCampus {
-  tuid  String @id @default(cuid())
-  name  String
+  tuid     String              @id @default(cuid())
+  name     String
   //Relationships
   buldings GuidelineBuilding[]
 }

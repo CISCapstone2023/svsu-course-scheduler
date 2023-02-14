@@ -31,6 +31,12 @@ export const calendarRouter = createTRPCRouter({
     .input(
       z.object({
         tuid: z.string(),
+        faculty: z.string().array(),
+        buildings: z.string().array(),
+        departments: z.string().array(),
+        credits: z.number(),
+        minRoomNum: z.string(),
+        maxRoomNum: z.string(),
         fall: z.boolean(),
         winter: z.boolean(),
         spring: z.boolean(),

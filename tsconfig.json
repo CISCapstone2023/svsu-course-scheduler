@@ -18,7 +18,8 @@
     "baseUrl": "./",
     "paths": {
       "src/*": ["./src/*"]
-    }
+    },
+    "noErrorTruncation": true
   },
   "include": [
     "next-env.d.ts",

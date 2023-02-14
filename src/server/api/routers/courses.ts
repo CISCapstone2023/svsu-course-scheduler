@@ -192,7 +192,7 @@ export const coursesRouter = createTRPCRouter({
                   //Gathers some times for the course guideline
                   AND: [
                     {
-                      start_time_hour: {
+                      start_time: {
                         gte: input.start_time.hour, //Grabs the start times that are greater than or equal to the start hour passed in
                       },
                       //NOT WORKING CURRENTLY
@@ -201,7 +201,7 @@ export const coursesRouter = createTRPCRouter({
                       // },
                     },
                     {
-                      end_time_hour: {
+                      end_time: {
                         lte: input.end_time.hour, //Grabs the end times that are less than or equal to the end hour passed in
                       },
                       //NOT WORKING CURRENTLY
@@ -340,10 +340,8 @@ export const coursesRouter = createTRPCRouter({
             tuid: item.tuid,
           },
           create: {
-            end_time_hour: item.end_time_hour,
-            end_time_min: item.end_time_min,
-            start_time_hour: item.start_time_hour,
-            start_time_min: item.start_time_min,
+            end_time: item.end_time,
+            start_time: item.start_time,
           },
         }));
 

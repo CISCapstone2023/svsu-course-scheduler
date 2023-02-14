@@ -4,8 +4,8 @@ import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
-import { FilePlus, Logout } from "tabler-icons-react";
-import { Button, Modal, Steps } from "react-daisyui";
+import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
+import { Button, Modal, Steps, Tooltip } from "react-daisyui";
 import { useState } from "react";
 import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
@@ -127,7 +127,18 @@ const Projects: NextPage = () => {
                 Finalize
               </Steps.Step>
             </Steps>
-
+            {stage === 2 ? (
+              <Tooltip
+                message="Pick the right column name based on the dropdown!"
+                color="info"
+              >
+                <Button>
+                  <QuestionMark size={48} strokeWidth={2} color={"black"} />
+                </Button>
+              </Tooltip>
+            ) : (
+              <></>
+            )}
             <Button
               size="sm"
               shape="circle"

@@ -1,17 +1,14 @@
 import React, { useState } from "react";
 import { Select } from "react-daisyui";
-
-interface DropdownCountProps {
-  children?: React.ReactNode;
-  curCol?: string;
-}
-
 interface DataFormat {
   id: number;
   name: string;
 }
+interface DropdownCountProps {
+  children?: React.ReactNode;
+}
 
-const DropdownCol = ({ children, curCol }: DropdownCountProps) => {
+const DropdownCol = ({}: DropdownCountProps) => {
   const [value, setValue] = useState("default");
   //section_id: 1,
   // term: 2,

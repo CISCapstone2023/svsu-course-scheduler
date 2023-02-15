@@ -222,7 +222,7 @@ model GuidelinesCoursesTimes {
   end_time_min       Int
   end_time_hour      Int
   //Relation to relate times to course guidelines
-  guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+  guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid])
 }
 
 //Table of course guideline days
@@ -237,7 +237,7 @@ model GuidelinesCoursesDays {
   day_saturday  Boolean
   day_sunday    Boolean
   //Relation to relate days to course guidelines
-  guideline     GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+  guideline     GuidelinesCourses @relation(fields: [guideline_id], references: [tuid])
 }
 
 model CourseNote {

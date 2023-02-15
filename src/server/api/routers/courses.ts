@@ -320,19 +320,19 @@ export const coursesRouter = createTRPCRouter({
 
         //Disconnects the current days and times from the course guideline
         //Currently non-operable. Believe issue with onDelete: Cascade
-        // const disconnectDaysTimes = ctx.prisma.guidelinesCourses.update({
-        //   where: {
-        //     tuid: input.tuid,
-        //   }, //Sets the connections equal to an empty array
-        //   data: {
-        //     times: {
-        //       set: [],
-        //     },
-        //     days: {
-        //       set: [],
-        //     },
-        //   },
-        // });
+        const disconnectDaysTimes = ctx.prisma.guidelinesCourses.update({
+          where: {
+            tuid: input.tuid,
+          }, //Sets the connections equal to an empty array
+          data: {
+            times: {
+              set: [],
+            },
+            days: {
+              set: [],
+            },
+          },
+        });
 
         //Creates a new map for the time input to be taken from the client
         const times = input.times.map((item, index) => ({

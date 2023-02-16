@@ -191,21 +191,32 @@ async function queryCoursesByDay(
       include: {
         courses: {
           where: {
-            semester_fall: input.semester_fall,
-            semester_winter: input.semester_winter,
-            semester_spring: input.semester_spring,
-            semester_summer: input.semester_summer,
+            ...(input.faculty
+              ? { faculty: { some: { faculty_tuid: { in: input.faculty } } } }
+              : {}),
+
+            ...(input.credits ? { credits: input.credits } : {}),
 
             locations: {
               some: {
                 [day]: {
                   equals: true,
                 },
+
+                ...(input.buildings
+                  ? {
+                      rooms: {
+                        some: { building_tuid: { in: input.buildings } },
+                      },
+                    }
+                  : {}),
               },
             },
 
-            ...(input.credits ? { credits: input.credits } : {}),
-            // ...(input.credits ? { credits: input.credits } : {}),
+            semester_fall: input.semester_fall,
+            semester_winter: input.semester_winter,
+            semester_spring: input.semester_spring,
+            semester_summer: input.semester_summer,
           },
           include: {
             faculty: {

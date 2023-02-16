@@ -41,6 +41,8 @@ import { type GuidelinesFaculty as GuidelinesCourse } from "@prisma/client";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import PaginationBar from "src/components/Pagination";
 
+import { DevTool } from "@hookform/devtools";
+
 //Import backend api
 import { api } from "src/utils/api";
 import { CourseGuidelinesTimeAndDays } from "src/server/api/routers/courses";
@@ -107,7 +109,7 @@ const Courses = () => {
     },
     meeting_total: { min: 1, max: 4 },
     //search: "",
-    end_time: 20_30,
+    end_time: 23_59,
     start_time: 0,
   });
 
@@ -146,14 +148,14 @@ const Courses = () => {
   const [isCourseDeleteModalOpen, openCourseDeleteModal] =
     useState<boolean>(false);
   const [courseDeleteValue, setCourseDeleteValue] =
-    useState<CourseGuidelinesTimeAndDays>();
+    useState<IAddGuidelineCourse>();
 
   /**
    * openDeleteModal
    * Open the deletion modal for the current faculty member
    * @param course
    */
-  const openDeleteModal = (course: CourseGuidelinesTimeAndDays) => {
+  const openDeleteModal = (course: IAddGuidelineCourse) => {
     setCourseDeleteValue(course);
     openCourseDeleteModal(true);
   };
@@ -164,7 +166,7 @@ const Courses = () => {
    * This form hook will provide all the needed function to validate and parse
    * the data on the form
    */
-  const { reset, ...courseForm } = useForm<CourseGuidelinesTimeAndDays>({
+  const { reset, ...courseForm } = useForm<IAddGuidelineCourse>({
     mode: "onBlur",
     resolver: zodResolver(addGuidelineSchema),
   });
@@ -186,9 +188,9 @@ const Courses = () => {
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting
-  const courseAddMutation = api.faculty.addFaculty.useMutation();
-  const courseUpdateMutation = api.faculty.updateFaculty.useMutation();
-  const courseDeleteMutation = api.faculty.deleteOneFaculty.useMutation();
+  const courseAddMutation = api.courses.addCourseGuideline.useMutation();
+  const courseUpdateMutation = api.courses.updateCourseGuideline.useMutation();
+  const courseDeleteMutation = api.courses.deleteCourseGuideline.useMutation();
 
   /**
    * onCampusModifySubmit
@@ -200,29 +202,23 @@ const Courses = () => {
     console.log("Wooo!");
     console.log(isCourseEditing);
 
-    if (isCourseEditing) {
+    if (isCourseEditing != undefined && isCourseEditing!.tuid) {
       // const result = await courseUpdateMutation.mutateAsync({
-      //   tuid: isCourseEditing?.tuid,
+      //   tuid: isCourseEditing!.tuid,
       //   ...data,
       // });
-      //   if (result) {
-      //     toast.info(`Updated '${data.first_name} ${data.last_name}'`);
-      //   } else {
-      //     toast.error(
-      //       `Failed to add Course '${data.first_name} ${data.last_name}'`
-      //     );
-      //   }
+      // if (result) {
+      //   toast.info(`Updated Course Guideline`);
       // } else {
-      //   const result = await courseAddMutation.mutateAsync(data);
-      //   if (result) {
-      //     toast.success(
-      //       `Added new course '${data.first_name} ${data.last_name}'`
-      //     );
-      //   } else {
-      //     toast.error(
-      //       `Failed to add course '${data.first_name} ${data.last_name}'`
-      //     );
-      //   }
+      //   toast.error(`Failed to add Course Guideline`);
+      // }
+    } else {
+      const result = await courseAddMutation.mutateAsync(data);
+      if (result) {
+        toast.success(`Added new course guidline`);
+      } else {
+        toast.error(`Failed to add course guideline`);
+      }
     }
 
     //Update the list after either an add or edit
@@ -237,11 +233,11 @@ const Courses = () => {
    */
   const deleteCourse = async () => {
     //Make sure the value of the course we want to delete is not undefined
-    if (courseDeleteValue != undefined) {
+    if (courseDeleteValue != undefined && courseDeleteValue!.tuid) {
       //Now send the mutation to the server. The server will return
       //A boolean value that either it deleted or it failed to delete
       const response = await courseDeleteMutation.mutateAsync({
-        tuid: courseDeleteValue?.tuid,
+        tuid: courseDeleteValue.tuid,
       });
 
       //If its true, that's a good!
@@ -267,8 +263,7 @@ const Courses = () => {
    *
    * Are we editing a faculty member? If so its null or the faculty object
    */
-  const [isCourseEditing, setCourseEditing] =
-    useState<CourseGuidelinesTimeAndDays>();
+  const [isCourseEditing, setCourseEditing] = useState<IAddGuidelineCourse>();
 
   // function for splitting course times
   const militaryToTime = (time: number) => {
@@ -500,18 +495,34 @@ const Courses = () => {
                   <span>{i + 1}</span>
                   <span>{course.credits}</span>
                   <span>{course.meeting_amount}</span>
-                  <span>course legnth 1 hour</span>
                   <span>
                     {course.times.map((time) => {
                       return (
                         <>
                           <span key={time.tuid}>
-                            {militaryToTime(time.start_time).hour}:
-                            {militaryToTime(time.start_time).minute}{" "}
-                            {militaryToTime(time.start_time).anteMeridiem}
-                            {} to {militaryToTime(time.end_time).hour}:
-                            {militaryToTime(time.end_time).minute}{" "}
-                            {militaryToTime(time.end_time).anteMeridiem}
+                            {time.difference.hours} hours{" "}
+                            {time.difference.minutes} minutes
+                          </span>
+                          <br />
+                        </>
+                      );
+                    })}
+                  </span>
+                  <span>
+                    {course.times.map((time) => {
+                      return (
+                        <>
+                          <span key={time.tuid}>
+                            {time.start_time.anteMeridiemHour}:
+                            {time.start_time.minute == 0
+                              ? "00"
+                              : time.start_time.minute}{" "}
+                            {time.start_time.anteMeridiem}
+                            {} to {time.end_time.anteMeridiemHour}:
+                            {time.end_time.minute == 0
+                              ? "00"
+                              : time.end_time.minute}{" "}
+                            {time.end_time.anteMeridiem}
                           </span>
                           <br />
                         </>
@@ -565,7 +576,7 @@ const Courses = () => {
         </Table>
         {courses.data?.result.length == 0 && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
-            No faculty found!
+            No Course Found!
             <div>
               <Button onClick={toggleCourseModifyModal} className="mt-2">
                 <Plus />
@@ -618,7 +629,9 @@ const Courses = () => {
                     type="text"
                     className="mt-2 w-full"
                     placeholder="Credit Hours"
-                    {...courseForm.register("credits")}
+                    {...courseForm.register("credits", {
+                      setValueAs: (v) => (v === "" ? undefined : parseInt(v)),
+                    })}
                   />
                   <ErrorMessage
                     errors={courseForm.formState.errors}
@@ -627,17 +640,49 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
-
                   <p>Total Meetings</p>
                   <Input
                     type="text"
                     className="mt-2 w-full"
                     placeholder="Meetings per week"
-                    {...courseForm.register("meeting_amount")}
+                    {...courseForm.register("meeting_amount", {
+                      setValueAs: (v) => (v === "" ? undefined : parseInt(v)),
+                    })}
                   />
                   <ErrorMessage
                     errors={courseForm.formState.errors}
                     name="meeting_amount"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />{" "}
+                  <p className="mt-2">Fall Semester</p>
+                  <Checkbox
+                    color="primary"
+                    className="mt-2"
+                    {...courseForm.register("semester_fall")}
+                  />
+                  <p className="mt-2">Winter Semester</p>
+                  <Checkbox
+                    color="primary"
+                    className="mt-2"
+                    {...courseForm.register("semester_winter")}
+                  />
+                  <p className="mt-2">Spring Semester</p>
+                  <Checkbox
+                    color="primary"
+                    className="mt-2"
+                    {...courseForm.register("semester_spring")}
+                  />
+                  <p className="mt-2">Summer Semester</p>
+                  <Checkbox
+                    color="primary"
+                    className="mt-2"
+                    {...courseForm.register("semester_summer")}
+                  />
+                  <ErrorMessage
+                    errors={courseForm.formState.errors}
+                    name="is_adjunct"
                     render={({ message }) => (
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
@@ -653,12 +698,21 @@ const Courses = () => {
                         size="xs"
                         onClick={() => {
                           timeFields.append({
-                            end_time: 830,
-                            start_time: 1020,
-                            tuid: "",
-                            guideline_id: "",
+                            end_time: {
+                              anteMeridiem: "",
+                              anteMeridiemHour: 0,
+                              hour: 8,
+                              minute: 30,
+                            },
+                            start_time: {
+                              anteMeridiem: "",
+                              anteMeridiemHour: 0,
+                              hour: 8,
+                              minute: 30,
+                            },
                           });
                         }}
+                        type="button"
                       >
                         {" "}
                         Add Time
@@ -666,39 +720,89 @@ const Courses = () => {
                     </div>
                   </div>
 
-                  {dayFields.fields.map(() => {
+                  {timeFields.fields.map((item, index) => {
                     return (
                       <>
                         {" "}
-                        <div className="m-2 flex flex-row items-center justify-center space-x-2 rounded-md bg-base-200 p-4">
-                          <div>
-                            <p>Start Time</p>
-                            <Input
-                              className="w-20"
-                              type="number"
-                              placeholder="Hour"
-                            />{" "}
-                            <Input
-                              className="w-20"
-                              type="number"
-                              placeholder="Minute"
-                            />
+                        <div className="m-2 flex flex-row space-x-2 rounded-md bg-base-200 p-2">
+                          <div className="  grow items-center justify-center">
+                            <div>
+                              <p>Start Time</p>
+                              <Input
+                                className="w-20"
+                                type="number"
+                                placeholder="Hour"
+                                size="sm"
+                                {...courseForm.register(
+                                  `times.${index}.start_time.hour`,
+                                  {
+                                    setValueAs: (v) =>
+                                      v === "" ? undefined : parseInt(v),
+                                  }
+                                )}
+                              />{" "}
+                              <Input
+                                className="w-20"
+                                type="number"
+                                placeholder="Minute"
+                                size="sm"
+                                {...courseForm.register(
+                                  `times.${index}.start_time.minute`,
+                                  {
+                                    setValueAs: (v) =>
+                                      v === "" ? undefined : parseInt(v),
+                                  }
+                                )}
+                              />
+                              <ErrorMessage
+                                errors={courseForm.formState.errors}
+                                name={`times.${index}.start_time.hour`}
+                                render={({ message }) => (
+                                  <p className="font-semibold text-red-600">
+                                    {message}
+                                  </p>
+                                )}
+                              />
+                            </div>
+                            <div>
+                              <p>End Time</p>
+                              <Input
+                                className="w-20"
+                                type="number"
+                                placeholder="Hour"
+                                size="sm"
+                                {...courseForm.register(
+                                  `times.${index}.end_time.hour`,
+                                  {
+                                    setValueAs: (v) =>
+                                      v === "" ? undefined : parseInt(v),
+                                  }
+                                )}
+                              />{" "}
+                              <Input
+                                className="w-20"
+                                type="number"
+                                placeholder="Minute"
+                                size="sm"
+                                {...courseForm.register(
+                                  `times.${index}.end_time.minute`,
+                                  {
+                                    setValueAs: (v) =>
+                                      v === "" ? undefined : parseInt(v),
+                                  }
+                                )}
+                              />
+                            </div>
                           </div>
                           <div>
-                            <p>End Time</p>
-                            <Input
-                              className="w-20"
-                              type="number"
-                              placeholder="Hour"
-                            />{" "}
-                            <Input
-                              className="w-20"
-                              type="number"
-                              placeholder="Minute"
-                            />
-                          </div>
-                          <div>
-                            <Button color="error">
+                            <Button
+                              type="button"
+                              color="error"
+                              size="sm"
+                              onClick={() => {
+                                timeFields.remove(index);
+                              }}
+                            >
                               <Trash />
                             </Button>
                           </div>
@@ -710,46 +814,114 @@ const Courses = () => {
                 <div className="w-1/3">
                   <div className="flex">
                     <div className="grow">
-                      <p>Days</p>
+                      <div className="justify-center">
+                        <p>Days</p>
+                      </div>
                     </div>
+                    {/* <div className="btn-group btn-group-vertical">
+                      <button className="btn-active btn">Monday</button>
+                      <button className="btn">Tuesday</button>
+                      <button className="btn">Wednesday</button>
+                      <button className="btn">Thursday</button>
+                      <button className="btn">Friday</button>
+                      <button className="btn">Saturday</button>
+                      <button className="btn">Sunday</button>
+                    </div> */}
                     <div>
-                      <Button size="xs"> Add Day </Button>
+                      <Button
+                        type="button"
+                        size="xs"
+                        onClick={() => {
+                          dayFields.append({
+                            day_monday: false,
+                            day_tuesday: false,
+                            day_wednesday: false,
+                            day_thursday: false,
+                            day_friday: false,
+                            day_saturday: false,
+                            day_sunday: false,
+                          });
+                        }}
+                      >
+                        {" "}
+                        Add Day
+                      </Button>
                     </div>
                   </div>
+                  {dayFields.fields.map((item, index) => {
+                    return (
+                      <>
+                        {" "}
+                        <div className="m-2 flex flex-row space-x-2 rounded-md bg-base-200 p-2">
+                          <div className="  flex grow items-center justify-center space-x-2">
+                            <div className="text-center">
+                              <p>M</p>
+                              <Checkbox
+                                {...courseForm.register(
+                                  `days.${index}.day_monday`
+                                )}
+                              />
+                            </div>
+                            <div className="text-center">
+                              <p>T</p>
+                              <Checkbox
+                                {...courseForm.register(
+                                  `days.${index}.day_tuesday`
+                                )}
+                              />
+                            </div>
+                            <div className="text-center">
+                              <p>W</p>
+                              <Checkbox
+                                {...courseForm.register(
+                                  `days.${index}.day_wednesday`
+                                )}
+                              />
+                            </div>
+                            <div className="text-center">
+                              <p>TH</p>
+                              <Checkbox
+                                {...courseForm.register(
+                                  `days.${index}.day_thursday`
+                                )}
+                              />
+                            </div>
+                            <div className="text-center">
+                              <p>F</p>
+                              <Checkbox
+                                {...courseForm.register(
+                                  `days.${index}.day_friday`
+                                )}
+                              />
+                            </div>
+                            <div className="text-center">
+                              <p>SAT</p>
+                              <Checkbox
+                                {...courseForm.register(
+                                  `days.${index}.day_saturday`
+                                )}
+                              />
+                            </div>
+                            <div className="text-center">
+                              <p>SUN</p>
+                              <Checkbox
+                                {...courseForm.register(
+                                  `days.${index}.day_sunday`
+                                )}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Button color="error" size="sm" type="button">
+                              <Trash />
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })}
                 </div>
               </div>
-
-              <p className="mt-2">Fall Semester</p>
-              <Checkbox
-                color="primary"
-                className="mt-2"
-                {...courseForm.register("semester_fall")}
-              />
-              <p className="mt-2">Winter Semester</p>
-              <Checkbox
-                color="primary"
-                className="mt-2"
-                {...courseForm.register("semester_winter")}
-              />
-              <p className="mt-2">Spring Semester</p>
-              <Checkbox
-                color="primary"
-                className="mt-2"
-                {...courseForm.register("semester_spring")}
-              />
-              <p className="mt-2">Summer Semester</p>
-              <Checkbox
-                color="primary"
-                className="mt-2"
-                {...courseForm.register("semester_summer")}
-              />
-              <ErrorMessage
-                errors={courseForm.formState.errors}
-                name="is_adjunct"
-                render={({ message }) => (
-                  <p className="font-semibold text-red-600">{message}</p>
-                )}
-              />
             </div>
             <div className="flex justify-end">
               <Button color="success" type="submit" className="mt-2">

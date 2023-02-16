@@ -10,7 +10,39 @@ const timesSchema = z.object({
   }),
 });
 
+const timesSchemaExtended = z.object({
+  guideline_id: z.string().optional(),
+  tuid: z.string().optional(),
+  start_time: z.object({
+    hour: z.number().min(0).max(23, {
+      message: "The hour a course starts must be between 0 and 24 hours.",
+    }),
+    minute: z.number().min(0).max(59, {
+      message: "The minute a course starts must be between 0 and 59 minutes.",
+    }),
+    anteMeridiem: z.string(),
+    anteMeridiemHour: z.number().min(0).max(12, {
+      message: "The hour a course starts must be between 0 and 12 hours.",
+    }),
+  }),
+
+  end_time: z.object({
+    hour: z.number().min(0).max(23, {
+      message: "The hour a course starts must be between 0 and 24 hours.",
+    }),
+    minute: z.number().min(0).max(59, {
+      message: "The minute a course starts must be between 0 and 59 minutes.",
+    }),
+    anteMeridiem: z.string(),
+    anteMeridiemHour: z.number().min(0).max(12, {
+      message: "The hour a course starts must be between 0 and 12 hours.",
+    }),
+  }),
+});
+
 const daysSchema = z.object({
+  guideline_id: z.string().optional(),
+  tuid: z.string().optional(),
   day_monday: z.boolean().default(false),
   day_tuesday: z.boolean().default(false),
   day_wednesday: z.boolean().default(false),
@@ -21,6 +53,7 @@ const daysSchema = z.object({
 });
 
 export const addGuidelineSchema = z.object({
+  tuid: z.string().optional(),
   semester_summer: z.boolean().default(false),
   semester_fall: z.boolean().default(false),
   semester_winter: z.boolean().default(false),
@@ -36,13 +69,13 @@ export const addGuidelineSchema = z.object({
     .min(1)
     .max(4, { message: "Meeting amount must be between 1 and 4." }),
 
-  times: z.array(timesSchema),
+  times: z.array(timesSchemaExtended),
 
   days: z.array(daysSchema),
 });
 
 export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
-  tuid: z.string(),
+  tuid: z.string().optional(),
   days: z.array(
     daysSchema.extend({
       tuid: z.string(),

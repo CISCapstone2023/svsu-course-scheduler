@@ -189,6 +189,10 @@ async function queryCoursesByDay(
       include: {
         courses: {
           where: {
+            semester_fall: input.semester_fall,
+            semester_winter: input.semester_winter,
+            semester_spring: input.semester_spring,
+            semester_summer: input.semester_summer,
             locations: {
               some: {
                 [day]: {

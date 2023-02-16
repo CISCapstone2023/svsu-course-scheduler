@@ -1,7 +1,7 @@
 import { ScheduleRevision } from "@prisma/client";
 import React, { useState } from "react";
 import { Button, FileInput, Progress } from "react-daisyui";
-import { set } from "react-hook-form";
+
 import useRestUpload from "src/hooks/upload/useUpload";
 
 interface ProjectsUploadProps {
@@ -15,7 +15,6 @@ interface IOnboarding {
 }
 
 const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {
-  const [url, setUrl] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
 

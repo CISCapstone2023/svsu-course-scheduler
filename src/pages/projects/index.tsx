@@ -34,7 +34,6 @@ const Projects: NextPage = () => {
   const [confirmationCancel, setComfirmation] = useState<boolean>(false);
 
   const [visible, setVisible] = useState<boolean>(false);
-  const [error, setError] = useState(false);
 
   const toggleVisible = () => {
     if (stage == 1) {
@@ -130,11 +129,15 @@ const Projects: NextPage = () => {
             {stage === 2 ? (
               <Tooltip
                 message="Pick the right column name based on the dropdown!"
-                color="info"
+                position="bottom"
+                className="relative top-1"
               >
-                <Button>
-                  <QuestionMark size={48} strokeWidth={2} color={"black"} />
-                </Button>
+                <QuestionMark
+                  size={30}
+                  strokeWidth={2}
+                  color={"black"}
+                  className="rounded-lg border"
+                />
               </Tooltip>
             ) : (
               <></>
@@ -156,11 +159,9 @@ const Projects: NextPage = () => {
                   onFinish={(data) => {
                     if (data !== undefined && data.tuid === undefined) {
                       console.log({ data });
-                      setError(true);
                     } else {
                       console.log({ data });
                       setData(data);
-                      setError(false);
                       setStage(stage + 0.5);
                     }
                   }}

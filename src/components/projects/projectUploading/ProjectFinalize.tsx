@@ -27,7 +27,7 @@ const ProjectFinalize = ({ children }: ProjectFinalizeProps) => {
         <label className="label">
           <span className="label-text">Year</span>
         </label>
-        <Input type="number" required placeholder="00" />
+        <Input type="number" required placeholder="00" min="0" max="99" />
 
         <label className="label">
           <span className="label-text">Name</span>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Select, Table } from "react-daisyui";
-import ReactDOM from "react-dom";
+
 import { AlertTriangle, NoteOff } from "tabler-icons-react";
 
 interface ProjectDataTableEditProps {
@@ -10,17 +10,20 @@ interface DataFormat {
   id: string;
   name: string;
 }
+let preSet: Record<number, string> = [];
+let preSetFlag = true;
+const MAXIMUM_COLUMNS = 30;
+
+if (preSetFlag) {
+  for (let i = 0; i < MAXIMUM_COLUMNS; i++) {
+    preSet = { ...preSet, [i]: "default" };
+  }
+  preSetFlag = false;
+}
 
 const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
-  const [organize, setOrganize] = useState<Record<number, string>>([]);
-  const [duplicate, setduplicate] = useState<boolean>(false);
-  const [dupColumn, setDupCol] = useState<string>("");
+  const [organize, setOrganize] = useState<Record<number, string>>(preSet);
 
-  const updateColumn = (value: number, item: string) => {
-    setOrganize({ ...organize, [value]: item });
-
-    console.log({ ...organize, [value]: item });
-  };
   const dataList: DataFormat[] = [
     { id: "noteWhatHasChanged", name: "What Has Changed?" },
     { id: "section_id", name: "Section ID" },
@@ -55,16 +58,12 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
     }
   }
 
+  const handleOraganize = (column: number, title: string) => {
+    setOrganize({ ...organize, [column]: title });
+  };
+
   return (
     <div className="overflow-x-auto">
-      {duplicate ? (
-        <div className="sticky  left-0 flex font-semibold text-red-700">
-          <AlertTriangle size={36} strokeWidth={1.5} color={"#bf4042"} />
-          Duplicate Entry Found at {dupColumn}!
-        </div>
-      ) : (
-        <></>
-      )}
       {uploaded != undefined ? (
         <Table className="table-fixed border-collapse">
           <thead>
@@ -79,39 +78,37 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
                     {columnName}
                     <br />
                     <Select
-                      defaultValue={"default"}
+                      value={organize[index]}
                       size="xs"
                       onChange={(event) => {
-                        updateColumn(+event.target.id, event.target.value);
+                        handleOraganize(+event.target.id, event.target.value);
                         const updatedColumn = {
                           ...organize,
                           [+event.target.id]: event.target.value,
                         };
+
                         // loop through the record
                         for (const column in Object.keys(updatedColumn)) {
                           const title = Object.values(updatedColumn)[column];
+                          if (
+                            title !== undefined &&
+                            column !== event.target.id &&
+                            title !== "default" &&
+                            title.includes(event.target.value)
+                          ) {
+                            handleOraganize(+column, "default");
 
-                          for (const col in Object.keys(updatedColumn)) {
-                            const titleCol = Object.values(updatedColumn)[col];
-                            if (
-                              title !== undefined &&
-                              title !== "default" &&
-                              titleCol !== "default" &&
-                              titleCol !== undefined &&
-                              column !== col &&
-                              title.includes(titleCol)
-                            ) {
-                              console.log(title, column, titleCol, col);
-                              setduplicate(true);
-                              setDupCol(+column + 1 + " and " + (+col + 1));
-                              break;
-                            } else setduplicate(false);
+                            setOrganize({
+                              ...updatedColumn,
+                              [+column]: "default",
+                            });
+                            break;
                           }
                         }
                       }}
                       className="w-40"
                       bordered={true}
-                      color={duplicate ? "error" : "ghost"}
+                      color="ghost"
                       id={index + ""}
                     >
                       {dataList.map((item, index) => {

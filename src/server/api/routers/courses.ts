@@ -379,7 +379,7 @@ export const coursesRouter = createTRPCRouter({
         });
 
         await prisma?.$transaction([
-          //disconnectDaysTimes,
+          disconnectDaysTimes,
           connectOrCreateDaysTimes,
         ]);
         return true;

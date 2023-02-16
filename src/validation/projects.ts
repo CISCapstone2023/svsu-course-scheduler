@@ -28,7 +28,7 @@ import { z } from "zod";
 export const courseDatabaseSchemaV2 = z.object({
   type: z.string(),
   section_id: z.preprocess((x) => parseInt(String(x)), z.number()),
-  term: z.preprocess((x) => parseInt(String(x.substring(0, 2))), z.number()),
+  //term: z.preprocess((x) => parseInt(String(x.substring(0, 2))), z.number()),
   //check format?
   div: z.string(),
   department: z.string(),

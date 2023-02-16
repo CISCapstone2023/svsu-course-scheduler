@@ -34,7 +34,7 @@ export const calendarRouter = createTRPCRouter({
         faculty: z.string().array().optional(), // tuids
         buildings: z.string().array().optional(), // tuids
         departments: z.string().array().optional(), // name
-        credits: z.number(),
+        credits: z.number().optional(),
         minRoomNum: z.string(), // Look into the regex that Chris made for this
         maxRoomNum: z.string(),
 
@@ -156,10 +156,16 @@ async function queryCoursesByDay(
   tx: Prisma.TransactionClient,
   input: {
     faculty?: string[] | undefined;
+    credits?: number | undefined;
     buildings?: string[] | undefined;
     departments?: string[] | undefined;
     tuid: string;
-    credits: number;
+    semester_summer: boolean;
+    semester_fall: boolean;
+    semester_winter: boolean;
+    semester_spring: // Import validation next
+    // Essentially creates a new data tyoe built to store comprehensive queries for the calendar
+    boolean;
     days: {
       monday: boolean;
       tuesday: boolean;
@@ -171,10 +177,6 @@ async function queryCoursesByDay(
     };
     minRoomNum: string;
     maxRoomNum: string;
-    semester_fall: boolean;
-    semester_winter: boolean;
-    semester_spring: boolean;
-    semester_summer: boolean;
   },
   day: string
 ) {
@@ -193,6 +195,7 @@ async function queryCoursesByDay(
             semester_winter: input.semester_winter,
             semester_spring: input.semester_spring,
             semester_summer: input.semester_summer,
+
             locations: {
               some: {
                 [day]: {
@@ -200,6 +203,9 @@ async function queryCoursesByDay(
                 },
               },
             },
+
+            ...(input.credits ? { credits: input.credits } : {}),
+            // ...(input.credits ? { credits: input.credits } : {}),
           },
           include: {
             faculty: {

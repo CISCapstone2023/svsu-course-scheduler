@@ -25,13 +25,19 @@ const Buildings: NextPage = () => {
    * Keep the state of the current tab
    */
   const [tabValue, setTabValue] = useState(0);
+  const [open, setOpen] = useState(true);
 
   return (
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Scheduler" />
-        <CreateCourseModal />
+        <CreateCourseModal
+          open={open}
+          onClose={() => {
+            setOpen(false);
+          }}
+        />
       </DashboardContent>
     </DashboardLayout>
   );

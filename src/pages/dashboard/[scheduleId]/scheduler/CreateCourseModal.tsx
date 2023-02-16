@@ -10,13 +10,15 @@ import {
 
 interface CreateCourseModalProps {
   children?: React.ReactNode;
+  open: boolean;
+  onClose: () => void;
 }
 
-const CreateCourseModal = ({ children }: CreateCourseModalProps) => {
-  const [open, setOpen] = useState(true);
-  const onClose = () => {
-    //Close
-  };
+const CreateCourseModal = ({
+  children,
+  open,
+  onClose,
+}: CreateCourseModalProps) => {
   return (
     <Modal
       open={open}
@@ -107,101 +109,103 @@ const CreateCourseModal = ({ children }: CreateCourseModalProps) => {
               </div>
             </div>
 
-            <div
-              className="flex items-center justify-between"
-              id="locationList"
-            >
-              <div className="flex justify-center space-x-2" id="location">
-                <div className="flex flex-row items-end space-x-4">
-                  <div className="flex w-full flex-col" id="starTime">
-                    <div
-                      className="w-50 m-1 flex h-8 items-center"
-                      id="timeLbl"
-                    >
-                      <p>Time</p>
+            <div className="rounded-md bg-gray-100 p-2" id="informationBLock">
+              <div
+                className="flex items-center justify-between"
+                id="locationList"
+              >
+                <div className="flex justify-center space-x-2" id="location">
+                  <div className="flex flex-row items-end space-x-4">
+                    <div className="flex w-full flex-col" id="starTime">
+                      <div
+                        className="w-50 m-1 flex h-8 items-center"
+                        id="timeLbl"
+                      >
+                        <p>Time</p>
+                      </div>
+                      <div className="flex" id="timeInputBoxes">
+                        <Input type="number" className="w-20" size="sm" />
+                        <Input type="number" className="w-20" size="sm" />
+                      </div>
                     </div>
-                    <div className="flex" id="timeInputBoxes">
-                      <Input type="number" className="w-20" size="sm" />
-                      <Input type="number" className="w-20" size="sm" />
+                    <div className="mb-2 flex">
+                      <p>to</p>
+                    </div>
+                    <div className="flex w-full flex-col" id="endTime">
+                      <div
+                        className="w-50 m-1 flex h-8 items-center"
+                        id="timeLbl"
+                      >
+                        <p>Time</p>
+                      </div>
+                      <div className="flex" id="timeInputBoxes">
+                        <Input type="number" className="w-20" size="sm" />
+                        <Input type="number" className="w-20" size="sm" />
+                      </div>
                     </div>
                   </div>
-                  <div className="mb-2 flex">
-                    <p>to</p>
+                </div>
+
+                <div className="flex flex-col space-y-2" id="inPerson+Building">
+                  <div className="flex flex-row">
+                    <Checkbox className="mr-2" />
+                    <p>In Person Class</p>
                   </div>
-                  <div className="flex w-full flex-col" id="endTime">
-                    <div
-                      className="w-50 m-1 flex h-8 items-center"
-                      id="timeLbl"
-                    >
-                      <p>Time</p>
+
+                  <div className="flex flex-row space-x-2">
+                    <div>
+                      <Select size="sm">
+                        <option value={"default"} disabled>
+                          Pick a Building
+                        </option>
+                        <option value={"SW"}>SW</option>
+                        <option value={"SE"}>SE</option>
+                      </Select>
                     </div>
-                    <div className="flex" id="timeInputBoxes">
-                      <Input type="number" className="w-20" size="sm" />
-                      <Input type="number" className="w-20" size="sm" />
+
+                    <div>
+                      <Select size="sm">
+                        <option value={"default"} disabled>
+                          Pick a Room
+                        </option>
+                        <option value={"120"}>120</option>
+                        <option value={"121"}>121</option>
+                      </Select>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col space-y-2" id="inPerson+Building">
-                <div className="flex flex-row">
-                  <Checkbox className="mr-2" />
-                  <p>In Person Class</p>
-                </div>
-
-                <div className="flex flex-row space-x-2">
+              <div className="flex flex-col">
+                <div className="flex space-x-2 text-center">
                   <div>
-                    <Select size="sm">
-                      <option value={"default"} disabled>
-                        Pick a Building
-                      </option>
-                      <option value={"SW"}>SW</option>
-                      <option value={"SE"}>SE</option>
-                    </Select>
+                    <p>M</p>
+                    <Checkbox />
                   </div>
-
                   <div>
-                    <Select size="sm">
-                      <option value={"default"} disabled>
-                        Pick a Room
-                      </option>
-                      <option value={"120"}>120</option>
-                      <option value={"121"}>121</option>
-                    </Select>
+                    <p>T</p>
+                    <Checkbox />
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <div className="flex space-x-2 text-center">
-                <div>
-                  <p>M</p>
-                  <Checkbox />
-                </div>
-                <div>
-                  <p>T</p>
-                  <Checkbox />
-                </div>
-                <div>
-                  <p>W</p>
-                  <Checkbox />
-                </div>
-                <div>
-                  <p>TH</p>
-                  <Checkbox />
-                </div>
-                <div>
-                  <p>F</p>
-                  <Checkbox />
-                </div>
-                <div>
-                  <p>Sat</p>
-                  <Checkbox />
-                </div>
-                <div>
-                  <p>Sun</p>
-                  <Checkbox />
+                  <div>
+                    <p>W</p>
+                    <Checkbox />
+                  </div>
+                  <div>
+                    <p>TH</p>
+                    <Checkbox />
+                  </div>
+                  <div>
+                    <p>F</p>
+                    <Checkbox />
+                  </div>
+                  <div>
+                    <p>Sat</p>
+                    <Checkbox />
+                  </div>
+                  <div>
+                    <p>Sun</p>
+                    <Checkbox />
+                  </div>
                 </div>
               </div>
             </div>

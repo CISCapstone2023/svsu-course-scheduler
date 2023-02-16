@@ -115,10 +115,8 @@ model Course {
   section            String
   start_date         DateTime
   end_date           DateTime
-  start_time_min     Int
-  start_time_hour    Int
-  end_time_min       Int
-  end_time_hour      Int
+  start_time Int
+  end_time Int
   credits            Int
   title              String                      @db.VarChar(30)
   status             String                      @default("Active")
@@ -217,10 +215,8 @@ model GuidelinesCourses {
 model GuidelinesCoursesTimes {
   tuid         String            @id @default(cuid())
   guideline_id String
-  start_time_min     Int
-  start_time_hour    Int
-  end_time_min       Int
-  end_time_hour      Int
+  start_time Int
+  end_time Int
   //Relation to relate times to course guidelines
   guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid])
 }

@@ -152,8 +152,8 @@ const Projects: NextPage = () => {
             </Button>
           </Modal.Header>
 
-          <Modal.Body className="max-h-full w-full flex-col">
-            <div className="flex h-[90%] w-full justify-center align-middle">
+          <Modal.Body className="s h-2/3 w-full flex-col overflow-y-auto">
+            <div className="flex  w-full justify-center overflow-y-auto align-middle">
               {stage <= 1.5 ? (
                 <ProjectsUpload
                   onFinish={(data) => {
@@ -176,24 +176,24 @@ const Projects: NextPage = () => {
               )}
               {stage === 3 ? <ProjectFinalize /> : <></>}
             </div>
-            <div className="container mt-3 flex justify-between justify-self-end">
-              {" "}
-              {stage > 1.5 ? (
-                <Button className="" onClick={backStage}>
-                  Back
-                </Button>
-              ) : (
-                <div></div>
-              )}
-              <Button
-                className=""
-                disabled={stage < 1.5}
-                onClick={stage == 3 ? goToMain : toggleStage}
-              >
-                {stage >= 3 ? "Finalize" : "Next"}
-              </Button>
-            </div>
           </Modal.Body>
+          <div className=" relative mt-3 flex w-full justify-between justify-self-end align-middle">
+            {" "}
+            {stage > 1.5 ? (
+              <Button className="" onClick={backStage}>
+                Back
+              </Button>
+            ) : (
+              <div></div>
+            )}
+            <Button
+              className=""
+              disabled={stage < 1.5}
+              onClick={stage == 3 ? goToMain : toggleStage}
+            >
+              {stage >= 3 ? "Finalize" : "Next"}
+            </Button>
+          </div>
         </Modal>
         <ConfirmDeleteModal
           title="Cancellation Confirmation"

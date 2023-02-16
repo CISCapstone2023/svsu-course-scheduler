@@ -63,79 +63,81 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
   };
 
   return (
-    <div className="overflow-x-auto">
+    <div className="sticky top-0 h-96 overflow-x-auto overflow-y-auto">
       {uploaded != undefined ? (
-        <Table className="table-fixed border-collapse">
-          <thead>
-            <span />
-            {uploaded[0] !== undefined ? (
-              uploaded[0].map((columnName, index) => {
-                return (
-                  <th
-                    className="w-1/3 flex-wrap border border-slate-600"
-                    key={index}
-                  >
-                    {columnName}
-                    <br />
-                    <Select
-                      value={organize[index]}
-                      size="xs"
-                      onChange={(event) => {
-                        handleOraganize(+event.target.id, event.target.value);
-                        const updatedColumn = {
-                          ...organize,
-                          [+event.target.id]: event.target.value,
-                        };
-
-                        // loop through the record
-                        for (const column in Object.keys(updatedColumn)) {
-                          const title = Object.values(updatedColumn)[column];
-                          if (
-                            title !== undefined &&
-                            column !== event.target.id &&
-                            title !== "default" &&
-                            title.includes(event.target.value)
-                          ) {
-                            handleOraganize(+column, "default");
-
-                            setOrganize({
-                              ...updatedColumn,
-                              [+column]: "default",
-                            });
-                            break;
-                          }
-                        }
-                      }}
-                      className="w-40"
-                      bordered={true}
-                      color="ghost"
-                      id={index + ""}
+        <Table className="sticky top-0 table-fixed border-collapse">
+          <thead className="sticky top-0">
+            <tr className="sticky top-0">
+              <span />
+              {uploaded[0] !== undefined ? (
+                uploaded[0].map((columnName, index) => {
+                  return (
+                    <th
+                      className="sticky top-0 w-1/3 flex-wrap border border-slate-600"
+                      key={index}
                     >
-                      {dataList.map((item, index) => {
-                        if (index === 0) {
+                      {columnName}
+                      <br />
+                      <Select
+                        value={organize[index]}
+                        size="xs"
+                        onChange={(event) => {
+                          handleOraganize(+event.target.id, event.target.value);
+                          const updatedColumn = {
+                            ...organize,
+                            [+event.target.id]: event.target.value,
+                          };
+
+                          // loop through the record
+                          for (const column in Object.keys(updatedColumn)) {
+                            const title = Object.values(updatedColumn)[column];
+                            if (
+                              title !== undefined &&
+                              column !== event.target.id &&
+                              title !== "default" &&
+                              title.includes(event.target.value)
+                            ) {
+                              handleOraganize(+column, "default");
+
+                              setOrganize({
+                                ...updatedColumn,
+                                [+column]: "default",
+                              });
+                              break;
+                            }
+                          }
+                        }}
+                        className="w-40"
+                        bordered={true}
+                        color="ghost"
+                        id={index + ""}
+                      >
+                        {dataList.map((item, index) => {
+                          if (index === 0) {
+                            return (
+                              <>
+                                <option value={"default"}></option>
+                                <option value={item.id} key={index}>
+                                  {item.name}
+                                </option>
+                                ;
+                              </>
+                            );
+                          }
                           return (
-                            <>
-                              <option value={"default"}></option>
-                              <option value={item.id} key={index}>
-                                {item.name}
-                              </option>
-                              ;
-                            </>
+                            <option value={item.id} key={index}>
+                              {item.name}
+                            </option>
                           );
-                        }
-                        return (
-                          <option value={item.id} key={index}>
-                            {item.name}
-                          </option>
-                        );
-                      })}
-                    </Select>
-                  </th>
-                );
-              })
-            ) : (
-              <></>
-            )}
+                        })}
+                      </Select>
+                    </th>
+                  );
+                })
+              ) : (
+                <></>
+              )}
+            </tr>
           </thead>
           <tbody>
             {tableBody.map((item, index) => {

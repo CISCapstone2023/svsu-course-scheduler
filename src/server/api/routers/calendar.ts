@@ -5,7 +5,8 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { Overwrite } from "@trpc/server";
 import { Session } from "next-auth";
 
-// Import validation next
+// Validation -----------------------------------------------------------------------------------------------------
+
 // Essentially creates a new data tyoe built to store comprehensive queries for the calendar
 const revisionWithCourses = Prisma.validator<Prisma.ScheduleRevisionArgs>()({
   include: {
@@ -24,6 +25,8 @@ const revisionWithCourses = Prisma.validator<Prisma.ScheduleRevisionArgs>()({
 type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
   typeof revisionWithCourses
 >;
+
+// Routers --------------------------------------------------------------------------------------------------------
 
 export const calendarRouter = createTRPCRouter({
   // This will grab one revision by tuid and return all courses attached to it, organized by days of the week
@@ -134,6 +137,8 @@ export const calendarRouter = createTRPCRouter({
     }),
 });
 
+// Methods --------------------------------------------------------------------------------------------------------
+
 // Funtion simply takes client input and returns a two letter code for whichever semester was marked true
 function getSemester(input: {
   tuid: string;
@@ -195,6 +200,10 @@ async function queryCoursesByDay(
               ? { faculty: { some: { faculty_tuid: { in: input.faculty } } } }
               : {}),
 
+            ...(input.departments
+              ? { department: { in: input.departments } }
+              : {}),
+
             ...(input.credits ? { credits: input.credits } : {}),
 
             locations: {
@@ -218,6 +227,7 @@ async function queryCoursesByDay(
             semester_spring: input.semester_spring,
             semester_summer: input.semester_summer,
           },
+
           include: {
             faculty: {
               include: {

@@ -41,8 +41,6 @@ import { type GuidelinesFaculty as GuidelinesCourse } from "@prisma/client";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import PaginationBar from "src/components/Pagination";
 
-import { DevTool } from "@hookform/devtools";
-
 //Import backend api
 import { api } from "src/utils/api";
 import { CourseGuidelinesTimeAndDays } from "src/server/api/routers/courses";

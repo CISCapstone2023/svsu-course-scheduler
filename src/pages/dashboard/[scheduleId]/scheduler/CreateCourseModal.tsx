@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import AsyncSelect from "react-select/async";
 import {
   Button,
   Checkbox,
@@ -19,11 +20,27 @@ const CreateCourseModal = ({
   open,
   onClose,
 }: CreateCourseModalProps) => {
+  const facultyLoadOptions = (
+    value: string,
+    callback: (options: any) => void
+  ) => {
+    //no api :(
+    callback([{ value: "Bob", label: "Bob" }]);
+  };
+
+  const buildingLoadOptions = (
+    value: string,
+    callback: (options: any) => void
+  ) => {
+    //no api :(
+    callback([{ value: "SW", label: "SW" }]);
+  };
+
   return (
     <Modal
       open={open}
       onClickBackdrop={onClose}
-      className="h-full  w-11/12 max-w-5xl "
+      className="h-full  w-3/4 max-w-5xl "
     >
       <Button
         size="sm"
@@ -37,64 +54,44 @@ const CreateCourseModal = ({
       <Modal.Body className="h-[500px] w-full">
         <div className="flex h-full w-full" id="parent">
           <div className="flex w-full flex-col space-y-5 p-2" id="mainSection">
-            <div className="flex w-full flex-row justify-between" id="firstRow">
-              <div className="flex-col" id="departmentAlign">
+            <div className="flex w-full flex-row space-x-4" id="firstRow">
+              <div className="grow flex-col" id="departmentAlign">
                 <div className="w-50 m-2 flex h-8 items-center">
                   <p>Department</p>
                 </div>
                 <div>
-                  <Select size="sm">
-                    <option value={"default"} disabled>
-                      Pick a Department
-                    </option>
-                    <option value={"CIS"}>CIS</option>
-                    <option value={"CS"}>CS</option>
-                  </Select>
+                  <Input type="number" className="w-full" size="sm" />
                 </div>
               </div>
 
-              <div className="flex-col" id="courseAlign">
+              <div className="grow flex-col" id="courseAlign">
                 <div className="w-50 m-2 flex h-8 items-center">
                   <p>Course</p>
                 </div>
                 <div>
-                  <Select size="sm">
-                    <option value={"default"} disabled>
-                      Pick a Course
-                    </option>
-                    <option value={"300"}>300</option>
-                    <option value={"301"}>301</option>
-                  </Select>
+                  <Input type="number" className="w-full" size="sm" />
                 </div>
               </div>
 
-              <div className="flex-col" id="sectionAlign">
+              <div className="grow flex-col" id="sectionAlign">
                 <div className="w-50 m-2 flex h-8 items-center">
                   <p>Section</p>
                 </div>
                 <div>
-                  <Select size="sm">
-                    <option value={"default"} disabled>
-                      Pick a Section
-                    </option>
-                    <option value={"1"}>1</option>
-                    <option value={"2"}>2</option>
-                  </Select>
+                  <Input type="number" className="w-full" size="sm" />
                 </div>
               </div>
 
-              <div className="flex-col" id="facultyAlign">
+              <div className="grow flex-col" id="facultyAlign">
                 <div className="w-50 m-2 flex h-8 items-center">
                   <p>Faculty Member</p>
                 </div>
                 <div>
-                  <Select size="sm">
-                    <option value={"default"} disabled>
-                      Pick a Faculty Member
-                    </option>
-                    <option value={"James"}>James</option>
-                    <option value={"Avishek"}>Avishek</option>
-                  </Select>
+                  <AsyncSelect
+                    cacheOptions
+                    loadOptions={facultyLoadOptions}
+                    defaultOptions
+                  />
                 </div>
               </div>
             </div>
@@ -154,23 +151,15 @@ const CreateCourseModal = ({
 
                   <div className="flex flex-row space-x-2">
                     <div>
-                      <Select size="sm">
-                        <option value={"default"} disabled>
-                          Pick a Building
-                        </option>
-                        <option value={"SW"}>SW</option>
-                        <option value={"SE"}>SE</option>
-                      </Select>
+                      <AsyncSelect
+                        cacheOptions
+                        loadOptions={buildingLoadOptions}
+                        defaultOptions
+                      />
                     </div>
 
                     <div>
-                      <Select size="sm">
-                        <option value={"default"} disabled>
-                          Pick a Room
-                        </option>
-                        <option value={"120"}>120</option>
-                        <option value={"121"}>121</option>
-                      </Select>
+                      <Input type="number" className="w-20" size="sm" />
                     </div>
                   </div>
                 </div>

@@ -330,13 +330,27 @@ export const coursesRouter = createTRPCRouter({
 
       //Checks to see if the course guideline exists and if there is only 1
       if (hasCourseGuideline == 1) {
-        //Deletes the entered guideline
-        await ctx.prisma.guidelinesCourses.delete({
-          //Where the guideline tuid equals the tuid of the requested guideline to be deleted
+        //Delete all days associated with the one guideline
+        await ctx.prisma.guidelinesCoursesDays.deleteMany({
+          //Where tuid for the days entry matches that of the deleted guideline
           where: {
-            tuid: input.tuid,
+            guideline_id: input.tuid,
           },
-        });
+        }),
+          //Delete all times associated with the one guideline
+          await ctx.prisma.guidelinesCoursesTimes.deleteMany({
+            //Where the tuid for the times entry matches that of the deleted guideline
+            where: {
+              guideline_id: input.tuid,
+            },
+          }),
+          //Deletes the entered guideline
+          await ctx.prisma.guidelinesCourses.delete({
+            //Where the guideline tuid equals the tuid of the requested guideline to be deleted
+            where: {
+              tuid: input.tuid,
+            },
+          });
 
         //Returns if the delete was successful
         return true;

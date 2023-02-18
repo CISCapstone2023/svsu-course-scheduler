@@ -104,7 +104,7 @@ const Projects: NextPage = () => {
           </button>
         </div>
 
-        <Modal open={visible} className="h-full  w-11/12 max-w-5xl ">
+        <Modal open={visible} className="max-h-[250rem]  w-11/12 max-w-5xl ">
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
               <Steps.Step

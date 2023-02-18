@@ -201,15 +201,15 @@ const Courses = () => {
     console.log(isCourseEditing);
 
     if (isCourseEditing != undefined && isCourseEditing!.tuid) {
-      // const result = await courseUpdateMutation.mutateAsync({
-      //   tuid: isCourseEditing!.tuid,
-      //   ...data,
-      // });
-      // if (result) {
-      //   toast.info(`Updated Course Guideline`);
-      // } else {
-      //   toast.error(`Failed to add Course Guideline`);
-      // }
+      const result = await courseUpdateMutation.mutateAsync({
+        tuid: isCourseEditing!.tuid,
+        ...data,
+      });
+      if (result) {
+        toast.info(`Updated Course Guideline`);
+      } else {
+        toast.error(`Failed to add Course Guideline`);
+      }
     } else {
       const result = await courseAddMutation.mutateAsync(data);
       if (result) {

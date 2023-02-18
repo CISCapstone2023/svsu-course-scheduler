@@ -9,7 +9,7 @@ import CampusTab from "./CampusTab";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
+import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 import BuildingsTab from "./BuildingsTab";
 
 const Buildings: NextPage = () => {

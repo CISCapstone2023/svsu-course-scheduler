@@ -12,8 +12,6 @@ import {
   addGuidelineSchema,
   updateCourseGuidelineSchema,
 } from "src/validation/courses";
-import { updateCampusSchema } from "src/validation/buildings";
-import { cssTransition } from "react-toastify";
 
 //Imports course guidelines schema with days and times
 const courseGuidelinesTD = Prisma.validator<Prisma.GuidelinesCoursesArgs>()({
@@ -176,7 +174,6 @@ export const coursesRouter = createTRPCRouter({
                   ],
                 },
               },
-
               times: {
                 some: {
                   //Gathers some times for the course guideline
@@ -185,19 +182,11 @@ export const coursesRouter = createTRPCRouter({
                       start_time: {
                         gte: input.start_time, //Grabs the start times that are greater than or equal to the start hour passed in
                       },
-                      //NOT WORKING CURRENTLY
-                      // start_time_min: {
-                      //   gte: input.start_time.minute,
-                      // },
                     },
                     {
                       end_time: {
                         lte: input.end_time, //Grabs the end times that are less than or equal to the end hour passed in
                       },
-                      //NOT WORKING CURRENTLY
-                      // end_time_min: {
-                      //   lte: input.end_time.minute,
-                      // },
                     },
                   ],
                 },
@@ -297,10 +286,14 @@ export const coursesRouter = createTRPCRouter({
                 tuid: time.tuid,
                 guideline_id: time.guideline_id,
                 start_time: parseInt(
-                  `${time.start_time.hour}${time.start_time.minute}`
+                  `${time.start_time.hour}${
+                    time.start_time.minute == 0 ? "00" : time.start_time.minute
+                  }`
                 ),
                 end_time: parseInt(
-                  `${time.end_time.hour}${time.end_time.minute}`
+                  `${time.end_time.hour}${
+                    time.end_time.minute == 0 ? "00" : time.end_time.minute
+                  }`
                 ),
               })),
             ],
@@ -360,7 +353,7 @@ export const coursesRouter = createTRPCRouter({
     }),
 
   updateCourseGuideline: protectedProcedure
-    .input(updateCourseGuidelineSchema)
+    .input(addGuidelineSchema)
     .mutation(async ({ ctx, input }) => {
       //Checks to see if the guideline exists by searching for the tuid in a count query
       const hasCourseGuideline = await ctx.prisma.guidelinesCourses.count({
@@ -386,30 +379,74 @@ export const coursesRouter = createTRPCRouter({
           },
         });
 
-        //Disconnects the current days and times from the course guideline
-        //Currently non-operable. Believe issue with onDelete: Cascade
-        const disconnectDaysTimes = ctx.prisma.guidelinesCourses.update({
+        const getTimes = await ctx.prisma.guidelinesCoursesTimes.deleteMany({
           where: {
-            tuid: input.tuid,
-          }, //Sets the connections equal to an empty array
-          data: {
-            times: {
-              set: [],
-            },
-            days: {
-              set: [],
-            },
+            guideline_id: input.tuid,
           },
         });
 
-        //Creates a new map for the time input to be taken from the client
-        const times = input.times.map((item, index) => ({
+        const getDays = await ctx.prisma.guidelinesCoursesDays.deleteMany({
           where: {
-            tuid: item.tuid,
+            guideline_id: input.tuid,
+          },
+        });
+
+        //REFERENCE For attempt... idk
+        // await ctx.prisma.guidelinesCourses.update({
+        //   where: {
+        //     tuid: input.tuid, //Grabs the tuid of the
+        //   },
+        //   data: {
+        //     times: {
+        //       disconnect: getTimes.map((time) => {
+        //         return { tuid: time.tuid };
+        //       }), //Disconnects the guideline based on tuid
+        //     },
+        //     days: {
+        //       disconnect: getTimes.map((days) => {
+        //         return { tuid: days.tuid };
+        //       }), //Disconnects the guideline based on tuid
+        //     },
+        //   },
+        // });
+
+        //Disconnects the current days and times from the course guideline
+        //Currently non-operable. Believe issue with onDelete: Cascade
+        // const disconnectDaysTimes = ctx.prisma.guidelinesCourses.update({
+        //   where: {
+        //     tuid: input.tuid,
+        //   }, //Sets the connections equal to an empty array
+        //   data: {
+        //     times: {
+        //       set: [],
+        //     },
+        //     days: {
+        //       set: [],
+        //     },
+        //   },
+        //   include: {
+        //     times: true,
+        //     days: true,
+        //   },
+        // });
+
+        //Creates a new map for the time input to be taken from the client
+        const times = input.times.map((time, index) => ({
+          where: {
+            tuid: time.tuid,
           },
           create: {
-            end_time: item.end_time,
-            start_time: item.start_time,
+            tuid: time.tuid,
+            start_time: parseInt(
+              `${time.start_time.hour}${
+                time.start_time.minute == 0 ? "00" : time.start_time.minute
+              }`
+            ),
+            end_time: parseInt(
+              `${time.end_time.hour}${
+                time.end_time.minute == 0 ? "00" : time.end_time.minute
+              } `
+            ),
           },
         }));
 
@@ -430,7 +467,8 @@ export const coursesRouter = createTRPCRouter({
         }));
 
         //Procedure to create a new day or time or connect the day or time to the course guideline
-        const connectOrCreateDaysTimes = ctx.prisma.guidelinesCourses.update({
+
+        await ctx.prisma.guidelinesCourses.update({
           where: {
             tuid: input.tuid,
           },
@@ -443,11 +481,6 @@ export const coursesRouter = createTRPCRouter({
             },
           },
         });
-
-        await prisma?.$transaction([
-          disconnectDaysTimes,
-          connectOrCreateDaysTimes,
-        ]);
         return true;
       }
     }),

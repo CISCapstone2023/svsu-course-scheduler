@@ -2,7 +2,7 @@ import { times } from "lodash";
 import { z } from "zod";
 
 const timesSchema = z.object({
-  start_time: z.number().min(0).max(0, {
+  start_time: z.number().min(0).max(2200, {
     message: "The hour a course starts must be between 0 and 24 hours.",
   }),
   end_time: z.number().min(0).max(2359, {

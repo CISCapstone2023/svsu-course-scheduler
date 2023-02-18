@@ -102,10 +102,10 @@ const Courses = () => {
     semester_spring: filterSpringSemester,
     semester_summer: filterSummerSemester,
     credits: {
-      min: 1,
-      max: 4,
+      min: filterCreditsMin,
+      max: filterCreditsMax,
     },
-    meeting_total: { min: 1, max: 4 },
+    meeting_total: { min: filterMeetingsMin, max: filterMeetingsMax },
     //search: "",
     end_time: 23_59,
     start_time: 0,
@@ -201,15 +201,15 @@ const Courses = () => {
     console.log(isCourseEditing);
 
     if (isCourseEditing != undefined && isCourseEditing!.tuid) {
-      // const result = await courseUpdateMutation.mutateAsync({
-      //   tuid: isCourseEditing!.tuid,
-      //   ...data,
-      // });
-      // if (result) {
-      //   toast.info(`Updated Course Guideline`);
-      // } else {
-      //   toast.error(`Failed to add Course Guideline`);
-      // }
+      const result = await courseUpdateMutation.mutateAsync({
+        tuid: isCourseEditing!.tuid,
+        ...data,
+      });
+      if (result) {
+        toast.info(`Updated Course Guideline`);
+      } else {
+        toast.error(`Failed to add Course Guideline`);
+      }
     } else {
       const result = await courseAddMutation.mutateAsync(data);
       if (result) {

@@ -102,10 +102,10 @@ const Courses = () => {
     semester_spring: filterSpringSemester,
     semester_summer: filterSummerSemester,
     credits: {
-      min: 1,
-      max: 4,
+      min: filterCreditsMin,
+      max: filterCreditsMax,
     },
-    meeting_total: { min: 1, max: 4 },
+    meeting_total: { min: filterMeetingsMin, max: filterMeetingsMax },
     //search: "",
     end_time: 23_59,
     start_time: 0,

@@ -135,6 +135,32 @@ export const calendarRouter = createTRPCRouter({
         course,
       };
     }),
+
+  //This will grab one revision by tuid and return all courses attached to it
+  getAllCourses: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const revisionWithCourses = await ctx.prisma.scheduleRevision.findUnique({
+        where: {
+          tuid: input.tuid,
+        },
+        include: {
+          courses: true,
+        },
+      });
+
+      const allCourses = revisionWithCourses?.courses;
+
+      allCourses?.forEach((course) => {
+        console.log(course.course_number);
+      });
+
+      return allCourses;
+    }),
 });
 
 // Methods --------------------------------------------------------------------------------------------------------

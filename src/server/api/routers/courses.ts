@@ -2,15 +2,10 @@ import { z } from "zod";
 //import { set } from "date-fns";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import {
-  GuidelinesCourses,
-  GuidelinesCoursesTimes,
-  GuidelinesCoursesDays,
-  Prisma,
-} from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import {
   addGuidelineSchema,
-  updateCourseGuidelineSchema,
+  addNewRevisionCourse,
 } from "src/validation/courses";
 
 //Imports course guidelines schema with days and times
@@ -483,5 +478,22 @@ export const coursesRouter = createTRPCRouter({
         });
         return true;
       }
+    }),
+
+  addNewRevisionCourse: protectedProcedure
+    .input(addNewRevisionCourse)
+    .mutation(async ({ ctx, input }) => {
+      const courseCreation = await ctx.prisma.scheduleRevision.update({
+        where: {
+          tuid: input.tuid,
+        },
+        data: {
+          courses: {
+            // create: {
+            //   type: input.course.type,
+            // },
+          },
+        },
+      });
     }),
 });

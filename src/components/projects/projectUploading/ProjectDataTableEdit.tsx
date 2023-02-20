@@ -6,76 +6,45 @@ import { AlertTriangle, NoteOff } from "tabler-icons-react";
 
 interface ProjectDataTableEditProps {
   uploaded: Array<Array<string>> | undefined;
-  handleInputChange: (column: number, title: string) => void;
+  columns: Record<string, number | null>;
+  onUpdateOrganizedColumns: (value: { [x: string]: number | null }) => void;
 }
-interface DataFormat {
+interface IColumnLookupTable {
   id: string;
   name: string;
 }
-let preSet: Record<number, string> = [];
-let preSetFlag = true;
-const MAXIMUM_COLUMNS = 30;
 
-if (preSetFlag) {
-  for (let i = 0; i < MAXIMUM_COLUMNS; i++) {
-    preSet = { ...preSet, [i]: "default" };
-  }
-  preSetFlag = false;
-}
+export const columnLookupTable: IColumnLookupTable[] = [
+  { id: "noteWhatHasChanged", name: "What Has Changed?" },
+  { id: "section_id", name: "Section ID" },
+  { id: "term", name: "Term" },
+  { id: "div", name: "Division" },
+  { id: "department", name: "Department" },
+  { id: "subject", name: "Subject" },
+  { id: "course_number", name: "Course Number" },
+  { id: "section", name: "Section" },
+  { id: "title", name: "Title" },
+  { id: "instruction_method", name: "Instruction Method" },
+  { id: "faculty", name: "Faculty" },
+  { id: "campus", name: "Campus" },
+  { id: "credits", name: "Credits" },
+  { id: "capacity", name: "Capacity" },
+  { id: "start_date", name: "Start Date" },
+  { id: "end_date", name: "End Date" },
+  { id: "building", name: "Building" },
+  { id: "room", name: "Room" },
+  { id: "start_time", name: "Start Time" },
+  { id: "end_time", name: "End Time" },
+  { id: "days", name: "Days" },
+  { id: "noteAcademicAffairs", name: "Note For Academic Affairs" },
+  { id: "notePrintedComments", name: "Printed Comments" },
+];
 
-const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
-  const [organize, setOrganize] = useState<Record<string, number | null>>({
-    noteWhatHasChanged: 0,
-    section_id: 1,
-    term: 2,
-    div: 3,
-    department: 4,
-    subject: 5,
-    course_number: 6,
-    section: 7,
-    title: 8,
-    instruction_method: 9,
-    faculty: 10,
-    campus: 11,
-    credits: 12,
-    capacity: 13,
-    start_date: 17,
-    end_date: 18,
-    building: 20,
-    room: 21,
-    start_time: 22,
-    end_time: 23,
-    days: 24,
-    noteAcademicAffairs: 27,
-    notePrintedComments: 28,
-  });
-
-  const dataList: DataFormat[] = [
-    { id: "noteWhatHasChanged", name: "What Has Changed?" },
-    { id: "section_id", name: "Section ID" },
-    { id: "term", name: "Term" },
-    { id: "div", name: "Division" },
-    { id: "department", name: "Department" },
-    { id: "subject", name: "Subject" },
-    { id: "course_number", name: "Course Number" },
-    { id: "section", name: "Section" },
-    { id: "title", name: "Title" },
-    { id: "instruction_method", name: "Instruction Method" },
-    { id: "faculty", name: "Faculty" },
-    { id: "campus", name: "Campus" },
-    { id: "credits", name: "Credits" },
-    { id: "capacity", name: "Capacity" },
-    { id: "start_date", name: "Start Date" },
-    { id: "end_date", name: "End Date" },
-    { id: "building", name: "Building" },
-    { id: "room", name: "Room" },
-    { id: "start_date", name: "Start Time" },
-    { id: "end_time", name: "End Time" },
-    { id: "days", name: "Days" },
-    { id: "noteAcademicAffairs", name: "Note For Academic Affairs" },
-    { id: "notePrintedComments", name: "Printed Comments" },
-  ];
-
+const ProjectDataTableEdit = ({
+  uploaded,
+  columns,
+  onUpdateOrganizedColumns,
+}: ProjectDataTableEditProps) => {
   //This is technically no longer needed, but will be kept just in case
   // const tableBody: Array<Array<string> | undefined> = [];
   // if (uploaded != undefined) {
@@ -85,15 +54,17 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
   // }
 
   const getSelectValue = (index: number) => {
-    console.log({ organize, index });
+    //Key is "default", which basically means its null
     let key = "default";
-    for (const i in organize) {
-      if (organize[i] == index) {
-        key = i;
+    //Loop over all organized columns
+    for (const i in columns) {
+      //Check of we have the same index
+      if (columns[i] == index && i != "default") {
+        key = i; //If so we set the key to our index (which is the loops key) and break
         break;
       }
     }
-    console.log(key);
+    //Finally return the key
     return key;
   };
 
@@ -109,14 +80,15 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
     //Get the previous key
     const previousKey = getSelectValue(column);
     //Grab all organized columns, update the current column to new and make the old key null
-    setOrganize({
+    const columnChanged = {
       //Spread organized
-      ...organize,
-      //Grab title (as key) and set to column value
-      [title]: column,
+      ...columns,
+      //Grab title (as key) and set to column value ONLY if the current key isn't default
+      ...(title != "default" && { [title]: column }),
       //Lastly spread a dynamic object ONLY if the previous key isn't default
-      ...(previousKey != "default" && { [previousKey]: null }),
-    });
+      ...(previousKey != "default" && { [previousKey]: -1 }),
+    };
+    onUpdateOrganizedColumns(columnChanged);
   };
 
   return (
@@ -146,7 +118,7 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
                         color="ghost"
                         id={index + ""}
                       >
-                        {dataList.map((item, index) => {
+                        {columnLookupTable.map((item, index) => {
                           if (index === 0) {
                             return (
                               <>

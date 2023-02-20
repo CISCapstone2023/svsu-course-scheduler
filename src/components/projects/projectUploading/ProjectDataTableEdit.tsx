@@ -1,3 +1,4 @@
+import { findKey } from "lodash";
 import React, { useState } from "react";
 import { Select, Table } from "react-daisyui";
 
@@ -5,6 +6,7 @@ import { AlertTriangle, NoteOff } from "tabler-icons-react";
 
 interface ProjectDataTableEditProps {
   uploaded: Array<Array<string>> | undefined;
+  handleInputChange: (column: number, title: string) => void;
 }
 interface DataFormat {
   id: string;
@@ -22,7 +24,31 @@ if (preSetFlag) {
 }
 
 const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
-  const [organize, setOrganize] = useState<Record<number, string>>(preSet);
+  const [organize, setOrganize] = useState<Record<string, number | null>>({
+    noteWhatHasChanged: 0,
+    section_id: 1,
+    term: 2,
+    div: 3,
+    department: 4,
+    subject: 5,
+    course_number: 6,
+    section: 7,
+    title: 8,
+    instruction_method: 9,
+    faculty: 10,
+    campus: 11,
+    credits: 12,
+    capacity: 13,
+    start_date: 17,
+    end_date: 18,
+    building: 20,
+    room: 21,
+    start_time: 22,
+    end_time: 23,
+    days: 24,
+    noteAcademicAffairs: 27,
+    notePrintedComments: 28,
+  });
 
   const dataList: DataFormat[] = [
     { id: "noteWhatHasChanged", name: "What Has Changed?" },
@@ -50,16 +76,47 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
     { id: "notePrintedComments", name: "Printed Comments" },
   ];
 
-  // eslint-disable-next-line prefer-const
-  let tableBody: Array<Array<string> | undefined> = [];
-  if (uploaded != undefined) {
-    for (let i = 1; i < uploaded.length; i++) {
-      tableBody.push(uploaded[i]);
-    }
-  }
+  //This is technically no longer needed, but will be kept just in case
+  // const tableBody: Array<Array<string> | undefined> = [];
+  // if (uploaded != undefined) {
+  //   for (let i = 1; i < uploaded.length; i++) {
+  //     tableBody.push(uploaded[i]);
+  //   }
+  // }
 
-  const handleOraganize = (column: number, title: string) => {
-    setOrganize({ ...organize, [column]: title });
+  const getSelectValue = (index: number) => {
+    console.log({ organize, index });
+    let key = "default";
+    for (const i in organize) {
+      if (organize[i] == index) {
+        key = i;
+        break;
+      }
+    }
+    console.log(key);
+    return key;
+  };
+
+  /**
+   * onSelect - When a dropdown of a column is selected, we want to preform said event
+   * @param event
+   */
+  const onSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    //Get the column
+    const column = +event.target.id;
+    //Get the title
+    const title = event.target.value;
+    //Get the previous key
+    const previousKey = getSelectValue(column);
+    //Grab all organized columns, update the current column to new and make the old key null
+    setOrganize({
+      //Spread organized
+      ...organize,
+      //Grab title (as key) and set to column value
+      [title]: column,
+      //Lastly spread a dynamic object ONLY if the previous key isn't default
+      ...(previousKey != "default" && { [previousKey]: null }),
+    });
   };
 
   return (
@@ -76,37 +133,14 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
                       className="sticky top-0 w-1/3 flex-wrap border border-slate-600"
                       key={index}
                     >
-                      {columnName}
+                      {columnName.length > 25
+                        ? `${columnName.substring(0, 25)}...`
+                        : columnName}
                       <br />
                       <Select
-                        value={organize[index]}
+                        value={getSelectValue(index)}
                         size="xs"
-                        onChange={(event) => {
-                          handleOraganize(+event.target.id, event.target.value);
-                          const updatedColumn = {
-                            ...organize,
-                            [+event.target.id]: event.target.value,
-                          };
-
-                          // loop through the record
-                          for (const column in Object.keys(updatedColumn)) {
-                            const title = Object.values(updatedColumn)[column];
-                            if (
-                              title !== undefined &&
-                              column !== event.target.id &&
-                              title !== "default" &&
-                              title.includes(event.target.value)
-                            ) {
-                              handleOraganize(+column, "default");
-
-                              setOrganize({
-                                ...updatedColumn,
-                                [+column]: "default",
-                              });
-                              break;
-                            }
-                          }
-                        }}
+                        onChange={onSelect}
                         className="w-40"
                         bordered={true}
                         color="ghost"
@@ -140,7 +174,8 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
             </tr>
           </thead>
           <tbody>
-            {tableBody.map((item, index) => {
+            {/* This removes the first row with a simple slice, instead of making a new array */}
+            {uploaded.slice(1).map((item, index) => {
               return (
                 <tr key={index}>
                   <span />

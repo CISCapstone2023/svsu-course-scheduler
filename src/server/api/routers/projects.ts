@@ -20,6 +20,7 @@ export const projectsRouter = createTRPCRouter({
       const hasRevision = await ctx.prisma.scheduleRevision.count({
         //check based on the client input of tuid
         where: {
+          creator_tuid: ctx.session.user.id,
           tuid: input.tuid,
         },
       });

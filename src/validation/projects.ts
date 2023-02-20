@@ -25,21 +25,17 @@ import { z } from "zod";
 //   days: z.string().optional(),
 // });
 
-export const courseDatabaseSchemaV2 = z.object({
+export const courseDefined = z.object({
   type: z.string(),
-  section_id: z.preprocess((x) => parseInt(String(x)), z.number()),
-  //term: z.preprocess((x) => parseInt(String(x.substring(0, 2))), z.number()),
-  //check format?
+  section_id: z.string(),
+  term: z.string(),
   div: z.string(),
   department: z.string(),
   subject: z.string(),
-  //
   course_number: z.string(),
   section: z.string(),
-  // parse string to date
   start_date: z.string(),
   end_date: z.string(),
-  //make sure
   start_time: z.number(),
   end_time: z.number(),
   capacity: z.number(),
@@ -108,10 +104,13 @@ export const organizeColumnsString = z.object({
 
 export const organizeColumnRows = z.object({
   tuid: z.string(),
-  organizeColumns: organizeColumns,
+  columns: organizeColumns,
 });
 
 export type IProjectOrganizedColumnFromClient = z.infer<
   typeof organizeColumnRows
 >;
 export type IProjectOrganizedColumnRow = z.infer<typeof organizeColumnsString>;
+export type IProjectOrganizedColumnRowNumerical = z.infer<
+  typeof organizeColumns
+>;

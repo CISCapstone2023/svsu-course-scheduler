@@ -161,8 +161,8 @@ model ScheduleRevision {
 
 model CourseLocation {
   tuid          String   @id @default(cuid())
-  start_time    DateTime
-  end_time      DateTime
+  start_time    Int
+  end_time      Int
   day_monday    Boolean
   day_tuesday   Boolean
   day_wednesday Boolean

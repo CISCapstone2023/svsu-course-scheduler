@@ -88,10 +88,6 @@ export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
   ),
 });
 
-export const addNewRevisionCourse = z.object({
-  tuid: z.string().optional(),
-});
-
 const facultyToCourseSchema = z.object({
   tuid: z.string().optional(),
   faculty_tuid: z.string(),
@@ -168,6 +164,11 @@ const courseSchema = z.object({
   revision: revisionSchema,
   notes: z.array(notesSchema),
   locations: z.array(locationsSchema),
+});
+
+export const addNewRevisionCourse = z.object({
+  tuid: z.string().optional(),
+  course: courseSchema,
 });
 
 export type IAddGuidelineCourse = z.infer<typeof addGuidelineSchema>;

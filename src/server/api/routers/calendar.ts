@@ -312,9 +312,7 @@ async function queryCoursesByDay(
     semester_summer: boolean;
     semester_fall: boolean;
     semester_winter: boolean;
-    semester_spring: // Import validation next
-    // Essentially creates a new data tyoe built to store comprehensive queries for the calendar
-    boolean;
+    semester_spring: boolean;
     days: {
       monday: boolean;
       tuesday: boolean;
@@ -340,22 +338,29 @@ async function queryCoursesByDay(
       include: {
         courses: {
           where: {
+            // Filter by a list of faculty tuids if it was provided by the client
             ...(input.faculty
               ? { faculty: { some: { faculty_tuid: { in: input.faculty } } } }
               : {}),
 
+            // Filter by a list of department codes if it was provided by the client
             ...(input.departments
               ? { department: { in: input.departments } }
               : {}),
 
+            // Filter by a certain number of credit hours if it was provided by the client
             ...(input.credits ? { credits: input.credits } : {}),
 
+            // Filter by course location...
             locations: {
               some: {
+                // ...if a course is taught in any location on a certain day
                 [day]: {
                   equals: true,
                 },
 
+                // ...and if a course is taught in any location present within a list of buildings, if
+                // said list of buildings is provided by the client
                 ...(input.buildings
                   ? {
                       rooms: {
@@ -366,6 +371,7 @@ async function queryCoursesByDay(
               },
             },
 
+            // Filter by semesters
             semester_fall: input.semester_fall,
             semester_winter: input.semester_winter,
             semester_spring: input.semester_spring,

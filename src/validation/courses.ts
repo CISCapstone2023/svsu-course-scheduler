@@ -200,6 +200,7 @@ export const courseSchema = z
       ),
     { message: "A course must have a semester defined based on the term" }
   );
+
 export const addNewRevisionCourse = z.object({
   tuid: z.string().optional(),
   course: courseSchema,

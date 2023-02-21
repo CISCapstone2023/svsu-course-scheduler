@@ -20,8 +20,7 @@ export const facultyRouter = createTRPCRouter({
         //store the input from client in the data field to be written to database
         data: {
           suffix: input.suffix,
-          last_name: input.last_name,
-          first_name: input.first_name,
+          name: input.name,
           email: input.email,
           is_adjunct: input.is_adjunct,
         },
@@ -82,12 +81,7 @@ export const facultyRouter = createTRPCRouter({
           where: {
             OR: [
               {
-                first_name: {
-                  contains: input.search,
-                },
-              },
-              {
-                last_name: {
+                name: {
                   contains: input.search,
                 },
               },
@@ -104,12 +98,7 @@ export const facultyRouter = createTRPCRouter({
           where: {
             OR: [
               {
-                first_name: {
-                  contains: input.search,
-                },
-              },
-              {
-                last_name: {
+                name: {
                   contains: input.search,
                 },
               },
@@ -172,8 +161,7 @@ export const facultyRouter = createTRPCRouter({
         data: {
           tuid: input.tuid,
           suffix: input.suffix,
-          last_name: input.last_name,
-          first_name: input.first_name,
+          name: input.name,
           email: input.email,
           is_adjunct: input.is_adjunct,
         },

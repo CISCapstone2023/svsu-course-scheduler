@@ -107,6 +107,21 @@ export const organizeColumnRows = z.object({
   columns: organizeColumns,
 });
 
+export const createRevisionOnboarding = organizeColumnRows.extend({
+  name: z.string(),
+});
+
+export const finalizeProjectOnBoarding = z.object({
+  name: z
+    .string()
+    .min(5, { message: "Enter a name at least 5 characters long" }),
+});
+
+export type IProjectFinalizeOnboarding = z.infer<
+  typeof finalizeProjectOnBoarding
+>;
+export type IProjectCreateRevision = z.infer<typeof createRevisionOnboarding>;
+
 export type IProjectOrganizedColumnFromClient = z.infer<
   typeof organizeColumnRows
 >;

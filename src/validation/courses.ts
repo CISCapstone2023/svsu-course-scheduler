@@ -1,6 +1,10 @@
 import { CourseNoteType, CourseState } from "@prisma/client";
 import { z } from "zod";
 
+interface Thing {
+  type: string;
+}
+
 const timesSchema = z.object({
   start_time: z.number().min(0).max(2200, {
     message: "The hour a course starts must be between 0 and 24 hours.",
@@ -113,7 +117,7 @@ const notesSchema = z.object({
 
 const roomsSchema = z.object({
   room: z.string(),
-  building_tuid: z.string().cuid().optional().nullable(),
+  building_tuid: z.string().cuid({ message: "Must be a valid building!" }),
 });
 
 const locationsSchema = z.object({
@@ -140,7 +144,7 @@ export const courseSchema = z
   .object({
     tuid: z.string().optional(),
     type: z.string(),
-    section_id: z.number().min(1).default(1),
+    section_id: z.number().min(1).nullable(),
     revision_tuid: z.string().optional(),
     term: z
       .number()
@@ -196,7 +200,6 @@ export const courseSchema = z
       ),
     { message: "A course must have a semester defined based on the term" }
   );
-
 export const addNewRevisionCourse = z.object({
   tuid: z.string().optional(),
   course: courseSchema,

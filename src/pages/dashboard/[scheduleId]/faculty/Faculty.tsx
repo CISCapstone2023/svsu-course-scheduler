@@ -109,7 +109,13 @@ const Faculty = () => {
     //Reset the form so we can add (or edit a new user)
     setFacultyEditing(undefined);
     openFacultyCreateModal(!isFacultyCreateModalOpen);
-    reset({});
+    reset({
+      email: "",
+      first_name: "",
+      last_name: "",
+      suffix: "",
+      is_adjunct: false,
+    });
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting

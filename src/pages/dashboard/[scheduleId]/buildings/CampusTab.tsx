@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
-import { Pencil, Plus, Trash } from "tabler-icons-react";
+import { Loader, Pencil, Plus, Trash } from "tabler-icons-react";
 import { debounce } from "lodash";
 
 import { api } from "src/utils/api";
@@ -15,6 +15,9 @@ import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import { GuidelineCampus } from "@prisma/client";
 import { toast } from "react-toastify";
 import PaginationBar from "src/components/Pagination";
+import AnimatedSpinner from "src/components/AnimatedSpinner";
+
+const NOTIFICATION_POSITION = toast.POSITION.BOTTOM_LEFT;
 
 const CampusTab = () => {
   /**
@@ -46,6 +49,21 @@ const CampusTab = () => {
     search: searchValue,
     page: campusPage,
   });
+
+  /**
+   * Page Checking Issues
+   */
+  useEffect(() => {
+    //Check if we have any building data
+    if (campuses.data) {
+      //Check if we are past the current total pages and we are not fetching
+      if (campusPage > campuses.data!.totalPages && !campuses.isFetching) {
+        const page =
+          campuses.data!.totalPages > 0 ? campuses.data!.totalPages : 1;
+        setCampusPage(page); //Go to the max page
+      }
+    }
+  }, [campuses.data]);
 
   //The function that gets called when a input event has occured.
   //It passthe the React Change Event which has a input element
@@ -126,9 +144,13 @@ const CampusTab = () => {
       });
 
       if (result) {
-        toast.info(`Updated '${data.name}'`);
+        toast.info(`Updated '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       } else {
-        toast.error(`Failed to add campus '${data.name}'`);
+        toast.error(`Failed to add campus '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       }
 
       //Update the list
@@ -136,9 +158,14 @@ const CampusTab = () => {
     } else {
       const result = await campusAddMutation.mutateAsync(data);
       if (result) {
-        toast.success(`Added new campus '${data.name}'`);
+        toast.success(`Added new campus '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       } else {
-        toast.error(`Failed to add campus '${data.name}'`);
+        toast.error(`Failed to add campus '${data.name}'`),
+          {
+            position: NOTIFICATION_POSITION,
+          };
       }
     }
 
@@ -163,12 +190,12 @@ const CampusTab = () => {
       //If its true, that's a good!
       if (response) {
         toast.success(`Succesfully deleted '${campusDeleteValue?.name}'`, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: NOTIFICATION_POSITION,
         });
         //Else its an error
       } else {
         toast.error(`Failed to deleted '${campusDeleteValue?.name}'`, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: NOTIFICATION_POSITION,
         });
       }
     }
@@ -250,17 +277,22 @@ const CampusTab = () => {
             </div>
           </div>
         )}
-        <div className="flex w-full justify-center p-2">
-          {campuses.data != undefined && (
-            <PaginationBar
-              totalPageCount={campuses.data?.totalPages}
-              currentPage={campuses.data?.page}
-              onClick={(page) => {
-                setCampusPage(page);
-              }}
-            />
-          )}
-        </div>
+        {campuses.isFetching && (
+          <div className="flex h-[200px] w-full flex-col items-center justify-center">
+            <AnimatedSpinner />
+          </div>
+        )}
+      </div>
+      <div className="flex w-full justify-center p-2">
+        {campuses.data != undefined && (
+          <PaginationBar
+            totalPageCount={campuses.data?.totalPages}
+            currentPage={campuses.data?.page}
+            onClick={(page) => {
+              setCampusPage(page);
+            }}
+          />
+        )}
       </div>
       {/* This dialog used for adding a user */}
       <Modal

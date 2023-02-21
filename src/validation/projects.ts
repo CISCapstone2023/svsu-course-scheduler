@@ -129,3 +129,7 @@ export type IProjectOrganizedColumnRow = z.infer<typeof organizeColumnsString>;
 export type IProjectOrganizedColumnRowNumerical = z.infer<
   typeof organizeColumns
 >;
+//grabs tuid
+export const createRevisionSchemaTUID = z.object({
+  tuid: z.string(),
+});

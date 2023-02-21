@@ -140,7 +140,7 @@ const courseSchema = z.object({
   department: z.string(),
   subject: z.string(),
   course_number: z.string(),
-  section: z.number(),
+  section: z.string(),
   start_date: z.date(),
   end_date: z.date(),
   start_time: z.number().min(0).max(2200, {

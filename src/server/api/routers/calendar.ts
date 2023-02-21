@@ -22,9 +22,21 @@ const revisionWithCourses = Prisma.validator<Prisma.ScheduleRevisionArgs>()({
     },
   },
 });
-type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
+export type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
   typeof revisionWithCourses
 >;
+
+const courseType = Prisma.validator<Prisma.CourseArgs>()({
+  include: {
+    faculty: {
+      include: { faculty: true },
+    },
+    locations: {
+      include: { rooms: true },
+    },
+  },
+});
+export type IScheduleCourse = Prisma.CourseGetPayload<typeof courseType>;
 
 // Routers --------------------------------------------------------------------------------------------------------
 
@@ -104,7 +116,7 @@ export const calendarRouter = createTRPCRouter({
       const semester = getSemester(input);
 
       // Send the client back the ame of the revision, the semester, and the results of each of the course-by-day queries
-      return {
+      const out = {
         revision_name: coursesByDay.monday_courses?.name,
         semesters: semester,
         monday_courses: coursesByDay.monday_courses?.courses,
@@ -115,6 +127,9 @@ export const calendarRouter = createTRPCRouter({
         saturday_courses: coursesByDay.saturday_courses?.courses,
         sunday_courses: coursesByDay.sunday_courses?.courses,
       };
+
+      console.log(out);
+      return out;
     }),
 
   // This just grabs one course by its tuid

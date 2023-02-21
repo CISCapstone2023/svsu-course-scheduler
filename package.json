@@ -35,6 +35,7 @@
     "react-daisyui": "^3.0.2",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.41.5",
+    "react-multi-split-pane": "^0.3.3",
     "react-select": "^5.7.0",
     "react-toastify": "^9.1.1",
     "superjson": "1.9.1",

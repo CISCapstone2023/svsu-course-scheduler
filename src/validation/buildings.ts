@@ -7,7 +7,7 @@ const regex = /^\d+\w?(-\d+\w?)?(,\d+\w?(-\d+\w?)?)*$/;
 export const createCampusSchema = z.object({
   name: z
     .string()
-    .min(3, { message: "Campus name must be at least 3 characters" })
+    .min(2, { message: "Campus name must be at least 2 characters" })
     .max(30),
 });
 

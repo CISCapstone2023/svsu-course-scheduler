@@ -89,9 +89,10 @@ export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
 });
 
 const facultyToCourseSchema = z.object({
-  tuid: z.string().optional(),
-  faculty_tuid: z.string(),
-  course_tuid: z.string(),
+  faculty_tuid: z
+    .string()
+    .cuid({ message: "Must be an exisitng faculty member!" }),
+  course_tuid: z.string().optional(),
 });
 
 const revisionSchema = z.object({
@@ -106,65 +107,95 @@ const revisionSchema = z.object({
 
 const notesSchema = z.object({
   tuid: z.string().optional(),
-  note: z.string(),
+  note: z.string().optional(),
   type: z.nativeEnum(CourseNoteType),
-  course_tuid: z.string(),
+});
+
+const roomsSchema = z.object({
+  room: z.string(),
+  building_tuid: z.string().cuid().optional().nullable(),
 });
 
 const locationsSchema = z.object({
-  tuid: z.string().optional(),
   start_time: z.number(),
   end_time: z.number(),
-  day_monday: z.boolean(),
-  day_tuesday: z.boolean(),
-  day_wednesday: z.boolean(),
-  day_thursday: z.boolean(),
-  day_friday: z.boolean(),
-  day_saturday: z.boolean(),
-  day_sunday: z.boolean(),
-  is_online: z.boolean(),
-  course_tuid: z.string(),
+  day_monday: z.boolean().default(false),
+  day_tuesday: z.boolean().default(false),
+  day_wednesday: z.boolean().default(false),
+  day_thursday: z.boolean().default(false),
+  day_friday: z.boolean().default(false),
+  day_saturday: z.boolean().default(false),
+  day_sunday: z.boolean().default(false),
+  is_online: z.boolean().default(false),
+  rooms: z.array(roomsSchema),
 });
 
-const courseSchema = z.object({
-  tuid: z.string().optional(),
-  type: z.string(),
-  section_id: z.number().min(1).default(1),
-  revision_tuid: z.string(),
-  term: z.number(),
-  semester_summer: z.boolean().default(false),
-  semester_fall: z.boolean().default(false),
-  semester_winter: z.boolean().default(false),
-  semester_spring: z.boolean().default(false),
-  div: z.string(),
-  department: z.string(),
-  subject: z.string(),
-  course_number: z.string(),
-  section: z.number(),
-  start_date: z.date(),
-  end_date: z.date(),
-  start_time: z.number().min(0).max(2200, {
-    message: "The hour a course starts must be between 0 and 24 hours.",
-  }),
-  end_time: z.number().min(0).max(2359, {
-    message: "The minute a course starts must be between 0 and 59 minutes.",
-  }),
-  credits: z.number(),
-  title: z.string(),
-  status: z.string().default("Active"),
-  faculty_tuid: z.string(),
-  instruction_method: z.string().default("LEC"),
-  capacity: z.number(),
-  original_state: z.nativeEnum(CourseState),
-  state: z.nativeEnum(CourseState),
-  location: z.string(),
-  createdAt: z.date(),
-  updateAt: z.date(),
-  faculty: z.array(facultyToCourseSchema),
-  revision: revisionSchema,
-  notes: z.array(notesSchema),
-  locations: z.array(locationsSchema),
-});
+//Provides the two digit year
+const twoDigitYear = parseInt(
+  new Date().getFullYear().toString().substr(2, 2),
+  10
+);
+
+export const courseSchema = z
+  .object({
+    tuid: z.string().optional(),
+    type: z.string(),
+    section_id: z.number().min(1).default(1),
+    revision_tuid: z.string().optional(),
+    term: z
+      .number()
+      .min(twoDigitYear - 2)
+      .max(twoDigitYear + 2),
+    semester_summer: z.boolean().default(false),
+    semester_fall: z.boolean().default(false),
+    semester_winter: z.boolean().default(false),
+    semester_spring: z.boolean().default(false),
+    div: z.string(),
+    department: z
+      .string()
+      .min(2)
+      .max(6, { message: "Department type is larger than expected." }),
+    subject: z
+      .string()
+      .min(2)
+      .max(6, { message: "Subject type is larger than expected." }),
+    course_number: z.string(),
+    section: z.number().min(0).max(500),
+    start_date: z.date(),
+    end_date: z.date(),
+    // start_time: z.number().min(0).max(2200, {
+    //   message: "The hour a course starts must be between 0 and 24 hours.",
+    // }),
+    // end_time: z.number().min(0).max(2359, {
+    //   message: "The minute a course starts must be between 0 and 59 minutes.",
+    // }),
+    credits: z.number(),
+    title: z.string().min(7).max(100),
+    status: z.string().default("Active"),
+    //faculty_tuid: z.string(),
+    instruction_method: z.string().default("LEC"),
+    capacity: z.number().min(1).max(500, {
+      message: "Capacity has a limit of 500 students on a course.",
+    }),
+    original_state: z.nativeEnum(CourseState).default("UNMODIFIED"),
+    state: z.nativeEnum(CourseState).default("UNMODIFIED"),
+    faculty: z.array(facultyToCourseSchema).min(1, {
+      message: "A faculty member must be present on a course.",
+    }),
+    notes: z.array(notesSchema).min(3),
+    locations: z.array(locationsSchema),
+  })
+  .partial()
+  .refine(
+    ({ semester_fall, semester_winter, semester_spring, semester_summer }) =>
+      !(
+        semester_fall == false &&
+        semester_winter == false &&
+        semester_spring == false &&
+        semester_summer == false
+      ),
+    { message: "A course must have a semester defined based on the term" }
+  );
 
 export const addNewRevisionCourse = z.object({
   tuid: z.string().optional(),
@@ -175,3 +206,5 @@ export type IAddGuidelineCourse = z.infer<typeof addGuidelineSchema>;
 export type IUpdateGuidelineCourse = z.infer<
   typeof updateCourseGuidelineSchema
 >;
+
+export type ICourseSchema = z.infer<typeof courseSchema>;

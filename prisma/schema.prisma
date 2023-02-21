@@ -101,7 +101,7 @@ model Permission {
 model Course {
   tuid               String                      @id @default(cuid())
   type               String
-  section_id         Int
+  section_id         Int?
   revision_tuid      String
   term               Int
   semester_summer    Boolean                     @default(false)

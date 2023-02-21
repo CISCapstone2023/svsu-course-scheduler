@@ -1,5 +1,6 @@
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/router";
 import React from "react";
 import { Button, Form, Input, Select } from "react-daisyui";
 import { useForm } from "react-hook-form";
@@ -17,6 +18,8 @@ interface ProjectFinalizeProps {
 }
 
 const ProjectFinalize = ({ children, tuid, columns }: ProjectFinalizeProps) => {
+  const router = useRouter();
+
   /**
    * Onboaring Form
    *
@@ -49,7 +52,11 @@ const ProjectFinalize = ({ children, tuid, columns }: ProjectFinalizeProps) => {
         tuid,
         name: value.name,
       });
-      alert(result);
+      if (result.success) {
+        router.push(`/dashboard/${tuid}/home`);
+      } else {
+        alert("An erroed had occured...");
+      }
     }
   };
 

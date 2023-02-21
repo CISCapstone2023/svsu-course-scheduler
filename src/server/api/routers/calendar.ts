@@ -120,8 +120,7 @@ export const calendarRouter = createTRPCRouter({
             const hasMonday = course.locations.some((location) => {
               return location.day_monday === true;
             });
-            console.log(hasMonday);
-            console.log(revision?.courses.length);
+
             //Check to make sure at least one location has a tuesday
             const hasTuesday = course.locations.some((location) => {
               return location.day_tuesday == true;
@@ -147,6 +146,15 @@ export const calendarRouter = createTRPCRouter({
               return location.day_sunday == true;
             });
 
+            //check the semester variable for each semester to get a true
+            //or false value to be used in the guideline query below
+            const hasFall = semester === "FA";
+            const hasWinter = semester === "WI";
+            const hasSpring = semester === "SP";
+            const hasSummer = semester === "SU";
+
+            //Get the total amount of meetings that a course has by adding to a
+            //total sum if it occurs on a day of the week
             const totalMeetings = course.locations
               .map((location) => {
                 let total = 0;
@@ -166,37 +174,67 @@ export const calendarRouter = createTRPCRouter({
             //Query each course to the guidelines course model
             const result = await ctx.prisma.guidelinesCourses.count({
               where: {
-                credits: course.credits,
-                meeting_amount: totalMeetings, //This won't suffice
-                days: {
-                  every: {
-                    AND: [
-                      hasMonday ? { day_monday: true } : {},
-                      hasTuesday ? { day_tuesday: true } : {},
-                      hasWednesday ? { day_wednesday: true } : {},
-                      hasThursday ? { day_thursday: true } : {},
-                      hasFriday ? { day_friday: true } : {},
-                      hasSaturday ? { day_saturday: true } : {},
-                      hasSunday ? { day_sunday: true } : {},
+                AND: [
+                  {
+                    //Ensure that whichever semester is true for the
+                    //course is also true for a guideline, only one will be true
+                    OR: [
+                      hasFall ? { semester_fall: true } : {},
+                      hasWinter ? { semester_winter: true } : {},
+                      hasSpring ? { semester_spring: true } : {},
+                      hasSummer ? { semester_summer: true } : {},
                     ],
                   },
-                },
-                times: {
-                  every: {
-                    start_time: course.start_time,
-                    end_time: course.end_time,
+                  {
+                    credits: course.credits,
+                    meeting_amount: totalMeetings,
                   },
-                },
+                  {
+                    days: {
+                      every: {
+                        AND: [
+                          //for every day in the course guideline,
+                          //compare the guideline for each day to true,
+                          //if the has'day' from above returns true
+                          hasMonday ? { day_monday: true } : {},
+                          hasTuesday ? { day_tuesday: true } : {},
+                          hasWednesday ? { day_wednesday: true } : {},
+                          hasThursday ? { day_thursday: true } : {},
+                          hasFriday ? { day_friday: true } : {},
+                          hasSaturday ? { day_saturday: true } : {},
+                          hasSunday ? { day_sunday: true } : {},
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    times: {
+                      every: {
+                        //Grabs the times from each location associated with the course
+                        //Uncomment once merged and database CourseLocation has times as Ints
+                        // AND:[
+                        //   ...course.locations.map((location) =>{
+                        //     return {
+                        //       start_time: location.start_time,
+                        //       end_time: location.end_time,}
+                        //   })
+                        // ],
+                        start_time: course.start_time,
+                        end_time: course.end_time,
+                      },
+                    },
+                  },
+                ],
               },
             });
 
+            //Get all course data but also add a new boolean value to
+            //make sure its within the course guideline
             const output = {
               withinGuideline: result > 0,
               ...course,
-            } as Partial<RevisionWithCourses> & { withinGuideline: boolean };
+            } as Partial<RevisionWithCourses> & { withinGuideline: boolean }; //use Partial to get around the Promise
 
-            //Get all course data but also add a new boolean value to
-            //make sure its within the course guideline
             return output;
           })
         );

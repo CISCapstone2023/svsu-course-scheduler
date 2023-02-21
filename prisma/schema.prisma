@@ -120,12 +120,10 @@ model Course {
   credits            Int
   title              String                      @db.VarChar(30)
   status             String                      @default("Active")
-  faculty_tuid       String
   instruction_method String                      @default("LEC") @db.VarChar(3)
   capacity           Int
   original_state     CourseState
   state              CourseState
-  location           String
   createdAt          DateTime                    @default(now())
   updatedAt          DateTime                    @updatedAt
   //Relationships
@@ -180,8 +178,7 @@ model CourseLocation {
 model GuidelinesFaculty {
   tuid       String                      @id @default(cuid())
   suffix     String
-  last_name  String
-  first_name String
+  name       String
   email      String
   is_adjunct Boolean
   //Relationships

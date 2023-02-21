@@ -18,9 +18,10 @@ import { useRouter } from "next/router";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import ProjectFinalize from "src/components/projects/projectUploading/ProjectFinalize";
 import {
-  IProjectOrganizedColumnRow,
-  IProjectOrganizedColumnRowNumerical,
+  type IProjectOrganizedColumnRow,
+  type IProjectOrganizedColumnRowNumerical,
 } from "src/validation/projects";
+import { toast } from "react-toastify";
 
 const Projects: NextPage = () => {
   /**
@@ -68,7 +69,20 @@ const Projects: NextPage = () => {
           tuid: uploadedData.tuid,
           columns: { ...organizedColumns },
         });
-        console.log(result);
+        if (result == true) {
+          toast.success("Successfully organized the columns!.", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          setStage(stage + 1);
+        } else {
+          toast.error("Error had occured...", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        }
+      } else {
+        toast.error("Could not organize columns. Please try again.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
       }
     } else {
       setStage(stage + 1);
@@ -133,8 +147,8 @@ const Projects: NextPage = () => {
       if (tempOrganizedColumns[i] == -1) {
         missingColumns.push(
           columnLookupTable.find((item) => {
-            return item.id == i;
-          })?.name
+            return item.value == i;
+          })?.label
         );
       }
     }
@@ -251,7 +265,12 @@ const Projects: NextPage = () => {
                   />
                 </>
               )}
-              {stage === 3 && <ProjectFinalize />}
+              {stage === 3 && (
+                <ProjectFinalize
+                  tuid={uploadedData?.tuid}
+                  columns={organizedColumns}
+                />
+              )}
             </div>
           </Modal.Body>
           <div className=" relative mt-3 flex w-full justify-between justify-self-end align-middle">
@@ -263,13 +282,15 @@ const Projects: NextPage = () => {
             ) : (
               <div className="grow"></div>
             )}
-            <Button
-              className=""
-              disabled={stage < 1.5 || getMissingColumns().length > 0}
-              onClick={stage == 3 ? goToMain : toggleStage}
-            >
-              {stage == 2 ? "Organize" : stage >= 3 ? "Finalize" : "Next"}
-            </Button>
+            {stage != 3 && (
+              <Button
+                className=""
+                disabled={stage < 1.5 || getMissingColumns().length > 0}
+                onClick={stage == 3 ? goToMain : toggleStage}
+              >
+                {stage == 2 ? "Organize" : stage >= 3 ? "Finalize" : "Next"}
+              </Button>
+            )}
           </div>
         </Modal>
         <ConfirmDeleteModal

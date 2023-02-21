@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+//Regex to ensure that the faculty name field can only contain lowercase or uppercase letters
+//separated by either a hypen or a single space
+const facultyNameRegex = /^[a-zA-Z[\-\s]+$/;
+
 //zid faculty schema that just grabs the TUID of faculty
 export const createFacultySchemaTUID = z.object({
   tuid: z.string(),

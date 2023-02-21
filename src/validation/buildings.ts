@@ -3,11 +3,15 @@ import { z } from "zod";
 //this will ensure the user is only inputting one or multiple numbers followed by 0 or 1
 //letter followed by 0 or 1 comma or followed by a hyphen and another number(s) followed by 0 or 1 letter
 const regex = /^\d+\w?(-\d+\w?)?(,\d+\w?(-\d+\w?)?)*$/;
+const campusRegex = /[a-zA-Z]+/g;
 
 export const createCampusSchema = z.object({
   name: z
     .string()
-    .min(3, { message: "Campus name must be at least 3 characters" })
+    .regex(campusRegex, {
+      message: "Campus name must be an alphabetical and include no whitespace.",
+    })
+    .min(2, { message: "Campus name must be at least 3 characters" })
     .max(30),
 });
 

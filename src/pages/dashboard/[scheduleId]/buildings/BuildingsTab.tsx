@@ -18,6 +18,9 @@ import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import { GuidelineBuilding } from "@prisma/client";
 import { toast } from "react-toastify";
 import PaginationBar from "src/components/Pagination";
+import AnimatedSpinner from "src/components/AnimatedSpinner";
+
+const NOTIFICATION_POSITION = toast.POSITION.BOTTOM_LEFT;
 
 const BuildingsTab = () => {
   /**
@@ -35,7 +38,6 @@ const BuildingsTab = () => {
   /**
    * Data
    */
-
   const [buildingPage, setBuildingPage] = useState(1);
 
   //Query all of the data based on the search value
@@ -43,6 +45,21 @@ const BuildingsTab = () => {
     search: searchValue,
     page: buildingPage,
   });
+
+  /**
+   * Page Checking Issues
+   */
+  useEffect(() => {
+    //Check if we have any building data
+    if (buildings.data) {
+      //Check if we are past the current total pages and we are not fetching
+      if (buildingPage > buildings.data!.totalPages && !buildings.isFetching) {
+        const page =
+          buildings.data!.totalPages > 0 ? buildings.data!.totalPages : 1;
+        setBuildingPage(page); //Go to the max page
+      }
+    }
+  }, [buildings.data]);
 
   const campuses = api.buildings.getAllCampus.useQuery({
     search: "",
@@ -130,9 +147,13 @@ const BuildingsTab = () => {
       });
 
       if (result) {
-        toast.info(`Updated '${data.name}'`);
+        toast.info(`Updated '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       } else {
-        toast.error(`Failed to add building '${data.name}'`);
+        toast.error(`Failed to add building '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       }
 
       //Update the list
@@ -140,9 +161,13 @@ const BuildingsTab = () => {
     } else {
       const result = await buildingAddMutation.mutateAsync(data);
       if (result) {
-        toast.success(`Added new building '${data.name}'`);
+        toast.success(`Added new building '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       } else {
-        toast.error(`Failed to add building '${data.name}'`);
+        toast.error(`Failed to add building '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       }
     }
 
@@ -163,21 +188,22 @@ const BuildingsTab = () => {
       const response = await buildingDeleteMutation.mutateAsync({
         tuid: buildingDeleteValue?.tuid,
       });
-
       //If its true, that's a good!
       if (response) {
         toast.success(`Succesfully deleted '${buildingDeleteValue?.name}'`, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: NOTIFICATION_POSITION,
         });
+
         //Else its an error
       } else {
         toast.error(`Failed to deleted '${buildingDeleteValue?.name}'`, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: NOTIFICATION_POSITION,
         });
       }
     }
     //Now we just need to reftech the campuses
     buildings.refetch();
+
     //And close the modal
     setBuildingDeleteModal(false);
   };
@@ -257,6 +283,11 @@ const BuildingsTab = () => {
               </Button>
             </div>
              
+          </div>
+        )}
+        {buildings.isFetching && (
+          <div className="flex h-[200px] w-full flex-col items-center justify-center">
+            <AnimatedSpinner />
           </div>
         )}
         <div className="flex w-full justify-center p-2">

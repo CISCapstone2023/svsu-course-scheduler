@@ -16,7 +16,7 @@ export const updateCampusSchema = createCampusSchema.extend({
 });
 
 export const createBuildingSchema = z.object({
-  campus_tuid: z.string(),
+  campus_tuid: z.string().cuid({ message: "A valid campus must be selected." }),
   name: z
     .string()
     .min(4, { message: "Building name must be at least 4 characters" })

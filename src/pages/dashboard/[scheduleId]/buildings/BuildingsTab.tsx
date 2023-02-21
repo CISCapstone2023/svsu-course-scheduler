@@ -358,7 +358,7 @@ const BuildingsTab = () => {
 
               <ErrorMessage
                 errors={buildingForm.formState.errors}
-                name="classrooms"
+                name="campus_tuid"
                 render={({ message }) => (
                   <p className="font-semibold text-red-600">{message}</p>
                 )}

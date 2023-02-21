@@ -15,12 +15,17 @@ export const updateCampusSchema = createCampusSchema.extend({
   tuid: z.string(),
 });
 
-//const buildingRegex =
-//Regex needs to be built for string validation using .regex
+//Regex to validate building name and allows upper case, lower case, numbers, dashes, and a period
+const buildingRegex = /[a-zA-Z0-9-]+/i;
+
 export const createBuildingSchema = z.object({
   campus_tuid: z.string(),
   name: z
     .string()
+    .regex(buildingRegex, {
+      message:
+        "Building name must be alphanumeric and can include a dash or period.",
+    })
     .min(4, { message: "Building name must be at least 4 characters" })
     .max(75, { message: "Building name must be no more than 75 characters" }),
   prefix: z

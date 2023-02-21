@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { Prisma } from "@prisma/client";
 //import validation next
+import { createRevisionSchemaTUID } from "src/validation/projects";
 const scheduleWithRevisions = Prisma.validator<Prisma.ScheduleArgs>()({
   include: { revisions: true },
 });
@@ -11,6 +12,28 @@ type ScheduleWithRevisions = Prisma.ScheduleGetPayload<
 >;
 export const projectsRouter = createTRPCRouter({
   // ScheduleRevision -------------------------------------------------------------------------------------
+  //delete schedule revision
+  deleteScheduleRevision: protectedProcedure
+    .input(createRevisionSchemaTUID)
+    //async mutation to handle the deletion
+    .mutation(async ({ ctx, input }) => {
+      const hasRevision = await ctx.prisma.scheduleRevision.count({
+        //check based on the client input of tuid
+        where: {
+          creator_tuid: ctx.session.user.id,
+          tuid: input.tuid,
+        },
+      });
+      if (hasRevision == 1) {
+        await ctx.prisma.scheduleRevision.delete({
+          where: {
+            tuid: input.tuid,
+          },
+        });
+        return true;
+      }
+      return false;
+    }),
 
   //Get all ScheduleRevisions and display list of schedule revisions sorted by time, desecnding
   getAllScheduleRevisions: protectedProcedure

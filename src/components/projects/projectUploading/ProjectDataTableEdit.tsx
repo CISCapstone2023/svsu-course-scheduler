@@ -1,7 +1,7 @@
 import { findKey } from "lodash";
 import React, { useState } from "react";
-import { Select, Table } from "react-daisyui";
-
+import { Table } from "react-daisyui";
+import Select from "react-select";
 import { AlertTriangle, NoteOff } from "tabler-icons-react";
 
 interface ProjectDataTableEditProps {
@@ -10,34 +10,34 @@ interface ProjectDataTableEditProps {
   onUpdateOrganizedColumns: (value: { [x: string]: number | null }) => void;
 }
 interface IColumnLookupTable {
-  id: string;
-  name: string;
+  value: string;
+  label: string;
 }
 
-export const columnLookupTable: IColumnLookupTable[] = [
-  { id: "noteWhatHasChanged", name: "What Has Changed?" },
-  { id: "section_id", name: "Section ID" },
-  { id: "term", name: "Term" },
-  { id: "div", name: "Division" },
-  { id: "department", name: "Department" },
-  { id: "subject", name: "Subject" },
-  { id: "course_number", name: "Course Number" },
-  { id: "section", name: "Section" },
-  { id: "title", name: "Title" },
-  { id: "instruction_method", name: "Instruction Method" },
-  { id: "faculty", name: "Faculty" },
-  { id: "campus", name: "Campus" },
-  { id: "credits", name: "Credits" },
-  { id: "capacity", name: "Capacity" },
-  { id: "start_date", name: "Start Date" },
-  { id: "end_date", name: "End Date" },
-  { id: "building", name: "Building" },
-  { id: "room", name: "Room" },
-  { id: "start_time", name: "Start Time" },
-  { id: "end_time", name: "End Time" },
-  { id: "days", name: "Days" },
-  { id: "noteAcademicAffairs", name: "Note For Academic Affairs" },
-  { id: "notePrintedComments", name: "Printed Comments" },
+export const columnLookupTable: readonly IColumnLookupTable[] = [
+  { value: "noteWhatHasChanged", label: "What Has Changed?" },
+  { value: "section_id", label: "Section ID" },
+  { value: "term", label: "Term" },
+  { value: "div", label: "Division" },
+  { value: "department", label: "Department" },
+  { value: "subject", label: "Subject" },
+  { value: "course_number", label: "Course Number" },
+  { value: "section", label: "Section" },
+  { value: "title", label: "Title" },
+  { value: "instruction_method", label: "Instruction Method" },
+  { value: "faculty", label: "Faculty" },
+  { value: "campus", label: "Campus" },
+  { value: "credits", label: "Credits" },
+  { value: "capacity", label: "Capacity" },
+  { value: "start_date", label: "Start Date" },
+  { value: "end_date", label: "End Date" },
+  { value: "building", label: "Building" },
+  { value: "room", label: "Room" },
+  { value: "start_time", label: "Start Time" },
+  { value: "end_time", label: "End Time" },
+  { value: "days", label: "Days" },
+  { value: "noteAcademicAffairs", label: "Note For Academic Affairs" },
+  { value: "notePrintedComments", label: "Printed Comments" },
 ];
 
 const ProjectDataTableEdit = ({
@@ -53,14 +53,19 @@ const ProjectDataTableEdit = ({
   //   }
   // }
 
-  const getSelectValue = (index: number) => {
+  const getSelectValue = (index: number): IColumnLookupTable => {
     //Key is "default", which basically means its null
-    let key = "default";
+    let key: IColumnLookupTable = { label: "", value: "default" };
     //Loop over all organized columns
     for (const i in columns) {
       //Check of we have the same index
       if (columns[i] == index && i != "default") {
-        key = i; //If so we set the key to our index (which is the loops key) and break
+        const value = columnLookupTable.find((item) => {
+          return item.value == i;
+        }); //If so we set the key to our index (which is the loops key) and break
+        if (value != undefined) {
+          key = value;
+        }
         break;
       }
     }
@@ -72,11 +77,11 @@ const ProjectDataTableEdit = ({
    * onSelect - When a dropdown of a column is selected, we want to preform said event
    * @param event
    */
-  const onSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    //Get the column
-    const column = +event.target.id;
-    //Get the title
-    const title = event.target.value;
+  const onSelect = (column: number, title: string) => {
+    // //Get the column
+    // const column = +event.target.id;
+    // //Get the title
+    // const title = event.target.value;
     //Get the previous key
     const previousKey = getSelectValue(column);
     //Grab all organized columns, update the current column to new and make the old key null
@@ -86,7 +91,7 @@ const ProjectDataTableEdit = ({
       //Grab title (as key) and set to column value ONLY if the current key isn't default
       ...(title != "default" && { [title]: column }),
       //Lastly spread a dynamic object ONLY if the previous key isn't default
-      ...(previousKey != "default" && { [previousKey]: -1 }),
+      ...(previousKey.value != "default" && { [previousKey?.value]: -1 }),
     };
     onUpdateOrganizedColumns(columnChanged);
   };
@@ -98,22 +103,32 @@ const ProjectDataTableEdit = ({
           <thead className="sticky top-0">
             <tr className="sticky top-0">
               <span />
-              {uploaded[0] !== undefined ? (
+              {uploaded[0] !== undefined &&
                 uploaded[0].map((columnName, index) => {
                   return (
-                    <th
-                      className="sticky top-0 w-1/3 flex-wrap border border-slate-600"
-                      key={index}
-                    >
-                      {columnName.length > 25
-                        ? `${columnName.substring(0, 25)}...`
+                    <th className="top-0   border border-slate-600" key={index}>
+                      {columnName.length > 20
+                        ? `${columnName.substring(0, 20)}...`
                         : columnName}
                       <br />
-                      <Select
+
+                      <div className="w-[200px]">
+                        <Select
+                          options={columnLookupTable as any}
+                          defaultValue={getSelectValue(index)}
+                          value={getSelectValue(index)}
+                          classNamePrefix="selection"
+                          onChange={(newValue) => {
+                            onSelect(index, newValue!.value);
+                          }}
+                        />
+                      </div>
+                      {/* <Select
                         value={getSelectValue(index)}
                         size="xs"
                         onChange={onSelect}
-                        className="w-40"
+                        className="w-full"
+                        style={{ position: "static", transform: "none" }}
                         bordered={true}
                         color="ghost"
                         id={index + ""}
@@ -136,13 +151,10 @@ const ProjectDataTableEdit = ({
                             </option>
                           );
                         })}
-                      </Select>
+                      </Select> */}
                     </th>
                   );
-                })
-              ) : (
-                <></>
-              )}
+                })}
             </tr>
           </thead>
           <tbody>
@@ -154,7 +166,7 @@ const ProjectDataTableEdit = ({
                   {item?.map((value, index) => {
                     return (
                       <td
-                        className=" w-1/3 border border-slate-600"
+                        className=" w-1/3 border border-slate-600 p-1"
                         key={index}
                       >
                         {value}

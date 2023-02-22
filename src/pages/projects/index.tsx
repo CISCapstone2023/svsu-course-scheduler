@@ -81,6 +81,7 @@ const Projects: NextPage = () => {
     const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
     router.push(urlMain);
   };
+
   return (
     <DashboardLayout>
       <div className="w-full flex-col p-5">
@@ -218,7 +219,7 @@ const Projects: NextPage = () => {
           </Button>
         </div>
         <ProjectsLayout>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
+          {/* <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
             <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
             <ProjectRevisionItem
               title="Fall 2023 V1"
@@ -245,7 +246,65 @@ const Projects: NextPage = () => {
               title="Fall 2023 V1"
               timesAgo="100 times ago"
             />
-          </ProjectItem>
+          </ProjectItem> */}
+          {result != undefined ? (
+            result.data?.result.map((data, index) => {
+              function calculateTime(
+                updatedAt: Date | undefined
+              ): string | undefined {
+                if (updatedAt === undefined) return "error loading time";
+                else {
+                  const current = new Date();
+                  let offSetTime =
+                    (current.valueOf() - updatedAt.valueOf()) / 1000;
+
+                  if (offSetTime === 0) return "Now";
+                  else if (offSetTime < 60)
+                    return Math.trunc(offSetTime) + " seconds ago";
+                  else if (offSetTime >= 60 && offSetTime < 3600) {
+                    //if more than 60 minutes
+                    offSetTime = offSetTime / 60;
+                    return Math.trunc(offSetTime) + " minute(s) ago";
+                  } else if (offSetTime >= 3600 && offSetTime < 86400) {
+                    offSetTime = offSetTime / 60 / 60;
+                    return Math.trunc(offSetTime) + " hour(s) ago";
+                  } else if (
+                    offSetTime >= 86400 &&
+                    offSetTime < 5 * 24 * 60 * 60
+                  ) {
+                    offSetTime = offSetTime / 60 / 60 / 24;
+                    return Math.trunc(offSetTime) + " day(s) ago";
+                  } else return updatedAt.toString();
+                }
+              }
+              return (
+                <ProjectItem
+                  strTitle={data.main.name}
+                  strTimesAgo={calculateTime(data.main.updatedAt)}
+                  key={index}
+                  hasRevision={data.revisions.length > 0}
+                  id={data.main.tuid != undefined ? data.main.tuid : "#!"}
+                >
+                  {data.revisions.length > 0 ? (
+                    data.revisions.map((rev, index) => {
+                      return (
+                        <ProjectRevisionItem
+                          key={index}
+                          title={rev.name}
+                          timesAgo={calculateTime(rev.updatedAt)}
+                          id={rev.tuid}
+                        />
+                      );
+                    })
+                  ) : (
+                    <></>
+                  )}
+                </ProjectItem>
+              );
+            })
+          ) : (
+            <span> NO REVISION FOUND!</span>
+          )}
         </ProjectsLayout>
 
         <div className="mt-3 flex justify-center">

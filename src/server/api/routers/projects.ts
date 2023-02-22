@@ -39,7 +39,7 @@ export const projectsRouter = createTRPCRouter({
   getAllScheduleRevisions: protectedProcedure
     .input(
       z.object({
-        search: z.string(),
+        search: z.string().optional(),
         page: z.number().default(0),
       })
     )
@@ -84,7 +84,20 @@ export const projectsRouter = createTRPCRouter({
       return {
         result: scheduleResult.map((s) => {
           const [main, ...revisions] = s.revisions;
-          return { main, revisions };
+          return {
+            main: {
+              name: main?.name,
+              tuid: main?.tuid,
+              updatedAt: main?.updatedAt,
+            },
+            revisions: revisions.map((revision) => {
+              return {
+                name: revision?.name,
+                tuid: revision?.tuid,
+                updatedAt: revision?.updatedAt,
+              };
+            }),
+          };
         }),
         page: input.page,
       };

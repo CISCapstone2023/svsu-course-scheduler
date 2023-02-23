@@ -111,8 +111,7 @@ const Faculty = () => {
     openFacultyCreateModal(!isFacultyCreateModalOpen);
     reset({
       email: "",
-      first_name: "",
-      last_name: "",
+      name: "",
       suffix: "",
       is_adjunct: false,
     });
@@ -279,17 +278,17 @@ const Faculty = () => {
              
           </div>
         )}
-        <div className="flex w-full justify-center p-2">
-          {faculties.data != undefined && (
-            <PaginationBar
-              totalPageCount={faculties.data?.totalPages}
-              currentPage={faculties.data?.page}
-              onClick={(page) => {
-                setCurrentPage(page);
-              }}
-            />
-          )}
-        </div>
+      </div>
+      <div className="flex w-full justify-center p-2">
+        {faculties.data != undefined && (
+          <PaginationBar
+            totalPageCount={faculties.data?.totalPages}
+            currentPage={faculties.data?.page}
+            onClick={(page) => {
+              setCurrentPage(page);
+            }}
+          />
+        )}
       </div>
       {/* This dialog used for adding a faculty */}
       <Modal

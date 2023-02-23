@@ -26,6 +26,9 @@ import PaginationBar from "src/components/Pagination";
 //Import backend api
 import { api } from "src/utils/api";
 
+//Import Animated Spinner
+import AnimatedSpinner from "src/components/AnimatedSpinner";
+
 const Faculty = () => {
   /**
    * Search Value
@@ -46,6 +49,18 @@ const Faculty = () => {
     page: currentPage,
     search: searchValue,
   });
+
+  useEffect(() => {
+    //Check if we have any building data
+    if (faculties.data) {
+      //Check if we are past the current total pages and we are not fetching
+      if (currentPage > faculties.data!.totalPages && !faculties.isFetching) {
+        const page =
+          faculties.data!.totalPages > 0 ? faculties.data!.totalPages : 1;
+        setCurrentPage(page); //Go to the max page
+      }
+    }
+  }, [faculties.data]);
 
   //The function that gets called when a input event has occured.
   //It passthe the React Change Event which has a input element
@@ -276,6 +291,11 @@ const Faculty = () => {
               </Button>
             </div>
              
+          </div>
+        )}
+        {faculties.isFetching && (
+          <div className="flex h-[200px] w-full flex-col items-center justify-center">
+            <AnimatedSpinner />
           </div>
         )}
       </div>

@@ -1,18 +1,6 @@
 import { z } from "zod";
-
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import {
-  CourseLocation,
-  CourseState,
-  GuidelinesFaculty,
-  GuidelinesFacultyToCourse,
-  Prisma,
-  PrismaClient,
-  Room,
-} from "@prisma/client";
-import { Overwrite } from "@trpc/server";
-import { Session } from "next-auth";
-
+import { Prisma } from "@prisma/client";
 import { prisma } from "src/server/db";
 
 // Validation -----------------------------------------------------------------------------------------------------

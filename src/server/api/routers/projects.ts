@@ -293,7 +293,7 @@ const createCourseSchema = (
       start_time: 0,
       subject: row.subject,
       term: row.term,
-      title: row.title,
+      title: row.title.substring(0, 30),
       type: row.type,
       semester_fall: row.semester_fall,
       semester_winter: row.semester_winter,
@@ -490,6 +490,8 @@ const invertedNestedOrganizedColumns = async (
 
       //Converts the time (provided by the excel sheet) into time!
       const convertTimeToMilitary = (value: string) => {
+        if (value == undefined) return 0;
+
         //Start with a string for miltary joinment
         let time = "0";
         //Seperate mins and hours and numiercal
@@ -498,6 +500,8 @@ const invertedNestedOrganizedColumns = async (
 
         //Split the time
         const splittedTime = value.split(":");
+
+        console.log("Did we split here?");
 
         //make sure the splitted time isn't undefined or the length has two parts
         if (splittedTime != undefined && splittedTime.length == 2) {
@@ -530,11 +534,13 @@ const invertedNestedOrganizedColumns = async (
 
       //Gets the term year based on its seperated slash "/"
       const getTermYear = (term: string) => {
+        console.log("Did we error at term?");
         return term.split("/")[0]?.toString();
       };
 
       //Get the semster and return all of them back because its easier
       const getTermSemester = (term: string) => {
+        console.log("Did we error at term year?");
         const semester = term.split("/")[1]?.toString().trim();
 
         return {
@@ -553,12 +559,18 @@ const invertedNestedOrganizedColumns = async (
           updatedBuilding.map(async (item, index) => {
             //Get the times, which are in an object as they could be possible be use for the root of the object (course)
             const times = {
-              start_time: convertTimeToMilitary(
-                updatedStart_time[index]?.trim() as string
-              ),
-              end_time: convertTimeToMilitary(
-                updatedEnd_time[index]?.trim() as string
-              ),
+              start_time:
+                updatedStart_time != undefined
+                  ? convertTimeToMilitary(
+                      updatedStart_time[index]?.trim() as string
+                    )
+                  : 0,
+              end_time:
+                updatedEnd_time != undefined
+                  ? convertTimeToMilitary(
+                      updatedEnd_time[index]?.trim() as string
+                    )
+                  : 0,
             };
 
             //TODO: Do we need to give the parent the times?

@@ -7,7 +7,11 @@ import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
-import ScheduleCalendar from "./CalendarComponent";
+import ScheduleCalendar, {
+  IScheduleCourseWithTimes,
+} from "./CalendarComponent";
+import { InfoCircle } from "tabler-icons-react";
+import { Button } from "react-daisyui";
 
 interface Tab {
   name: string;
@@ -35,7 +39,11 @@ const Tabs = ({}: TabProps) => {
   );
 };
 
-const Scheduler: NextPage = () => {
+interface ScheduleCalendar {
+  scheduleId: string;
+}
+
+const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   /**
    * useSession
    *
@@ -51,18 +59,49 @@ const Scheduler: NextPage = () => {
    */
   const [tabValue, setTabValue] = useState(0);
 
+  const [lastHovered, setLastHoveredCourse] =
+    useState<IScheduleCourseWithTimes | null>();
+
+  const [courseInformationSidebar, toggleCourseInformationSidebar] =
+    useState<boolean>(false);
+
   return (
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
         <div className="flex h-full w-full flex-col">
-          <DashboardContentHeader title="Scheduler" />
+          <DashboardContentHeader title="Scheduler">
+            <Button
+              active={courseInformationSidebar}
+              size="sm"
+              onClick={() => {
+                toggleCourseInformationSidebar(!courseInformationSidebar);
+              }}
+            >
+              <InfoCircle />
+            </Button>
+          </DashboardContentHeader>
           <Tabs />
-          <ScheduleCalendar semester="FA" revision="" weekends={false} />
+          <ScheduleCalendar
+            semester="WI"
+            revision={scheduleId}
+            weekends={false}
+            onCourseHover={setLastHoveredCourse}
+          />
           <Tabs />
-          <ScheduleCalendar semester="SU" revision="" weekends={false} />
+          <ScheduleCalendar
+            semester="SU"
+            revision=""
+            weekends={false}
+            onCourseHover={setLastHoveredCourse}
+          />
         </div>
       </DashboardContent>
+      {courseInformationSidebar && (
+        <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
+          {lastHovered?.title}
+        </div>
+      )}
     </DashboardLayout>
   );
 };
@@ -111,5 +150,9 @@ export const getServerSideProps = routeNeedsAuthSession(async ({ query }) => {
   //NOTE: Passing the entire session to the NextPage will error,
   //which is likely due to undefined values.
   //Ideally just hook with "useSession" in the page
-  return { props: {} };
+  return {
+    props: {
+      scheduleId,
+    },
+  };
 });

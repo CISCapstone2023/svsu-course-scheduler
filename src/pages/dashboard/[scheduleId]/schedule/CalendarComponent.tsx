@@ -13,8 +13,8 @@ import { number } from "zod";
 interface CourseListingProps {
   courses: IScheduleCourse[] | undefined;
   overlap?: boolean;
-  setCourseHover: (value: string | null) => void;
-  hover: string | null;
+  setCourseHover: (value: IScheduleCourseWithTimes | null) => void;
+  hover: IScheduleCourseWithTimes | null;
 }
 
 const militaryToSplit = (time: number) => {
@@ -46,7 +46,7 @@ const militaryToSplit = (time: number) => {
   };
 };
 
-type IScheduleCourseWithTimes = IScheduleCourse & {
+export type IScheduleCourseWithTimes = IScheduleCourse & {
   startTime: number;
   endTime: number;
   difference: number;
@@ -56,7 +56,6 @@ interface ICalendarMapping {
   top: number;
   totalMinutes: number;
   endTime: number;
-  online: boolean;
   courses: IScheduleCourseWithTimes[];
 }
 
@@ -64,78 +63,99 @@ interface ICalendarMappingJustified extends ICalendarMapping {
   indents: number;
 }
 
+/**
+ * calendarMapping
+ *
+ * Maps courses to a calendar in a custom object
+ *
+ * - [course occurs same time]
+ *      - [courses: biggest first, smallest last]
+ * - indent amount
+ * - totalMinutes
+ * - endTime
+ *
+ * @param courses
+ * @returns
+ */
 const calendarMapping = (courses: IScheduleCourse[]) => {
-  const out = courses.reduce((prev, current, index, all) => {
-    const course = current as IScheduleCourseWithTimes;
-    //Get the first time from the current course location that's not null
-    const time = current.locations.find((loc) => {
-      return loc.start_time != null && loc.end_time != null;
-    });
+  /**
+   * TIME MAPPING
+   *
+   * This make sure any course which pairs with the same start time are grouped together
+   */
+  const coursesReducedToTimePairs = courses.reduce(
+    (prev, current, index, all) => {
+      const course = current as IScheduleCourseWithTimes;
+      //Get the first time from the current course location that's not null
+      const time = current.locations.find((loc) => {
+        return loc.start_time != null && loc.end_time != null;
+      });
 
-    //If the time is null, meaning there is no locations with proper times
-    //the likeliness is said course is an online course
-    if (time == null) {
-      console.log("This course is missing a time");
-      console.log({ current });
-      console.log("THIS COURSE SHOULD BE AN ONLINE COURSE THEN");
-      return prev;
-    }
+      //If the time is null, meaning there is no locations with proper times
+      //the likeliness is said course is an online course
+      if (time == null) {
+        return prev;
+      }
 
-    //Do we have any previously added time blocks?
-    if (prev.length > 0) {
-      //First keep a company of the time from military (so it can be reused)
-      const currentCourseTime = militaryToSplit(time.start_time);
+      //Do we have any previously added time blocks?
+      if (prev.length > 0) {
+        //First keep a company of the time from military (so it can be reused)
+        const currentCourseTime = militaryToSplit(time.start_time);
 
-      console.table({ currentCourseTime });
+        //Now see if we can find the same TIME for the NEXT course
+        const index = prev.findIndex(
+          (item) => item.totalMinutes == currentCourseTime.totalMinutes
+        );
 
-      const index = prev.findIndex(
-        (item) => item.totalMinutes == currentCourseTime.totalMinutes
-      );
+        //Also get the info about said course
+        course.startTime = currentCourseTime.totalMinutes;
+        course.endTime = militaryToSplit(time.end_time).totalMinutes;
+        course.difference = course.endTime - course.startTime;
 
-      course.startTime = currentCourseTime.totalMinutes;
-      course.endTime = militaryToSplit(time.end_time).totalMinutes;
-      course.difference = course.endTime - course.startTime;
+        //If we can't find a time already occupied
+        if (index == -1) {
+          //Now if we don't have any matching courses at the exact same time
+          //we make a new entry with said course
 
-      if (index == -1) {
-        //now if we don't have any matching courses at the exact same time
-        //we make a new entry with said course
+          prev.push({
+            top: course.startTime - 480,
+            totalMinutes: course.startTime,
+            endTime: course.endTime,
+            courses: [course],
+          });
+        } else {
+          //Instead we add said course to the current time block
+
+          //Also we put the "longest courses" end time at the end of the parent
+          if (course.endTime > prev[index]!.endTime) {
+            prev[index]!.endTime = course.endTime;
+          }
+
+          //Add the course
+          prev[index]?.courses.push(course);
+        }
+      } else {
+        //This is the starting procedure, always add the first course
+        course.startTime = militaryToSplit(time.start_time).totalMinutes;
+        course.endTime = militaryToSplit(time.end_time).totalMinutes;
+        course.difference = course.endTime - course.startTime;
 
         prev.push({
           top: course.startTime - 480,
           totalMinutes: course.startTime,
           endTime: course.endTime,
-          online: false,
           courses: [course],
         });
-      } else {
-        //Instead we add said course to the current time block
-
-        // totalMinutes:30,courses:[course1,course2]
-
-        if (course.endTime > prev[index]!.endTime) {
-          prev[index]!.endTime = course.endTime;
-        }
-
-        prev[index]?.courses.push(course);
       }
-    } else {
-      course.startTime = militaryToSplit(time.start_time).totalMinutes;
-      course.endTime = militaryToSplit(time.end_time).totalMinutes;
-      course.difference = course.endTime - course.startTime;
+      //Return the prevous value (which is an array of ICalendarMapping)
+      return prev;
+    },
+    [] as Array<ICalendarMapping>
+  );
 
-      prev.push({
-        top: course.startTime - 480,
-        totalMinutes: course.startTime,
-        endTime: course.endTime,
-        online: false,
-        courses: [course],
-      });
-    }
-
-    return prev;
-  }, [] as Array<ICalendarMapping>);
-
-  const sorted = out
+  //Now to sort out the base parent by first having the courses sorted by difference
+  //and the parent by its totalMinutes (aka starting position)
+  const sorted = coursesReducedToTimePairs
     .map((block) => {
       return {
         ...block,
@@ -148,24 +168,46 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
       return a.totalMinutes - b.totalMinutes;
     });
 
+  /**
+   * INDENTING
+   *
+   * This calculates the indenting of a course by going backwards from the previous times
+   * and checking if the current total minutes (start time) is before a prevoius courses
+   * end time. If so its indent. It also bases the indent on said courses previous time.
+   *
+   * Because this is a reversed array we can assume that a course will only be blocked back once?
+   *
+   * TODO: Check if breaking out of the foor loop is needed. As it could possible be.
+   */
   const prev = [] as Array<ICalendarMappingJustified>;
 
+  //Grab the sorted
   for (const current of sorted) {
+    //Total amount of indents
     let indents = 0;
+    //Loop only if we have a previous
     if (prev.length > 0) {
+      //Get all previous ones in reverse
       for (const block of prev.reverse()) {
+        //Check if the current course block time is past the end time of the previous
         if (current.totalMinutes < block.endTime) {
+          //If so we assume the previous block times could have been modified,
+          //so we grab their indent and add one so <OURS> is <PARENT> + 1
           indents = block.indents + 1;
+          break;
         }
       }
     }
+    //Add the indent value with the current data back into the array
     prev.push({ ...current, indents });
   }
 
+  //Resor the array because it gets all out of sync for some reason
   const resort = prev.sort((a, b) => {
     return a.totalMinutes - b.totalMinutes;
   });
 
+  //Return the resort of the data
   return resort;
 };
 
@@ -196,7 +238,7 @@ const CourseListing = ({
                     <div
                       key={index + course.tuid}
                       style={{ height: (course.difference / 10) * 10 }}
-                      onMouseEnter={() => setCourseHover(course.tuid)}
+                      onMouseEnter={() => setCourseHover(course)}
                       onMouseLeave={() => setCourseHover(null)}
                       className={classNames(
                         "flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 p-2 transition-all duration-150 hover:z-[999] hover:shadow-lg",
@@ -204,10 +246,10 @@ const CourseListing = ({
                           "-ml-10": index > 0 && overlap,
 
                           "z-[999] bg-base-300 shadow-lg":
-                            hover != null && hover == course.tuid,
+                            hover != null && hover.tuid == course.tuid,
                           "mr-10":
                             hover != null &&
-                            hover == course.tuid &&
+                            hover.tuid == course.tuid &&
                             block.courses.length - 1 != index,
                           "border-green-400": course.state == "ADDED",
                         }
@@ -254,6 +296,7 @@ interface CalendarComponentProps {
   semester: "FA" | "WI" | "SP" | "SU";
   revision: string;
   weekends: boolean;
+  onCourseHover: (course: IScheduleCourseWithTimes) => void;
 }
 
 const ScheduleCalendar = ({
@@ -261,11 +304,14 @@ const ScheduleCalendar = ({
   semester,
   weekends = false,
   revision,
+  onCourseHover,
 }: CalendarComponentProps) => {
-  const [hover, setCousreHover] = useState<string | null>(null);
+  const [hover, setCourseHover] = useState<IScheduleCourseWithTimes | null>(
+    null
+  );
 
   const result = api.calendar.getRevision.useQuery({
-    tuid: "cleh9smil00cmg966cshwt5h5",
+    tuid: revision,
     maxRoomNum: "4",
     minRoomNum: "0",
     semester_fall: semester == "FA",
@@ -295,7 +341,7 @@ const ScheduleCalendar = ({
   return (
     <div className="h-full overflow-hidden">
       <div className="flex border-b border-base-300">
-        <div className="grow">Time</div>
+        <div className="w-[70px] grow">Time</div>
         <div className="grow">Monday</div>
         <div className="grow">Tuesday</div>
         <div className="grow">Wednesday</div>
@@ -325,7 +371,7 @@ const ScheduleCalendar = ({
                         }}
                       >
                         <div key={i} className="flex flex-row text-center">
-                          <div className="justi flex h-4 w-full items-center bg-base-200  text-sm">
+                          <div className="justi flex h-4 w-full -translate-y-1 items-center bg-base-200  text-sm">
                             {x}
                           </div>
                         </div>
@@ -352,39 +398,60 @@ const ScheduleCalendar = ({
               </div>
               <CourseListing
                 courses={result.data.monday_courses}
-                setCourseHover={setCousreHover}
+                setCourseHover={(course) => {
+                  setCourseHover(course);
+                  onCourseHover(course!);
+                }}
                 hover={hover}
               />
               <CourseListing
                 courses={result.data.tuesday_courses}
-                setCourseHover={setCousreHover}
+                setCourseHover={(course) => {
+                  setCourseHover(course);
+                  onCourseHover(course!);
+                }}
                 hover={hover}
               />
               <CourseListing
                 courses={result.data.wednesday_courses}
-                setCourseHover={setCousreHover}
+                setCourseHover={(course) => {
+                  setCourseHover(course);
+                  onCourseHover(course!);
+                }}
                 hover={hover}
               />
               <CourseListing
                 courses={result.data.thursday_courses}
-                setCourseHover={setCousreHover}
+                setCourseHover={(course) => {
+                  setCourseHover(course);
+                  onCourseHover(course!);
+                }}
                 hover={hover}
               />
               <CourseListing
                 courses={result.data.friday_courses}
-                setCourseHover={setCousreHover}
+                setCourseHover={(course) => {
+                  setCourseHover(course);
+                  onCourseHover(course!);
+                }}
                 hover={hover}
               />
               {weekends && (
                 <>
                   <CourseListing
                     courses={result.data.saturday_courses}
-                    setCourseHover={setCousreHover}
+                    setCourseHover={(course) => {
+                      setCourseHover(course);
+                      onCourseHover(course!);
+                    }}
                     hover={hover}
                   />
                   <CourseListing
                     courses={result.data.sunday_courses}
-                    setCourseHover={setCousreHover}
+                    setCourseHover={(course) => {
+                      setCourseHover(course);
+                      onCourseHover(course!);
+                    }}
                     hover={hover}
                   />
                 </>
@@ -397,4 +464,4 @@ const ScheduleCalendar = ({
   );
 };
 
-export default ScheduleCalendar;
+export default React.memo(ScheduleCalendar);

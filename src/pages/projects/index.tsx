@@ -12,12 +12,20 @@ import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectsUpload from "src/components/projects/projectUploading/ProjectsUpload";
-import ProjectDataTableEdit from "src/components/projects/projectUploading/ProjectDataTableEdit";
+import ProjectDataTableEdit, {
+  columnLookupTable,
+} from "src/components/projects/projectUploading/ProjectDataTableEdit";
 import { useRouter } from "next/router";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import ProjectFinalize from "src/components/projects/projectUploading/ProjectFinalize";
-import { toast } from "react-toastify";
+
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
+
+import {
+  type IProjectOrganizedColumnRow,
+  type IProjectOrganizedColumnRowNumerical,
+} from "src/validation/projects";
+import { toast } from "react-toastify";
 
 const Projects: NextPage = () => {
   /**
@@ -39,6 +47,9 @@ const Projects: NextPage = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const verifyOrganizedColumnsMutation =
+    api.projects.verifyOrganizedColumns.useMutation();
+
   const toggleVisible = () => {
     if (stage == 1) {
       setVisible(!visible);
@@ -51,12 +62,33 @@ const Projects: NextPage = () => {
   const [stage, setStage] = useState<number>(1);
 
   //if stage is not finalize yet
-  const toggleStage = () => {
+  const toggleStage = async () => {
     if (stage == 3) {
       toggleVisible();
       setStage(1);
     } else if (stage == 1.5) {
       setStage(stage + 0.5);
+    } else if (stage == 2) {
+      if (uploadedData?.tuid != undefined) {
+        const result = await verifyOrganizedColumnsMutation.mutateAsync({
+          tuid: uploadedData.tuid,
+          columns: { ...organizedColumns },
+        });
+        if (result == true) {
+          toast.success("Successfully organized the columns!.", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+          setStage(stage + 1);
+        } else {
+          toast.error("Error had occured...", {
+            position: toast.POSITION.TOP_RIGHT,
+          });
+        }
+      } else {
+        toast.error("Could not organize columns. Please try again.", {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
     } else {
       setStage(stage + 1);
     }
@@ -111,6 +143,49 @@ const Projects: NextPage = () => {
     router.push(urlMain);
   };
 
+  const [organizedColumns, setOrganizeColumns] =
+    useState<IProjectOrganizedColumnRowNumerical>({
+      noteWhatHasChanged: 0,
+      section_id: 1,
+      term: 2,
+      div: 3,
+      department: 4,
+      subject: 5,
+      course_number: 6,
+      section: 7,
+      title: 8,
+      instruction_method: 9,
+      faculty: 10,
+      campus: 11,
+      credits: 12,
+      capacity: 13,
+      start_date: 17,
+      end_date: 18,
+      building: 20,
+      room: 21,
+      start_time: 22,
+      end_time: 23,
+      days: 24,
+      noteAcademicAffairs: 27,
+      notePrintedComments: 28,
+    });
+
+  const getMissingColumns = () => {
+    const missingColumns = [];
+    const tempOrganizedColumns = organizedColumns as Record<string, number>;
+    for (const i in tempOrganizedColumns) {
+      if (tempOrganizedColumns[i] == -1) {
+        missingColumns.push(
+          columnLookupTable.find((item) => {
+            return item.value == i;
+          })?.label
+        );
+      }
+    }
+    return missingColumns;
+  };
+
+
   return (
     <DashboardLayout>
       <div className="w-full flex-col p-5">
@@ -143,7 +218,10 @@ const Projects: NextPage = () => {
           </button>
         </div>
 
-        <Modal open={visible} className="max-h-[250rem]  w-11/12 max-w-5xl ">
+        <Modal
+          open={visible}
+          className="max-h-[250rem]  w-11/12 max-w-5xl transition-all duration-200"
+        >
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
               <Steps.Step
@@ -191,9 +269,9 @@ const Projects: NextPage = () => {
             </Button>
           </Modal.Header>
 
-          <Modal.Body className="s h-2/3 w-full flex-col overflow-y-auto">
-            <div className="flex  w-full justify-center overflow-y-auto align-middle">
-              {stage <= 1.5 ? (
+          <Modal.Body className="s h-2/3 w-full flex-col overflow-y-auto ">
+            <div className="flex  w-full justify-center overflow-y-auto align-middle transition-all duration-200">
+              {stage <= 1.5 && (
                 <ProjectsUpload
                   onFinish={(data) => {
                     if (data !== undefined && data.tuid === undefined) {
@@ -205,15 +283,34 @@ const Projects: NextPage = () => {
                     }
                   }}
                 />
-              ) : (
-                <></>
               )}
-              {stage === 2 ? (
-                <ProjectDataTableEdit uploaded={uploadedData?.table} />
-              ) : (
-                <></>
+              {stage === 2 && (
+                <>
+                  <div className="w-3/4">
+                    <strong>Missing Columns</strong>
+                    <ul>
+                      {getMissingColumns().map((value, i) => {
+                        return <li key={i}>{value}</li>;
+                      })}
+                    </ul>
+                  </div>
+                  <ProjectDataTableEdit
+                    uploaded={uploadedData?.table}
+                    columns={organizedColumns}
+                    onUpdateOrganizedColumns={(value) => {
+                      setOrganizeColumns(
+                        value as IProjectOrganizedColumnRowNumerical
+                      );
+                    }}
+                  />
+                </>
               )}
-              {stage === 3 ? <ProjectFinalize /> : <></>}
+              {stage === 3 && (
+                <ProjectFinalize
+                  tuid={uploadedData?.tuid}
+                  columns={organizedColumns}
+                />
+              )}
             </div>
           </Modal.Body>
           <div className=" relative mt-3 flex w-full justify-between justify-self-end align-middle">
@@ -223,15 +320,17 @@ const Projects: NextPage = () => {
                 Back
               </Button>
             ) : (
-              <div></div>
+              <div className="grow"></div>
             )}
-            <Button
-              className=""
-              disabled={stage < 1.5}
-              onClick={stage == 3 ? goToMain : toggleStage}
-            >
-              {stage >= 3 ? "Finalize" : "Next"}
-            </Button>
+            {stage != 3 && (
+              <Button
+                className=""
+                disabled={stage < 1.5 || getMissingColumns().length > 0}
+                onClick={stage == 3 ? goToMain : toggleStage}
+              >
+                {stage == 2 ? "Organize" : stage >= 3 ? "Finalize" : "Next"}
+              </Button>
+            )}
           </div>
         </Modal>
         <ConfirmDeleteModal

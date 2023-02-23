@@ -42,36 +42,40 @@ const PaginationBar = ({
     <div>
       <Pagination>
         <>
-          {currentPage != 1 && (
-            <Button
-              onClick={() => {
-                onClick(currentPage - 1);
-              }}
-            >
-              <ChevronLeft />
-            </Button>
-          )}
-          {pages.map((num, i) => {
-            return (
-              <Button
-                key={i}
-                active={num == currentPage}
-                onClick={() => {
-                  onClick(num);
-                }}
-              >
-                {num}
-              </Button>
-            );
-          })}
-          {currentPage != totalPageCount && (
-            <Button
-              onClick={() => {
-                onClick(currentPage + 1);
-              }}
-            >
-              <ChevronRight />
-            </Button>
+          {currentPage != 0 && (
+            <>
+              {currentPage != 1 && (
+                <Button
+                  onClick={() => {
+                    onClick(currentPage - 1);
+                  }}
+                >
+                  <ChevronLeft />
+                </Button>
+              )}
+              {pages.map((num, i) => {
+                return (
+                  <Button
+                    key={i}
+                    active={num == currentPage}
+                    onClick={() => {
+                      onClick(num);
+                    }}
+                  >
+                    {num}
+                  </Button>
+                );
+              })}
+              {currentPage != totalPageCount && pages.length > 0 && (
+                <Button
+                  onClick={() => {
+                    onClick(currentPage + 1);
+                  }}
+                >
+                  <ChevronRight />
+                </Button>
+              )}
+            </>
           )}
         </>
         <></>

@@ -55,12 +55,12 @@ const Scheduler: NextPage = () => {
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
-        <DashboardContentHeader title="Scheduler" />
-        <div className="flex  h-full w-full flex-col">
+        <div className="flex h-full w-full flex-col">
+          <DashboardContentHeader title="Scheduler" />
           <Tabs />
-          <ScheduleCalendar semester="SU" revision="" />
+          <ScheduleCalendar semester="FA" revision="" weekends={false} />
           <Tabs />
-          <ScheduleCalendar semester="SU" revision="" />
+          <ScheduleCalendar semester="SU" revision="" weekends={false} />
         </div>
       </DashboardContent>
     </DashboardLayout>

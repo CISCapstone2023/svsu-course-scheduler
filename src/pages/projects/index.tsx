@@ -34,8 +34,8 @@ const Projects: NextPage = () => {
 
   const [uploadedData, setData] = useState<IOnboarding>();
   const [confirmationCancel, setComfirmation] = useState<boolean>(false);
-
   const [visible, setVisible] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const toggleVisible = () => {
     if (stage == 1) {
@@ -310,11 +310,15 @@ const Projects: NextPage = () => {
         </ProjectsLayout>
 
         <div className="mt-3 flex justify-center">
-          <PaginationBar
-            totalPageCount={10}
-            currentPage={1}
-            onClick={onCLickPage}
-          />
+          {result.data != undefined && result.data?.result.length / 5 > 1 && (
+            <PaginationBar
+              totalPageCount={result.data?.result.length / 5}
+              currentPage={result.data?.page}
+              onClick={(page) => {
+                setCurrentPage(page);
+              }}
+            />
+          )}
         </div>
       </div>
     </DashboardLayout>

@@ -19,12 +19,12 @@ const ProjectRevisionItem = ({
 }: ProjectRevisionItemProps) => {
   return (
     <div
-      className="border-neutral-900 ml-30  flex h-12 w-11/12 cursor-pointer rounded-md border-b-2 bg-sky-50"
+      className="border-neutral-900 ml-30 flex h-12  w-11/12 cursor-pointer rounded-md border-b-2 bg-sky-50 "
       onClick={() => {
         goToProject(id);
       }}
     >
-      <div className="flex h-full w-1/2 items-center justify-start">
+      <div className="flex h-full w-1/2 items-center justify-start text-lg font-semibold underline decoration-transparent transition duration-300 ease-in-out hover:decoration-inherit">
         <div className="pl-3">
           <span className="text-lg font-semibold underline decoration-transparent transition duration-300 ease-in-out hover:decoration-inherit">
             {title}

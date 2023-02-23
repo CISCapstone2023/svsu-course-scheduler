@@ -28,16 +28,14 @@ const ProjectItem = ({
     <div className="flex-col border-2">
       <div className=" mx-auto flex h-20 rounded-lg   bg-white">
         <div
-          className="flex h-full w-1/2 cursor-pointer items-center justify-start"
+          className="flex h-full w-1/2 cursor-pointer items-center justify-start  underline decoration-transparent transition duration-300 ease-in-out hover:decoration-inherit"
           onClick={() => {
             goToProject(id);
           }}
         >
           <Book2 className="h-[40px] w-[40px] pl-4" />
-          <div className="pl-3">
-            <span className="text-lg font-semibold  decoration-transparent transition duration-300 ease-in-out ">
-              {strTitle}
-            </span>
+          <div className="pl-3 text-lg font-semibold">
+            <span className="text-lg font-semibold ">{strTitle}</span>
           </div>
         </div>
         <div className="flex h-full w-1/2 items-center justify-end">

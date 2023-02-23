@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { difference } from "lodash";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "react-daisyui";
 import { start } from "repl";
 import {
@@ -10,15 +10,11 @@ import {
 import { api } from "src/utils/api";
 import { number } from "zod";
 
-interface CalendarComponentProps {
-  children?: React.ReactNode;
-  semester: "FA" | "WI" | "SP" | "SU";
-  revision: string;
-}
-
 interface CourseListingProps {
   courses: IScheduleCourse[] | undefined;
   overlap?: boolean;
+  setCourseHover: (value: string | null) => void;
+  hover: string | null;
 }
 
 const militaryToSplit = (time: number) => {
@@ -57,6 +53,7 @@ type IScheduleCourseWithTimes = IScheduleCourse & {
 };
 
 interface ICalendarMapping {
+  top: number;
   totalMinutes: number;
   endTime: number;
   online: boolean;
@@ -104,6 +101,7 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
         //we make a new entry with said course
 
         prev.push({
+          top: course.startTime - 480,
           totalMinutes: course.startTime,
           endTime: course.endTime,
           online: false,
@@ -126,6 +124,7 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
       course.difference = course.endTime - course.startTime;
 
       prev.push({
+        top: course.startTime - 480,
         totalMinutes: course.startTime,
         endTime: course.endTime,
         online: false,
@@ -170,37 +169,56 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
   return resort;
 };
 
-const CourseListing = ({ courses, overlap = true }: CourseListingProps) => {
+const CourseListing = ({
+  courses,
+  overlap = true,
+  setCourseHover,
+  hover,
+}: CourseListingProps) => {
   const mapped = calendarMapping(courses!);
 
   return (
-    <div className="wrap relative flex  grow overflow-x-scroll border border-black">
-      <div className="relative w-full grow basis-0">
+    <div className="wrap relative flex  grow border-r border-base-300">
+      <div className="relative w-full grow basis-0  ">
         {mapped.map((block, index) => {
           return (
             <div
               key={index}
               className="absolute w-full "
               style={{
-                top: block.totalMinutes - 510,
+                top: block.top + 1,
                 left: block.indents * 10,
               }}
             >
-              <div className="flex flex-row p-1">
+              <div className="flex w-full flex-row p-1">
                 {block.courses.map((course, index) => {
                   return (
                     <div
                       key={index + course.tuid}
-                      style={{ height: (course.difference / 10) * 4 }}
+                      style={{ height: (course.difference / 10) * 10 }}
+                      onMouseEnter={() => setCourseHover(course.tuid)}
+                      onMouseLeave={() => setCourseHover(null)}
                       className={classNames(
-                        "hover:z-99 flex w-16 rounded-lg border  border-base-100 bg-base-300 p-2 transition-all duration-150 hover:z-[999]  hover:shadow-lg",
+                        "flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 p-2 transition-all duration-150 hover:z-[999] hover:shadow-lg",
                         {
                           "-ml-10": index > 0 && overlap,
-                          "hover:mr-10": block.courses.length - 1 != index,
+
+                          "z-[999] bg-base-300 shadow-lg":
+                            hover != null && hover == course.tuid,
+                          "mr-10":
+                            hover != null &&
+                            hover == course.tuid &&
+                            block.courses.length - 1 != index,
+                          "border-green-400": course.state == "ADDED",
                         }
                       )}
                     >
-                      <p style={{ fontSize: 8 }}>{course.difference}</p>
+                      <p style={{ fontSize: 12 }}>
+                        <p className="text-md font-bold">
+                          {course.subject} - {course.course_number}
+                        </p>{" "}
+                        {course.title}
+                      </p>
                     </div>
                   );
                 })}
@@ -208,21 +226,44 @@ const CourseListing = ({ courses, overlap = true }: CourseListingProps) => {
             </div>
           );
         })}
+        {Array(16)
+          .fill(0)
+          .map(function (x, i) {
+            return (
+              <div
+                key={i}
+                className="absolute z-0 w-full"
+                style={{
+                  top: i * 60 + 34,
+                  left: 0,
+                }}
+              >
+                <div key={i} className="flex flex-row text-center">
+                  <div className=" flex  w-full items-center border-b border-base-300 bg-base-200  text-sm"></div>
+                </div>
+              </div>
+            );
+          })}
       </div>
     </div>
   );
 };
 
-interface DayBlockProps {
-  title: string;
-  courses: IScheduleCourse[] | undefined;
+interface CalendarComponentProps {
+  children?: React.ReactNode;
+  semester: "FA" | "WI" | "SP" | "SU";
+  revision: string;
+  weekends: boolean;
 }
 
 const ScheduleCalendar = ({
   children,
   semester,
+  weekends = false,
   revision,
 }: CalendarComponentProps) => {
+  const [hover, setCousreHover] = useState<string | null>(null);
+
   const result = api.calendar.getRevision.useQuery({
     tuid: "cleh9smil00cmg966cshwt5h5",
     maxRoomNum: "4",
@@ -233,32 +274,124 @@ const ScheduleCalendar = ({
     semester_spring: semester == "SP",
   });
 
+  const times = [
+    "8:00 AM",
+    "9:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+    "5:00 PM",
+    "6:00 PM",
+    "7:00 PM",
+    "8:00 PM",
+    "9:00 PM",
+    "10:00 PM",
+  ];
+
   return (
-    <div className="flex h-full w-full">
-      <div className="flex w-full flex-col">
-        <div className="flex ">
-          <div className="grow">Monday</div>
-          <div className="grow">Tuesday</div>
-          <div className="grow">Wednesday</div>
-          <div className="grow">Thursday</div>
-          <div className="grow">Friday</div>
-          <div className="grow">Saturday</div>
-          <div className="grow">Sunday</div>
-        </div>
-        {result.data != undefined && (
-          <div className="overflow-y-scr flex h-[720px] flex-row justify-evenly">
-            <CourseListing
-              courses={result.data.monday_courses}
-              overlap={false}
-            />
-            <CourseListing courses={result.data.tuesday_courses} />
-            <CourseListing courses={result.data.wednesday_courses} />
-            <CourseListing courses={result.data.thursday_courses} />
-            <CourseListing courses={result.data.friday_courses} />
-            <CourseListing courses={result.data.saturday_courses} />
-            <CourseListing courses={result.data.sunday_courses} />
-          </div>
+    <div className="h-full overflow-hidden">
+      <div className="flex border-b border-base-300">
+        <div className="grow">Time</div>
+        <div className="grow">Monday</div>
+        <div className="grow">Tuesday</div>
+        <div className="grow">Wednesday</div>
+        <div className="grow">Thursday</div>
+        <div className="grow">Friday</div>
+        {weekends && (
+          <>
+            <div className="grow">Saturday</div>
+            <div className="grow">Sunday</div>
+          </>
         )}
+      </div>
+      <div className="flex h-full w-full overflow-y-scroll">
+        <div className="flex h-[750px] w-full flex-col">
+          {result.data != undefined && (
+            <div className="flex h-full flex-row justify-evenly">
+              <div className="wrap relative flex h-full w-[70px]  border-r border-base-300">
+                <div className="relative  grow basis-0  ">
+                  {times.map(function (x, i) {
+                    return (
+                      <div
+                        key={i}
+                        className="absolute w-full "
+                        style={{
+                          top: i * 60,
+                          left: 0,
+                        }}
+                      >
+                        <div key={i} className="flex flex-row text-center">
+                          <div className="justi flex h-4 w-full items-center bg-base-200  text-sm">
+                            {x}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {times.map(function (x, i) {
+                    return (
+                      <div
+                        key={i}
+                        className="absolute w-full "
+                        style={{
+                          top: i * 60 + 34,
+                          left: 0,
+                        }}
+                      >
+                        <div key={i} className="flex flex-row text-center">
+                          <div className=" flex  w-full items-center border-b border-base-300 bg-base-200  text-sm"></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <CourseListing
+                courses={result.data.monday_courses}
+                setCourseHover={setCousreHover}
+                hover={hover}
+              />
+              <CourseListing
+                courses={result.data.tuesday_courses}
+                setCourseHover={setCousreHover}
+                hover={hover}
+              />
+              <CourseListing
+                courses={result.data.wednesday_courses}
+                setCourseHover={setCousreHover}
+                hover={hover}
+              />
+              <CourseListing
+                courses={result.data.thursday_courses}
+                setCourseHover={setCousreHover}
+                hover={hover}
+              />
+              <CourseListing
+                courses={result.data.friday_courses}
+                setCourseHover={setCousreHover}
+                hover={hover}
+              />
+              {weekends && (
+                <>
+                  <CourseListing
+                    courses={result.data.saturday_courses}
+                    setCourseHover={setCousreHover}
+                    hover={hover}
+                  />
+                  <CourseListing
+                    courses={result.data.sunday_courses}
+                    setCourseHover={setCousreHover}
+                    hover={hover}
+                  />
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

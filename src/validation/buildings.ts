@@ -3,11 +3,16 @@ import { z } from "zod";
 //this will ensure the user is only inputting one or multiple numbers followed by 0 or 1
 //letter followed by 0 or 1 comma or followed by a hyphen and another number(s) followed by 0 or 1 letter
 const regex = /^\d+\w?(-\d+\w?)?(,\d+\w?(-\d+\w?)?)*$/;
+const campusRegex = /[a-zA-Z]+/g;
+const buildingRegex = /^[\a-zA-Z[\-\s]+$/;
 
 export const createCampusSchema = z.object({
   name: z
     .string()
-    .min(3, { message: "Campus name must be at least 3 characters" })
+    .regex(campusRegex, {
+      message: "Campus name must be an alphabetical and include no whitespace.",
+    })
+    .min(2, { message: "Campus name must be at least 3 characters" })
     .max(30),
 });
 
@@ -18,9 +23,13 @@ export const updateCampusSchema = createCampusSchema.extend({
 //const buildingRegex =
 //Regex needs to be built for string validation using .regex
 export const createBuildingSchema = z.object({
-  campus_tuid: z.string(),
+  campus_tuid: z.string().cuid({ message: "A valid campus must be selected." }),
   name: z
     .string()
+    .regex(buildingRegex, {
+      message:
+        "Building name can be alphabetical, and include dashes and white spaces",
+    })
     .min(4, { message: "Building name must be at least 4 characters" })
     .max(75, { message: "Building name must be no more than 75 characters" }),
   prefix: z

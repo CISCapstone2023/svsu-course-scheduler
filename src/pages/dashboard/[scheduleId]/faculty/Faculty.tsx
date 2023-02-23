@@ -26,6 +26,9 @@ import PaginationBar from "src/components/Pagination";
 //Import backend api
 import { api } from "src/utils/api";
 
+//Import Animated Spinner
+import AnimatedSpinner from "src/components/AnimatedSpinner";
+
 const Faculty = () => {
   /**
    * Search Value
@@ -46,6 +49,18 @@ const Faculty = () => {
     page: currentPage,
     search: searchValue,
   });
+
+  useEffect(() => {
+    //Check if we have any building data
+    if (faculties.data) {
+      //Check if we are past the current total pages and we are not fetching
+      if (currentPage > faculties.data!.totalPages && !faculties.isFetching) {
+        const page =
+          faculties.data!.totalPages > 0 ? faculties.data!.totalPages : 1;
+        setCurrentPage(page); //Go to the max page
+      }
+    }
+  }, [faculties.data]);
 
   //The function that gets called when a input event has occured.
   //It passthe the React Change Event which has a input element
@@ -109,7 +124,13 @@ const Faculty = () => {
     //Reset the form so we can add (or edit a new user)
     setFacultyEditing(undefined);
     openFacultyCreateModal(!isFacultyCreateModalOpen);
-    reset({});
+    reset({
+      email: "",
+      first_name: "",
+      last_name: "",
+      suffix: "",
+      is_adjunct: false,
+    });
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting
@@ -287,17 +308,22 @@ const Faculty = () => {
              
           </div>
         )}
-        <div className="flex w-full justify-center p-2">
-          {faculties.data != undefined && (
-            <PaginationBar
-              totalPageCount={faculties.data?.totalPages}
-              currentPage={faculties.data?.page}
-              onClick={(page) => {
-                setCurrentPage(page);
-              }}
-            />
-          )}
-        </div>
+        {faculties.isFetching && (
+          <div className="flex h-[200px] w-full flex-col items-center justify-center">
+            <AnimatedSpinner />
+          </div>
+        )}
+      </div>
+      <div className="flex w-full justify-center p-2">
+        {faculties.data != undefined && (
+          <PaginationBar
+            totalPageCount={faculties.data?.totalPages}
+            currentPage={faculties.data?.page}
+            onClick={(page) => {
+              setCurrentPage(page);
+            }}
+          />
+        )}
       </div>
       {/* This dialog used for adding a faculty */}
       <Modal

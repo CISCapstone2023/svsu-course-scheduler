@@ -238,99 +238,7 @@ export const projectsRouter = createTRPCRouter({
                 //Add all courses in the current transaction
                 ...(formattedColumns as Required<ICourseSchema>[]).map(
                   (row, index) => {
-                    return prisma.course.create({
-                      data: {
-                        capacity: row.capacity,
-                        course_number: row.course_number,
-                        credits: row.credits,
-                        department: row.department,
-                        div: row.div,
-                        end_date: row.end_date,
-                        end_time: 0,
-                        original_state: "UNMODIFIED",
-                        section: row.section + "",
-                        section_id: row.section_id,
-                        start_date: row.start_date,
-                        state: "UNMODIFIED",
-                        start_time: 0,
-                        subject: row.subject,
-                        term: row.term,
-                        title: row.title,
-                        type: row.type,
-                        semester_fall: row.semester_fall,
-                        semester_winter: row.semester_winter,
-                        semester_spring: row.semester_spring,
-                        semester_summer: row.semester_summer,
-                        status: "",
-                        instruction_method: row.instruction_method,
-                        faculty: {
-                          //now create the many-to-many-relationships which connect faculty
-                          create: [
-                            ...row.faculty.map((faculty) => {
-                              return {
-                                faculty: {
-                                  connect: {
-                                    tuid: faculty.faculty_tuid,
-                                  },
-                                },
-                              };
-                            }),
-                          ],
-                        },
-                        locations: {
-                          create: [
-                            ...row.locations.map((location) => {
-                              return {
-                                day_friday: location.day_friday,
-                                day_monday: location.day_monday,
-                                day_saturday: location.day_saturday,
-                                day_sunday: location.day_sunday,
-                                day_thursday: location.day_thursday,
-                                day_tuesday: location.day_tuesday,
-                                day_wednesday: location.day_wednesday,
-                                end_time: location.end_time,
-                                is_online: location.is_online,
-                                start_time: location.start_time,
-                                rooms: {
-                                  create: [
-                                    ...location.rooms.map((room) => {
-                                      return {
-                                        building: {
-                                          connect: {
-                                            tuid: room.building_tuid,
-                                          },
-                                        },
-                                        room: room.room,
-                                      };
-                                    }),
-                                  ],
-                                },
-                              };
-                            }),
-                          ],
-                        },
-                        revision: {
-                          connect: {
-                            tuid: input.tuid,
-                          },
-                        },
-                        notes: {
-                          create: [
-                            ...row.notes.map((row) => {
-                              return {
-                                note: row.note != undefined ? row.note : "",
-                                type: row.type,
-                              };
-                            }),
-                          ],
-                        },
-                      },
-                      include: {
-                        faculty: true,
-                        locations: true,
-                        notes: true,
-                      },
-                    });
+                    return prisma.course.create(createCourseSchema(row, input));
                   }
                 ),
               ]
@@ -350,6 +258,108 @@ export const projectsRouter = createTRPCRouter({
 interface InvertedObject {
   [key: string]: string;
 }
+
+const createCourseSchema = (
+  row: Required<ICourseSchema>,
+  input: { tuid: string }
+) => {
+  return {
+    data: {
+      capacity: row.capacity,
+      course_number: row.course_number,
+      credits: row.credits,
+      department: row.department,
+      div: row.div,
+      end_date: row.end_date,
+      end_time: 0,
+      original_state: "UNMODIFIED",
+      section: row.section + "",
+      section_id: row.section_id,
+      start_date: row.start_date,
+      state: "UNMODIFIED",
+      start_time: 0,
+      subject: row.subject,
+      term: row.term,
+      title: row.title,
+      type: row.type,
+      semester_fall: row.semester_fall,
+      semester_winter: row.semester_winter,
+      semester_spring: row.semester_spring,
+      semester_summer: row.semester_summer,
+      status: "",
+      instruction_method: row.instruction_method,
+      faculty: {
+        //now create the many-to-many-relationships which connect faculty
+        create: [
+          ...row.faculty.map((faculty) => {
+            return {
+              faculty: {
+                connect: {
+                  tuid: faculty.faculty_tuid,
+                },
+              },
+            };
+          }),
+        ],
+      },
+      locations: {
+        create: [
+          ...row.locations.map((location) => {
+            console.log({
+              location,
+            });
+            return {
+              day_friday: location.day_friday,
+              day_monday: location.day_monday,
+              day_saturday: location.day_saturday,
+              day_sunday: location.day_sunday,
+              day_thursday: location.day_thursday,
+              day_tuesday: location.day_tuesday,
+              day_wednesday: location.day_wednesday,
+              end_time: location.end_time,
+              is_online: location.is_online,
+              start_time: location.start_time,
+              rooms: {
+                create: [
+                  ...location.rooms.map((room) => {
+                    return {
+                      building: {
+                        connect: {
+                          tuid: room.building_tuid,
+                        },
+                      },
+                      room: room.room,
+                    };
+                  }),
+                ],
+              },
+            };
+          }),
+        ],
+      },
+      revision: {
+        connect: {
+          tuid: input.tuid,
+        },
+      },
+      notes: {
+        create: [
+          ...row.notes.map((row) => {
+            return {
+              note: row.note != undefined ? row.note : "",
+              type: row.type,
+            };
+          }),
+        ],
+      },
+    },
+    include: {
+      faculty: true,
+      locations: true,
+      notes: true,
+    },
+  } as Prisma.CourseCreateArgs;
+};
 
 const invertedNestedOrganizedColumns = async (
   columns: ExcelDataColumns,
@@ -473,10 +483,6 @@ const invertedNestedOrganizedColumns = async (
         let minute = 0;
         let hour = 0;
 
-        //Add 12 to the hour for having a PM time
-        if (value.includes("PM")) {
-          hour += 12;
-        }
         //Split the time
         const splittedTime = value.split(":");
 
@@ -485,6 +491,11 @@ const invertedNestedOrganizedColumns = async (
           //Attempt to parse said time. If time can't be parsed, it defaults to 0 then
           try {
             hour = parseInt(splittedTime[0] as string);
+            if (value.includes("PM") && hour != 12) {
+              console.log("includes PM");
+              console.log({ hour });
+              hour += 12;
+            }
             minute = parseInt(
               //We also cehck to make sure wre only have XX minutes or X minutes based on the length
               //TODO: Check again if this is 100% working still
@@ -497,6 +508,7 @@ const invertedNestedOrganizedColumns = async (
           } finally {
             //Merge the time back in
             time = `${hour}${minute == 0 ? "00" : minute}`;
+            console.log({ time });
           }
         }
         //Convert it back to a number (because we have too)
@@ -571,7 +583,8 @@ const invertedNestedOrganizedColumns = async (
               day_monday: updatedDays.includes("m"),
               day_tuesday: updatedDays.includes("t"),
               day_wednesday: updatedDays.includes("w"),
-              day_thursday: updatedDays.includes("r"),
+              day_thursday:
+                updatedDays.includes("r") || updatedDays.includes("th"),
               day_friday: updatedDays.includes("f"),
               day_saturday: updatedDays.includes("sat"),
               day_sunday: updatedDays.includes("sun"),

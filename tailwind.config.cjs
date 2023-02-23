@@ -10,7 +10,12 @@ module.exports = {
     "node_modules/react-daisyui/dist/**/*.js",
   ],
   theme: {
-    extend: {},
+    extend: {
+      gridTemplateRows: {
+        // Simple 8 row grid
+        72: "repeat(72, minmax(0, 1fr))",
+      },
+    },
   },
   daisyui: {
     themes: [

@@ -1,4 +1,7 @@
-import React from "react";
+import classNames from "classnames";
+import { difference } from "lodash";
+import React, { useEffect } from "react";
+import { Button } from "react-daisyui";
 import { start } from "repl";
 import {
   IScheduleCourse,
@@ -15,50 +18,196 @@ interface CalendarComponentProps {
 
 interface CourseListingProps {
   courses: IScheduleCourse[] | undefined;
+  overlap?: boolean;
 }
 
-const militaryToGridRow = (time: number) => {
-  let hour = Math.floor(time / 100);
-  const minutes = parseInt(
-    time > 1000
-      ? time.toString().substring(2, 4)
-      : time.toString().substring(2, 3)
-  );
-  if (time >= 800) {
-    hour -= 8;
+const militaryToSplit = (time: number) => {
+  //initializes hour variable to parse integer time numbers
+  const hour = parseInt(
+    time >= 1000
+      ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
+      : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
+  ); // mods time to convert from military time to standard time
+  let anteMeridiemHour = hour % 12;
+  // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
+  if (anteMeridiemHour == 0) {
+    anteMeridiemHour = 12;
   }
-  const total = (hour * 60 + minutes) / 10;
-  return total;
+
+  //initializes constant for getting the minutes of time
+  const minute = parseInt(
+    time.toString().substring(time.toString().length - 2)
+  );
+
+  //initializes constant to be used for AM/PM tagging on time
+  const anteMeridiem = time >= 1300 ? "PM" : "AM";
+  return {
+    hour,
+    minute,
+    anteMeridiemHour,
+    anteMeridiem,
+    totalMinutes: hour * 60 + minute,
+  };
 };
 
-const CourseListing = ({ courses }: CourseListingProps) => {
+type IScheduleCourseWithTimes = IScheduleCourse & {
+  startTime: number;
+  endTime: number;
+  difference: number;
+};
+
+interface ICalendarMapping {
+  totalMinutes: number;
+  endTime: number;
+  online: boolean;
+  courses: IScheduleCourseWithTimes[];
+}
+
+interface ICalendarMappingJustified extends ICalendarMapping {
+  indents: number;
+}
+
+const calendarMapping = (courses: IScheduleCourse[]) => {
+  const out = courses.reduce((prev, current, index, all) => {
+    const course = current as IScheduleCourseWithTimes;
+    //Get the first time from the current course location that's not null
+    const time = current.locations.find((loc) => {
+      return loc.start_time != null && loc.end_time != null;
+    });
+
+    //If the time is null, meaning there is no locations with proper times
+    //the likeliness is said course is an online course
+    if (time == null) {
+      console.log("This course is missing a time");
+      console.log({ current });
+      console.log("THIS COURSE SHOULD BE AN ONLINE COURSE THEN");
+      return prev;
+    }
+
+    //Do we have any previously added time blocks?
+    if (prev.length > 0) {
+      //First keep a company of the time from military (so it can be reused)
+      const currentCourseTime = militaryToSplit(time.start_time);
+
+      console.table({ currentCourseTime });
+
+      const index = prev.findIndex(
+        (item) => item.totalMinutes == currentCourseTime.totalMinutes
+      );
+
+      course.startTime = currentCourseTime.totalMinutes;
+      course.endTime = militaryToSplit(time.end_time).totalMinutes;
+      course.difference = course.endTime - course.startTime;
+
+      if (index == -1) {
+        //now if we don't have any matching courses at the exact same time
+        //we make a new entry with said course
+
+        prev.push({
+          totalMinutes: course.startTime,
+          endTime: course.endTime,
+          online: false,
+          courses: [course],
+        });
+      } else {
+        //Instead we add said course to the current time block
+
+        // totalMinutes:30,courses:[course1,course2]
+
+        if (course.endTime > prev[index]!.endTime) {
+          prev[index]!.endTime = course.endTime;
+        }
+
+        prev[index]?.courses.push(course);
+      }
+    } else {
+      course.startTime = militaryToSplit(time.start_time).totalMinutes;
+      course.endTime = militaryToSplit(time.end_time).totalMinutes;
+      course.difference = course.endTime - course.startTime;
+
+      prev.push({
+        totalMinutes: course.startTime,
+        endTime: course.endTime,
+        online: false,
+        courses: [course],
+      });
+    }
+
+    return prev;
+  }, [] as Array<ICalendarMapping>);
+
+  const sorted = out
+    .map((block) => {
+      return {
+        ...block,
+        courses: block.courses.sort((a, b) => {
+          return b.difference - a.difference;
+        }),
+      };
+    })
+    .sort((a, b) => {
+      return a.totalMinutes - b.totalMinutes;
+    });
+
+  const prev = [] as Array<ICalendarMappingJustified>;
+
+  for (const current of sorted) {
+    let indents = 0;
+    if (prev.length > 0) {
+      for (const block of prev.reverse()) {
+        if (current.totalMinutes < block.endTime) {
+          indents = block.indents + 1;
+        }
+      }
+    }
+    prev.push({ ...current, indents });
+  }
+
+  const resort = prev.sort((a, b) => {
+    return a.totalMinutes - b.totalMinutes;
+  });
+
+  return resort;
+};
+
+const CourseListing = ({ courses, overlap = true }: CourseListingProps) => {
+  const mapped = calendarMapping(courses!);
+
   return (
-    <div className="flex w-full grow flex-col ">
-      <div className="grid grid-flow-col grid-rows-72">
-        {courses != null &&
-          courses.map((course, index) => {
-            const time = course.locations.find((loc) => {
-              return loc.start_time != null && loc.end_time != null;
-            });
-
-            if (time == null) return <></>;
-
-            const startRow = militaryToGridRow(time.start_time);
-            const endRow = militaryToGridRow(time.end_time);
-
-            return (
-              <div
-                key={index}
-                className="border-2 border-black bg-red-100"
-                style={{
-                  gridRowStart: startRow,
-                  gridRowEnd: endRow,
-                }}
-              >
-                {course.title} {endRow}
+    <div className="wrap relative flex  grow overflow-x-scroll border border-black">
+      <div className="relative w-full grow basis-0">
+        {mapped.map((block, index) => {
+          return (
+            <div
+              key={index}
+              className="absolute w-full "
+              style={{
+                top: block.totalMinutes - 510,
+                left: block.indents * 10,
+              }}
+            >
+              <div className="flex flex-row p-1">
+                {block.courses.map((course, index) => {
+                  return (
+                    <div
+                      key={index + course.tuid}
+                      style={{ height: (course.difference / 10) * 4 }}
+                      className={classNames(
+                        "hover:z-99 flex w-16 rounded-lg border  border-base-100 bg-base-300 p-2 transition-all duration-150 hover:z-[999]  hover:shadow-lg",
+                        {
+                          "-ml-10": index > 0 && overlap,
+                          "hover:mr-10": block.courses.length - 1 != index,
+                        }
+                      )}
+                    >
+                      <p style={{ fontSize: 8 }}>{course.difference}</p>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -69,22 +218,13 @@ interface DayBlockProps {
   courses: IScheduleCourse[] | undefined;
 }
 
-const DayBlock = ({ title, courses }: DayBlockProps) => {
-  return (
-    <div className="flex w-full grow flex-col ">
-      <div>{title}</div>
-      {courses != undefined && <CourseListing courses={courses} />}
-    </div>
-  );
-};
-
 const ScheduleCalendar = ({
   children,
   semester,
   revision,
 }: CalendarComponentProps) => {
   const result = api.calendar.getRevision.useQuery({
-    tuid: "cleef0d6p006fl45clwlydnak",
+    tuid: "cleh9smil00cmg966cshwt5h5",
     maxRoomNum: "4",
     minRoomNum: "0",
     semester_fall: semester == "FA",
@@ -95,21 +235,22 @@ const ScheduleCalendar = ({
 
   return (
     <div className="flex h-full w-full">
-      <div className="w-[100px] border-r-2 border-base-200 p-2 text-center"></div>
-
       <div className="flex w-full flex-col">
-        <div className="flex justify-between">
-          <div>Monday</div>
-          <div>Tuesday</div>
-          <div>Wednesday</div>
-          <div>Thursday</div>
-          <div>Friday</div>
-          <div>Saturday</div>
-          <div>Sunday</div>
+        <div className="flex ">
+          <div className="grow">Monday</div>
+          <div className="grow">Tuesday</div>
+          <div className="grow">Wednesday</div>
+          <div className="grow">Thursday</div>
+          <div className="grow">Friday</div>
+          <div className="grow">Saturday</div>
+          <div className="grow">Sunday</div>
         </div>
         {result.data != undefined && (
-          <div className="flex h-[400px] overflow-y-scroll">
-            <CourseListing courses={result.data.monday_courses} />
+          <div className="overflow-y-scr flex h-[720px] flex-row justify-evenly">
+            <CourseListing
+              courses={result.data.monday_courses}
+              overlap={false}
+            />
             <CourseListing courses={result.data.tuesday_courses} />
             <CourseListing courses={result.data.wednesday_courses} />
             <CourseListing courses={result.data.thursday_courses} />

@@ -15,6 +15,7 @@ import ProjectDataTableEdit from "src/components/projects/projectUploading/Proje
 import { useRouter } from "next/router";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import ProjectFinalize from "src/components/projects/projectUploading/ProjectFinalize";
+import { toast } from "react-toastify";
 
 const Projects: NextPage = () => {
   /**
@@ -30,6 +31,7 @@ const Projects: NextPage = () => {
     tuid: string;
     table: Array<Array<string>>;
   }
+
   const [uploadedData, setData] = useState<IOnboarding>();
   const [confirmationCancel, setComfirmation] = useState<boolean>(false);
 
@@ -73,6 +75,34 @@ const Projects: NextPage = () => {
     search: "",
     page: 0,
   });
+  const removeRevision = api.projects.deleteScheduleRevision.useMutation();
+
+  //delete revision
+  const deleteRevision = async (DeletedTuid: string) => {
+    try {
+      const response = await removeRevision.mutateAsync({
+        tuid: DeletedTuid,
+      });
+
+      //If its true, that's a good!
+      if (response) {
+        toast.success(`Succesfully Remove Revision`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        //Else its an error
+      } else {
+        toast.error(`Failed to Remove Revision`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    } catch (error) {
+      console.log("error");
+      // handle error
+      toast.error(`Failed to Connect Database`, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
+  };
 
   const onCLickPage = () => {
     console.log("click Page");
@@ -205,7 +235,7 @@ const Projects: NextPage = () => {
           }}
           onConfirm={() => {
             if (stage == 2) setStage(stage - 1);
-
+            if (uploadedData?.tuid) deleteRevision(uploadedData?.tuid);
             setComfirmation(false);
             setVisible(false);
             setStage(1);
@@ -219,34 +249,6 @@ const Projects: NextPage = () => {
           </Button>
         </div>
         <ProjectsLayout>
-          {/* <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem> */}
           {result != undefined ? (
             result.data?.result.map((data, index) => {
               function calculateTime(

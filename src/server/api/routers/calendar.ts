@@ -13,6 +13,8 @@ import {
 import { Overwrite } from "@trpc/server";
 import { Session } from "next-auth";
 
+import { prisma } from "src/server/db";
+
 // Validation -----------------------------------------------------------------------------------------------------
 
 // Essentially creates a new data tyoe built to store comprehensive queries for the calendar
@@ -93,32 +95,20 @@ export const calendarRouter = createTRPCRouter({
       // for each day of the week (A course that is taught on both Monday and Wednesday will appear in both queries, and so on)
 
       // Throw all of these into a transaction
-      const coursesByDay = await ctx.prisma.$transaction(async (tx) => {
-        const monday_courses: RevisionWithCourses | null =
-          await queryCoursesByDay(tx, input, "day_monday");
-        const tuesday_courses: RevisionWithCourses | null =
-          await queryCoursesByDay(tx, input, "day_tuesday");
-        const wednesday_courses: RevisionWithCourses | null =
-          await queryCoursesByDay(tx, input, "day_wednesday");
-        const thursday_courses: RevisionWithCourses | null =
-          await queryCoursesByDay(tx, input, "day_thursday");
-        const friday_courses: RevisionWithCourses | null =
-          await queryCoursesByDay(tx, input, "day_friday");
-        const saturday_courses: RevisionWithCourses | null =
-          await queryCoursesByDay(tx, input, "day_saturday");
-        const sunday_courses: RevisionWithCourses | null =
-          await queryCoursesByDay(tx, input, "day_sunday");
-
-        return {
-          monday_courses,
-          tuesday_courses,
-          wednesday_courses,
-          thursday_courses,
-          friday_courses,
-          saturday_courses,
-          sunday_courses,
-        };
-      });
+      const monday_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input, "day_monday");
+      const tuesday_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input, "day_tuesday");
+      const wednesday_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input, "day_wednesday");
+      const thursday_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input, "day_thursday");
+      const friday_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input, "day_friday");
+      const saturday_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input, "day_saturday");
+      const sunday_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input, "day_sunday");
 
       // Use the semester input booleans to return what specific semester we are looking for
       const semester = getSemester(input);
@@ -126,6 +116,9 @@ export const calendarRouter = createTRPCRouter({
       const coursesWithinAGuideline = async (
         revision: RevisionWithCourses | null
       ) => {
+        if (revision == null) {
+          console.log(revision);
+        }
         const out = await Promise.all(
           revision!.courses.map(async (course) => {
             //Check to make sure at least one location has a monday
@@ -245,39 +238,44 @@ export const calendarRouter = createTRPCRouter({
             const output = {
               withinGuideline: result > 0,
               ...course,
-            } as Partial<RevisionWithCourses> & { withinGuideline: boolean }; //use Partial to get around the Promise
+            } as IScheduleCourse & { withinGuideline: boolean }; //use Partial to get around the Promise
 
             return output;
           })
         );
+
         return out;
+      };
+
+      console.log({
+        m: monday_courses,
+        t: tuesday_courses,
+        w: monday_courses,
+        th: monday_courses,
+        f: monday_courses,
+      });
+
+      const within = {
+        monday_courses: await coursesWithinAGuideline(monday_courses),
+        tuesday_courses: await coursesWithinAGuideline(tuesday_courses),
+        wednesday_courses: await coursesWithinAGuideline(wednesday_courses),
+        thursday_courses: await coursesWithinAGuideline(thursday_courses),
+        friday_courses: await coursesWithinAGuideline(friday_courses),
+        saturday_courses: await coursesWithinAGuideline(saturday_courses),
+        sunday_courses: await coursesWithinAGuideline(sunday_courses),
       };
 
       // Send the client back the ame of the revision, the semester, and the results of each of the course-by-day queries
       const out = {
-        revision_name: coursesByDay.monday_courses?.name,
+        revision_name: monday_courses?.name,
         semesters: semester,
-        monday_courses: await coursesWithinAGuideline(
-          coursesByDay.monday_courses
-        ),
-        tuesday_courses: await coursesWithinAGuideline(
-          coursesByDay.tuesday_courses
-        ),
-        wednesday_courses: await coursesWithinAGuideline(
-          coursesByDay.wednesday_courses
-        ),
-        thursday_courses: await coursesWithinAGuideline(
-          coursesByDay.thursday_courses
-        ),
-        friday_courses: await coursesWithinAGuideline(
-          coursesByDay.friday_courses
-        ),
-        saturday_courses: await coursesWithinAGuideline(
-          coursesByDay.saturday_courses
-        ),
-        sunday_courses: await coursesWithinAGuideline(
-          coursesByDay.sunday_courses
-        ),
+        monday_courses: await coursesWithinAGuideline(monday_courses),
+        tuesday_courses: await coursesWithinAGuideline(tuesday_courses),
+        wednesday_courses: await coursesWithinAGuideline(wednesday_courses),
+        thursday_courses: await coursesWithinAGuideline(thursday_courses),
+        friday_courses: await coursesWithinAGuideline(friday_courses),
+        saturday_courses: await coursesWithinAGuideline(saturday_courses),
+        sunday_courses: await coursesWithinAGuideline(sunday_courses),
       };
 
       console.log(out);
@@ -355,7 +353,6 @@ function getSemester(input: {
 // Function contains the query logic for finding courses attahced to a revision by day. The query is the same for each day, apart from the
 // actual day being searched
 async function queryCoursesByDay(
-  tx: Prisma.TransactionClient,
   input: {
     faculty?: string[] | undefined;
     credits?: number | undefined;
@@ -384,7 +381,7 @@ async function queryCoursesByDay(
     // Query will find a revision based on tuid, then will find every course linked to that revision on the specified day, along with the faculty
     // teaching each course and the location(s)/time(s) the course is taught on the specified day (If a course is taught on Monday in one location
     // and on Wednesday in another location, only the Monday location will result from the Monday query, and so on)
-    await tx.scheduleRevision.findUnique({
+    await prisma.scheduleRevision.findUnique({
       where: {
         tuid: input.tuid,
       },

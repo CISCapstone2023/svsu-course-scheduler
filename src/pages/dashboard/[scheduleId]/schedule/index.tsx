@@ -13,6 +13,8 @@ import ScheduleCalendar, {
 import { InfoCircle } from "tabler-icons-react";
 import { Button } from "react-daisyui";
 
+import { prisma } from "src/server/db";
+
 interface Tab {
   name: string;
   revision: string;
@@ -131,7 +133,7 @@ export const getServerSideProps = routeNeedsAuthSession(async ({ query }) => {
 
   if (typeof scheduleId === "string") {
     const hasRevision =
-      (await prisma?.scheduleRevision.count({
+      (await prisma.scheduleRevision.count({
         where: {
           tuid: query.scheduleId as string,
         },

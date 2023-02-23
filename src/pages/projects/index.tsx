@@ -1,11 +1,12 @@
 import type { NextPage } from "next";
+import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
-import { Button, Modal, Steps, Tooltip } from "react-daisyui";
+import { Button, Modal, Stack, Steps, Tooltip } from "react-daisyui";
 import { useState } from "react";
 import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
@@ -16,6 +17,7 @@ import { useRouter } from "next/router";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import ProjectFinalize from "src/components/projects/projectUploading/ProjectFinalize";
 import { toast } from "react-toastify";
+import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 
 const Projects: NextPage = () => {
   /**
@@ -104,9 +106,6 @@ const Projects: NextPage = () => {
     }
   };
 
-  const onCLickPage = () => {
-    console.log("click Page");
-  };
   const goToMain = () => {
     const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
     router.push(urlMain);
@@ -116,13 +115,22 @@ const Projects: NextPage = () => {
     <DashboardLayout>
       <div className="w-full flex-col p-5">
         <div className="flex w-full justify-between pb-12">
-          <p className="justify-start text-lg font-medium">
-            Welcome to Class Scheduling Program!
-            <br />
-            <span className="font-thin text-inherit">
-              {data?.user?.email == null ? "User" : data?.user?.email},
-            </span>
-          </p>
+          <div className="flex">
+            <Image
+              src={cardinalLogo}
+              alt="SVSU Cardinal Logo"
+              width={80}
+              height={80}
+              priority
+            />
+
+            <p className="mt-3 ml-2 justify-start text-lg font-medium">
+              Welcome to Class Scheduling Program!
+              <p className="font-thin text-inherit">
+                {data?.user?.email == null ? "User" : data?.user?.email}
+              </p>
+            </p>
+          </div>
 
           <button
             className="justify-ends btn-active btn"

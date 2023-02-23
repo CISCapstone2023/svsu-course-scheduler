@@ -12,7 +12,6 @@ const goToProject = (id: string) => {
   router.push(urlProject);
 };
 const ProjectRevisionItem = ({
-  children,
   title,
   id,
   timesAgo,

@@ -1,5 +1,5 @@
 import router from "next/router";
-import React, { MouseEventHandler, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "react-daisyui";
 import { Book2, CaretDown, CaretUp } from "tabler-icons-react";
 const goToProject = (id: string) => {

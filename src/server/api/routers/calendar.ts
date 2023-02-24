@@ -14,6 +14,8 @@ import { Overwrite } from "@trpc/server";
 import { Session } from "next-auth";
 
 import { prisma } from "src/server/db";
+import { createCourseSchema } from "src/server/api/routers/projects";
+import { courseSchema } from "src/validation/courses";
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -329,6 +331,52 @@ export const calendarRouter = createTRPCRouter({
       });
 
       return allCourses;
+    }),
+
+  //This will add a new course to a revision in the add course box
+  addNewRevisonCourse: protectedProcedure
+    .input(
+      z.object({
+        //Input comes in as a revision tuid and a courseSchema variable
+        tuid: z.string(),
+        course: courseSchema,
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      //
+      let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
+      if (input.course != undefined) {
+        //Checks to see if the input course is undefined
+        const isSafe = courseSchema.safeParse(input.course); //If it is, conducts a safeParse on the input and stores the object of the parse
+
+        if (!isSafe.success) {
+          //Checks if the provided input is safe based on the return of the parse
+          isSuccess = false; //If not, then isSuccess is set to false
+          console.log(isSafe.error); //And error is printed to console
+        }
+      }
+      if (isSuccess) {
+        //If parse was successful then...
+        const createNewCourse = await ctx.prisma.course.create(
+          //Create a new course in course table
+          createCourseSchema(input.course as any, input.tuid as any) //Calls the course creation schema and passes in course and tuid as any
+          //There was an issue with the typing as it was passed in so these parameters are casted to type 'any'
+        );
+
+        await ctx.prisma.scheduleRevision.update({
+          //Performs an update on the scheduleRevision table
+          where: {
+            //Where the tuid is equal to the tuid passed in for the revision
+            tuid: input.tuid,
+          },
+          data: {
+            courses: {
+              //Updates the courses relation by connecting the newly created course to said revision
+              connect: [createNewCourse],
+            },
+          },
+        });
+      }
     }),
 });
 

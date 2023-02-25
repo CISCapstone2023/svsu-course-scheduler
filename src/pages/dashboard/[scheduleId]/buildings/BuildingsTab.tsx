@@ -409,7 +409,7 @@ const BuildingsTab = () => {
         title="Delete Building?"
         message={
           buildingDeleteValue
-            ? `Are you sure you want delete '${buildingDeleteValue?.name}'?`
+            ? `Are you sure you want to delete '${buildingDeleteValue?.name}'?`
             : "Error"
         }
         onClose={() => {

@@ -72,4 +72,4 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
   );
 };
 
-export default DashboardSidebar;
+export default React.memo(DashboardSidebar);

@@ -1,65 +1,99 @@
+import { findKey } from "lodash";
 import React, { useState } from "react";
-import { Select, Table } from "react-daisyui";
-
+import { Table } from "react-daisyui";
+import Select from "react-select";
 import { AlertTriangle, NoteOff } from "tabler-icons-react";
 
 interface ProjectDataTableEditProps {
   uploaded: Array<Array<string>> | undefined;
+  columns: Record<string, number | null>;
+  onUpdateOrganizedColumns: (value: { [x: string]: number | null }) => void;
 }
-interface DataFormat {
-  id: string;
-  name: string;
-}
-let preSet: Record<number, string> = [];
-let preSetFlag = true;
-const MAXIMUM_COLUMNS = 30;
-
-if (preSetFlag) {
-  for (let i = 0; i < MAXIMUM_COLUMNS; i++) {
-    preSet = { ...preSet, [i]: "default" };
-  }
-  preSetFlag = false;
+interface IColumnLookupTable {
+  value: string;
+  label: string;
 }
 
-const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
-  const [organize, setOrganize] = useState<Record<number, string>>(preSet);
+export const columnLookupTable: readonly IColumnLookupTable[] = [
+  { value: "noteWhatHasChanged", label: "What Has Changed?" },
+  { value: "section_id", label: "Section ID" },
+  { value: "term", label: "Term" },
+  { value: "div", label: "Division" },
+  { value: "department", label: "Department" },
+  { value: "subject", label: "Subject" },
+  { value: "course_number", label: "Course Number" },
+  { value: "section", label: "Section" },
+  { value: "title", label: "Title" },
+  { value: "instruction_method", label: "Instruction Method" },
+  { value: "faculty", label: "Faculty" },
+  { value: "campus", label: "Campus" },
+  { value: "credits", label: "Credits" },
+  { value: "capacity", label: "Capacity" },
+  { value: "start_date", label: "Start Date" },
+  { value: "end_date", label: "End Date" },
+  { value: "building", label: "Building" },
+  { value: "room", label: "Room" },
+  { value: "start_time", label: "Start Time" },
+  { value: "end_time", label: "End Time" },
+  { value: "days", label: "Days" },
+  { value: "noteAcademicAffairs", label: "Note For Academic Affairs" },
+  { value: "notePrintedComments", label: "Printed Comments" },
+];
 
-  const dataList: DataFormat[] = [
-    { id: "noteWhatHasChanged", name: "What Has Changed?" },
-    { id: "section_id", name: "Section ID" },
-    { id: "term", name: "Term" },
-    { id: "div", name: "Division" },
-    { id: "department", name: "Department" },
-    { id: "subject", name: "Subject" },
-    { id: "course_number", name: "Course Number" },
-    { id: "section", name: "Section" },
-    { id: "title", name: "Title" },
-    { id: "instruction_method", name: "Instruction Method" },
-    { id: "faculty", name: "Faculty" },
-    { id: "campus", name: "Campus" },
-    { id: "credits", name: "Credits" },
-    { id: "capacity", name: "Capacity" },
-    { id: "start_date", name: "Start Date" },
-    { id: "end_date", name: "End Date" },
-    { id: "building", name: "Building" },
-    { id: "room", name: "Room" },
-    { id: "start_date", name: "Start Time" },
-    { id: "end_time", name: "End Time" },
-    { id: "days", name: "Days" },
-    { id: "noteAcademicAffairs", name: "Note For Academic Affairs" },
-    { id: "notePrintedComments", name: "Printed Comments" },
-  ];
+const ProjectDataTableEdit = ({
+  uploaded,
+  columns,
+  onUpdateOrganizedColumns,
+}: ProjectDataTableEditProps) => {
+  //This is technically no longer needed, but will be kept just in case
+  // const tableBody: Array<Array<string> | undefined> = [];
+  // if (uploaded != undefined) {
+  //   for (let i = 1; i < uploaded.length; i++) {
+  //     tableBody.push(uploaded[i]);
+  //   }
+  // }
 
-  // eslint-disable-next-line prefer-const
-  let tableBody: Array<Array<string> | undefined> = [];
-  if (uploaded != undefined) {
-    for (let i = 1; i < uploaded.length; i++) {
-      tableBody.push(uploaded[i]);
+  const getSelectValue = (index: number): IColumnLookupTable => {
+    //Key is "default", which basically means its null
+    let key: IColumnLookupTable = { label: "", value: "default" };
+    //Loop over all organized columns
+    for (const i in columns) {
+      //Check of we have the same index
+      if (columns[i] == index && i != "default") {
+        const value = columnLookupTable.find((item) => {
+          return item.value == i;
+        }); //If so we set the key to our index (which is the loops key) and break
+        if (value != undefined) {
+          key = value;
+        }
+        break;
+      }
     }
-  }
+    //Finally return the key
+    return key;
+  };
 
-  const handleOraganize = (column: number, title: string) => {
-    setOrganize({ ...organize, [column]: title });
+  /**
+   * onSelect - When a dropdown of a column is selected, we want to preform said event
+   * @param event
+   */
+  const onSelect = (column: number, title: string) => {
+    // //Get the column
+    // const column = +event.target.id;
+    // //Get the title
+    // const title = event.target.value;
+    //Get the previous key
+    const previousKey = getSelectValue(column);
+    //Grab all organized columns, update the current column to new and make the old key null
+    const columnChanged = {
+      //Spread organized
+      ...columns,
+      //Grab title (as key) and set to column value ONLY if the current key isn't default
+      ...(title != "default" && { [title]: column }),
+      //Lastly spread a dynamic object ONLY if the previous key isn't default
+      ...(previousKey.value != "default" && { [previousKey?.value]: -1 }),
+    };
+    onUpdateOrganizedColumns(columnChanged);
   };
 
   return (
@@ -69,50 +103,37 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
           <thead className="sticky top-0">
             <tr className="sticky top-0">
               <span />
-              {uploaded[0] !== undefined ? (
+              {uploaded[0] !== undefined &&
                 uploaded[0].map((columnName, index) => {
                   return (
-                    <th
-                      className="sticky top-0 w-1/3 flex-wrap border border-slate-600"
-                      key={index}
-                    >
-                      {columnName}
+                    <th className="top-0   border border-slate-600" key={index}>
+                      {columnName.length > 20
+                        ? `${columnName.substring(0, 20)}...`
+                        : columnName}
                       <br />
-                      <Select
-                        value={organize[index]}
+
+                      <div className="w-[200px]">
+                        <Select
+                          options={columnLookupTable as any}
+                          defaultValue={getSelectValue(index)}
+                          value={getSelectValue(index)}
+                          classNamePrefix="selection"
+                          onChange={(newValue) => {
+                            onSelect(index, newValue!.value);
+                          }}
+                        />
+                      </div>
+                      {/* <Select
+                        value={getSelectValue(index)}
                         size="xs"
-                        onChange={(event) => {
-                          handleOraganize(+event.target.id, event.target.value);
-                          const updatedColumn = {
-                            ...organize,
-                            [+event.target.id]: event.target.value,
-                          };
-
-                          // loop through the record
-                          for (const column in Object.keys(updatedColumn)) {
-                            const title = Object.values(updatedColumn)[column];
-                            if (
-                              title !== undefined &&
-                              column !== event.target.id &&
-                              title !== "default" &&
-                              title.includes(event.target.value)
-                            ) {
-                              handleOraganize(+column, "default");
-
-                              setOrganize({
-                                ...updatedColumn,
-                                [+column]: "default",
-                              });
-                              break;
-                            }
-                          }
-                        }}
-                        className="w-40"
+                        onChange={onSelect}
+                        className="w-full"
+                        style={{ position: "static", transform: "none" }}
                         bordered={true}
                         color="ghost"
                         id={index + ""}
                       >
-                        {dataList.map((item, index) => {
+                        {columnLookupTable.map((item, index) => {
                           if (index === 0) {
                             return (
                               <>
@@ -130,24 +151,22 @@ const ProjectDataTableEdit = ({ uploaded }: ProjectDataTableEditProps) => {
                             </option>
                           );
                         })}
-                      </Select>
+                      </Select> */}
                     </th>
                   );
-                })
-              ) : (
-                <></>
-              )}
+                })}
             </tr>
           </thead>
           <tbody>
-            {tableBody.map((item, index) => {
+            {/* This removes the first row with a simple slice, instead of making a new array */}
+            {uploaded.slice(1).map((item, index) => {
               return (
                 <tr key={index}>
                   <span />
                   {item?.map((value, index) => {
                     return (
                       <td
-                        className=" w-1/3 border border-slate-600"
+                        className=" w-1/3 border border-slate-600 p-1"
                         key={index}
                       >
                         {value}

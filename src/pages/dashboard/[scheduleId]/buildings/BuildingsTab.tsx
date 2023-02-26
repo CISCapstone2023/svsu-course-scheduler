@@ -104,7 +104,7 @@ const BuildingsTab = () => {
 
   const toggleBuildingModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
-    reset({});
+    reset({ name: "", prefix: "", classrooms: "", campus_tuid: "" });
     setBuildingEditing(undefined);
     setBuildingCreateModal(!buildingCreateModal);
   };
@@ -266,6 +266,12 @@ const BuildingsTab = () => {
               currentPage={buildings.data?.page}
               onClick={(page) => {
                 setBuildingPage(page);
+                reset({
+                  name: "",
+                  prefix: "",
+                  classrooms: "",
+                  campus_tuid: "",
+                });
               }}
             />
           )}

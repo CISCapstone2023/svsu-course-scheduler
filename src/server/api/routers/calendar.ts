@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "src/server/db";
 import { createCourseSchema } from "src/server/api/routers/projects";
 import { courseSchema } from "src/validation/courses";
+import { cssTransition } from "react-toastify";
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -332,18 +333,8 @@ export const calendarRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       //
-      let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
-      if (input.course != undefined) {
-        //Checks to see if the input course is undefined
-        const isSafe = courseSchema.safeParse(input.course); //If it is, conducts a safeParse on the input and stores the object of the parse
 
-        if (!isSafe.success) {
-          //Checks if the provided input is safe based on the return of the parse
-          isSuccess = false; //If not, then isSuccess is set to false
-          console.log(isSafe.error); //And error is printed to console
-        }
-      }
-      if (isSuccess) {
+      if (parseCourseData(input)) {
         //If parse was successful then...
         const createNewCourse = await ctx.prisma.course.create(
           //Create a new course in course table
@@ -362,6 +353,42 @@ export const calendarRouter = createTRPCRouter({
               //Updates the courses relation by connecting the newly created course to said revision
               connect: [createNewCourse],
             },
+          },
+        });
+      }
+    }),
+
+  updateRevisionCourse: protectedProcedure
+    .input(courseSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (parseCourseData(input)) {
+        const updatedCourse = await ctx.prisma.course.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            type: input.type,
+            section_id: input.section_id,
+            revision_tuid: input.revision_tuid,
+            term: input.term,
+            semester_summer: input.semester_summer,
+            semester_fall: input.semester_fall,
+            semester_winter: input.semester_winter,
+            semester_spring: input.semester_spring,
+            div: input.div,
+            department: input.department,
+            subject: input.subject,
+            course_number: input.course_number,
+            section: input.course_number,
+            start_date: input.start_date,
+            end_date: input.end_date,
+            credits: input.credits,
+            title: input.title,
+            status: input.status,
+            instruction_method: input.instruction_method,
+            capacity: input.capacity,
+            original_state: input.original_state,
+            state: "MODIFIED",
           },
         });
       }
@@ -486,4 +513,19 @@ async function queryCoursesByDay(
     });
 
   return coursesByDay;
+}
+
+function parseCourseData(input) {
+  let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
+  if (input.course != undefined) {
+    //Checks to see if the input course is undefined
+    const isSafe = courseSchema.safeParse(input.course); //If it is, conducts a safeParse on the input and stores the object of the parse
+
+    if (!isSafe.success) {
+      //Checks if the provided input is safe based on the return of the parse
+      isSuccess = false; //If not, then isSuccess is set to false
+      console.log(isSafe.error); //And error is printed to console
+    }
+    return isSuccess;
+  }
 }

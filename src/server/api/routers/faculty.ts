@@ -178,9 +178,11 @@ export const facultyRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      let facultyDataArr = [];
+
       if (input.search != "") {
         //Determines if the string input is not empty. If not, it runs the query.
-        const facultyData = ctx.prisma.guidelinesFaculty.findMany({
+        const facultyData = await ctx.prisma.guidelinesFaculty.findMany({
           //Query finds many faculty members from the GuidelinesFaculty table
           where: {
             //looks for any faculty records where their name contains the search string put in the front end
@@ -194,7 +196,13 @@ export const facultyRouter = createTRPCRouter({
             name: true,
           },
         });
-        return facultyData; //Returns the facultyData including tuid and namew to the client
+
+        facultyData.forEach((faculty) => {
+          //Iterates over the findMany query and pushes the data into an array of the custom object type needed at the client
+          facultyDataArr.push({ value: faculty.tuid, label: faculty.name });
+        });
+
+        return facultyDataArr; //Returns the facultyData including tuid and namew to the client
       }
     }),
 });

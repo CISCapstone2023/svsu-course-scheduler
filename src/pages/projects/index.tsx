@@ -1,11 +1,12 @@
 import type { NextPage } from "next";
+import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
-import { Button, Modal, Steps, Tooltip } from "react-daisyui";
+import { Button, Modal, Stack, Steps, Tooltip } from "react-daisyui";
 import { useState } from "react";
 import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
@@ -17,6 +18,9 @@ import ProjectDataTableEdit, {
 import { useRouter } from "next/router";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 import ProjectFinalize from "src/components/projects/projectUploading/ProjectFinalize";
+
+import cardinalLogo from "src/pages/projects/cardinalLogo.png";
+
 import {
   type IProjectOrganizedColumnRow,
   type IProjectOrganizedColumnRowNumerical,
@@ -37,10 +41,11 @@ const Projects: NextPage = () => {
     tuid: string;
     table: Array<Array<string>>;
   }
+
   const [uploadedData, setData] = useState<IOnboarding>();
   const [confirmationCancel, setComfirmation] = useState<boolean>(false);
-
   const [visible, setVisible] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const verifyOrganizedColumnsMutation =
     api.projects.verifyOrganizedColumns.useMutation();
@@ -104,10 +109,35 @@ const Projects: NextPage = () => {
     search: "",
     page: 0,
   });
+  const removeRevision = api.projects.deleteScheduleRevision.useMutation();
 
-  const onCLickPage = () => {
-    console.log("click Page");
+  //delete revision
+  const deleteRevision = async (DeletedTuid: string) => {
+    try {
+      const response = await removeRevision.mutateAsync({
+        tuid: DeletedTuid,
+      });
+
+      //If its true, that's a good!
+      if (response) {
+        toast.success(`Succesfully Remove Revision`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        //Else its an error
+      } else {
+        toast.error(`Failed to Remove Revision`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    } catch (error) {
+      console.log("error");
+      // handle error
+      toast.error(`Failed to Connect Database`, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
   };
+
   const goToMain = () => {
     const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
     router.push(urlMain);
@@ -155,17 +185,27 @@ const Projects: NextPage = () => {
     return missingColumns;
   };
 
+
   return (
     <DashboardLayout>
       <div className="w-full flex-col p-5">
         <div className="flex w-full justify-between pb-12">
-          <p className="justify-start text-lg font-medium">
-            Welcome to Class Scheduling Program!
-            <br />
-            <span className="font-thin text-inherit">
-              {data?.user?.email == null ? "User" : data?.user?.email},
-            </span>
-          </p>
+          <div className="flex">
+            <Image
+              src={cardinalLogo}
+              alt="SVSU Cardinal Logo"
+              width={80}
+              height={80}
+              priority
+            />
+
+            <p className="mt-3 ml-2 justify-start text-lg font-medium">
+              Welcome to Class Scheduling Program!
+              <p className="font-thin text-inherit">
+                {data?.user?.email == null ? "User" : data?.user?.email}
+              </p>
+            </p>
+          </div>
 
           <button
             className="justify-ends btn-active btn"
@@ -302,7 +342,7 @@ const Projects: NextPage = () => {
           }}
           onConfirm={() => {
             if (stage == 2) setStage(stage - 1);
-
+            if (uploadedData?.tuid) deleteRevision(uploadedData?.tuid);
             setComfirmation(false);
             setVisible(false);
             setStage(1);
@@ -316,42 +356,76 @@ const Projects: NextPage = () => {
           </Button>
         </div>
         <ProjectsLayout>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem>
-          <ProjectItem strTitle="Fall 2023 V.3" strTimesAgo="10 times ago">
-            <ProjectRevisionItem title="Fall 2023 V2" timesAgo="50 times ago" />
-            <ProjectRevisionItem
-              title="Fall 2023 V1"
-              timesAgo="100 times ago"
-            />
-          </ProjectItem>
+          {result != undefined ? (
+            result.data?.result.map((data, index) => {
+              function calculateTime(
+                updatedAt: Date | undefined
+              ): string | undefined {
+                if (updatedAt === undefined) return "error loading time";
+                else {
+                  const current = new Date();
+                  let offSetTime =
+                    (current.valueOf() - updatedAt.valueOf()) / 1000;
+
+                  if (offSetTime === 0) return "Now";
+                  else if (offSetTime < 60)
+                    return Math.trunc(offSetTime) + " seconds ago";
+                  else if (offSetTime >= 60 && offSetTime < 3600) {
+                    //if more than 60 minutes
+                    offSetTime = offSetTime / 60;
+                    return Math.trunc(offSetTime) + " minute(s) ago";
+                  } else if (offSetTime >= 3600 && offSetTime < 86400) {
+                    offSetTime = offSetTime / 60 / 60;
+                    return Math.trunc(offSetTime) + " hour(s) ago";
+                  } else if (
+                    offSetTime >= 86400 &&
+                    offSetTime < 5 * 24 * 60 * 60
+                  ) {
+                    offSetTime = offSetTime / 60 / 60 / 24;
+                    return Math.trunc(offSetTime) + " day(s) ago";
+                  } else return updatedAt.toString();
+                }
+              }
+              return (
+                <ProjectItem
+                  strTitle={data.main.name}
+                  strTimesAgo={calculateTime(data.main.updatedAt)}
+                  key={index}
+                  hasRevision={data.revisions.length > 0}
+                  id={data.main.tuid != undefined ? data.main.tuid : "#!"}
+                >
+                  {data.revisions.length > 0 ? (
+                    data.revisions.map((rev, index) => {
+                      return (
+                        <ProjectRevisionItem
+                          key={index}
+                          title={rev.name}
+                          timesAgo={calculateTime(rev.updatedAt)}
+                          id={rev.tuid}
+                        />
+                      );
+                    })
+                  ) : (
+                    <></>
+                  )}
+                </ProjectItem>
+              );
+            })
+          ) : (
+            <span> NO REVISION FOUND!</span>
+          )}
         </ProjectsLayout>
 
         <div className="mt-3 flex justify-center">
-          <PaginationBar
-            totalPageCount={10}
-            currentPage={1}
-            onClick={onCLickPage}
-          />
+          {result.data != undefined && result.data?.result.length / 5 > 1 && (
+            <PaginationBar
+              totalPageCount={result.data?.result.length / 5}
+              currentPage={result.data?.page}
+              onClick={(page) => {
+                setCurrentPage(page);
+              }}
+            />
+          )}
         </div>
       </div>
     </DashboardLayout>

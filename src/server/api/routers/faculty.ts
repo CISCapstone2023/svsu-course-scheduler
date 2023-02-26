@@ -173,14 +173,28 @@ export const facultyRouter = createTRPCRouter({
   getRevisionCourseFaculty: protectedProcedure
     .input(
       z.object({
-        search: z.string(),
+        //Creates an object to take input from the front end as a string for searching a faculty member
+        search: z.string(), //Sets the validation for search as a string
       })
     )
     .query(async ({ ctx, input }) => {
       if (input.search != "") {
-        const facultyData = ctx.prisma.guidelinesFaculty.findFirst({
-          where: {},
+        //Determines if the string input is not empty. If not, it runs the query.
+        const facultyData = ctx.prisma.guidelinesFaculty.findMany({
+          //Query finds many faculty members from the GuidelinesFaculty table
+          where: {
+            //looks for any faculty records where their name contains the search string put in the front end
+            name: {
+              contains: input.search,
+            },
+          },
+          select: {
+            //Selects the tuid and name to return to the client from the records queried
+            tuid: true,
+            name: true,
+          },
         });
+        return facultyData; //Returns the facultyData including tuid and namew to the client
       }
     }),
 });

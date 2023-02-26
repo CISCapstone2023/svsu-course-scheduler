@@ -6,6 +6,9 @@ import xlsx from "node-xlsx";
 import multiparty from "multiparty";
 import fs from "fs";
 import { number } from "zod";
+
+//make interface for data
+type ExcelDataColumns = Array<Array<string | undefined>>;
 /**
  * UploadExcelFile
  *
@@ -50,6 +53,14 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
           // );
           // console.log(transposed);
 
+          //This is how to iterate through the excel file column headers
+          const dataColumns = result[0]?.data as ExcelDataColumns;
+          console.log("column headers");
+          if (dataColumns[0]) {
+            dataColumns[0].forEach((c) => {
+              console.log(c);
+            });
+          }
           res.json({
             tuid: revision.tuid,
             table: result[0]?.data,

@@ -1,25 +1,19 @@
 import { z } from "zod";
-import { set } from "date-fns";
+//import { set } from "date-fns";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import {
-  GuidelinesCourses,
-  GuidelinesCoursesTimes,
-  GuidelinesCoursesDays,
-  Prisma,
-} from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import {
   addGuidelineSchema,
-  updateCourseGuidelineSchema,
+  addNewRevisionCourse,
 } from "src/validation/courses";
-import { updateCampusSchema } from "src/validation/buildings";
-import { cssTransition } from "react-toastify";
 
 //Imports course guidelines schema with days and times
 const courseGuidelinesTD = Prisma.validator<Prisma.GuidelinesCoursesArgs>()({
   include: { times: true, days: true },
 });
-type CourseGuidelinesTimeAndDays = Prisma.GuidelinesCoursesGetPayload<
+
+export type CourseGuidelinesTimeAndDays = Prisma.GuidelinesCoursesGetPayload<
   typeof courseGuidelinesTD
 >;
 
@@ -53,20 +47,9 @@ export const coursesRouter = createTRPCRouter({
           .default({ min: 1, max: 4 }),
 
         //Defines the min and max hours and minutes for the course guideline start time
-        start_time: z
-          .object({
-            hour: z.number().min(0).max(24).default(8),
-            minute: z.number().min(0).max(60).default(30),
-          })
-          .default({ hour: 1, minute: 30 }),
-
+        start_time: z.number().min(0).max(23_59).default(30),
         //Defines the min and max hours and minutes for the course guideline end time
-        end_time: z
-          .object({
-            hour: z.number().min(0).max(24).default(22),
-            minute: z.number().min(0).max(60).default(0),
-          })
-          .default({ hour: 23, minute: 30 }),
+        end_time: z.number().min(0).max(23_59).default(22),
 
         //Defines the booleans for the day of the week the guideline applies to
         days: z
@@ -186,28 +169,19 @@ export const coursesRouter = createTRPCRouter({
                   ],
                 },
               },
-
               times: {
                 some: {
                   //Gathers some times for the course guideline
                   AND: [
                     {
                       start_time: {
-                        gte: input.start_time.hour, //Grabs the start times that are greater than or equal to the start hour passed in
+                        gte: input.start_time, //Grabs the start times that are greater than or equal to the start hour passed in
                       },
-                      //NOT WORKING CURRENTLY
-                      // start_time_min: {
-                      //   gte: input.start_time.minute,
-                      // },
                     },
                     {
                       end_time: {
-                        lte: input.end_time.hour, //Grabs the end times that are less than or equal to the end hour passed in
+                        lte: input.end_time, //Grabs the end times that are less than or equal to the end hour passed in
                       },
-                      //NOT WORKING CURRENTLY
-                      // end_time_min: {
-                      //   lte: input.end_time.minute,
-                      // },
                     },
                   ],
                 },
@@ -227,9 +201,62 @@ export const coursesRouter = createTRPCRouter({
         },
       });
 
+      const militaryToSplit = (time: number) => {
+        //initializes hour variable to parse integer time numbers
+        const hour = parseInt(
+          time >= 1000
+            ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
+            : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
+        ); // mods time to convert from military time to standard time
+        let anteMeridiemHour = hour % 12;
+        // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
+        if (anteMeridiemHour == 0) {
+          anteMeridiemHour = 12;
+        }
+
+        //initializes constant for getting the minutes of time
+        const minute = parseInt(
+          time.toString().substring(time.toString().length - 2)
+        );
+
+        //initializes constant to be used for AM/PM tagging on time
+        const anteMeridiem = time >= 1300 ? "PM" : "AM";
+        return {
+          hour,
+          minute,
+          anteMeridiemHour,
+          anteMeridiem,
+        };
+      };
+
+      const differenceInTime = (start_time: number, end_time: number) => {
+        const total =
+          militaryToSplit(end_time).hour * 60 +
+          militaryToSplit(end_time).minute -
+          (militaryToSplit(start_time).hour * 60 +
+            militaryToSplit(start_time).minute);
+        const hours = total / 60;
+        const rhours = Math.floor(hours);
+        const minutes = (hours - rhours) * 60;
+        return { hours: rhours, minutes: Math.ceil(minutes) };
+      };
+
       //Returns the guideline result, page number, and the number of pages in the result
+      const values = courseGuidelinesResult.map((item) => {
+        return {
+          ...item,
+          times: item.times.map((time) => ({
+            tuid: time.tuid,
+            difference: differenceInTime(time.start_time, time.end_time),
+
+            guideline_id: time.guideline_id,
+            start_time: militaryToSplit(time.start_time),
+            end_time: militaryToSplit(time.end_time),
+          })),
+        };
+      });
       return {
-        result: courseGuidelinesResult,
+        result: values,
         page: input.page,
         totalPages: courseGuidelinesResult.length,
       };
@@ -247,9 +274,24 @@ export const coursesRouter = createTRPCRouter({
           semester_winter: input.semester_winter,
           semester_spring: input.semester_spring,
           credits: input.credits,
-          meeting_amount: input.meeting_total,
+          meeting_amount: input.meeting_amount,
           times: {
-            create: [...input.times],
+            create: [
+              ...input.times.map((time) => ({
+                tuid: time.tuid,
+                guideline_id: time.guideline_id,
+                start_time: parseInt(
+                  `${time.start_time.hour}${
+                    time.start_time.minute == 0 ? "00" : time.start_time.minute
+                  }`
+                ),
+                end_time: parseInt(
+                  `${time.end_time.hour}${
+                    time.end_time.minute == 0 ? "00" : time.end_time.minute
+                  }`
+                ),
+              })),
+            ],
           },
           days: {
             create: [...input.days],
@@ -276,13 +318,27 @@ export const coursesRouter = createTRPCRouter({
 
       //Checks to see if the course guideline exists and if there is only 1
       if (hasCourseGuideline == 1) {
-        //Deletes the entered guideline
-        await ctx.prisma.guidelinesCourses.delete({
-          //Where the guideline tuid equals the tuid of the requested guideline to be deleted
+        //Delete all days associated with the one guideline
+        await ctx.prisma.guidelinesCoursesDays.deleteMany({
+          //Where tuid for the days entry matches that of the deleted guideline
           where: {
-            tuid: input.tuid,
+            guideline_id: input.tuid,
           },
-        });
+        }),
+          //Delete all times associated with the one guideline
+          await ctx.prisma.guidelinesCoursesTimes.deleteMany({
+            //Where the tuid for the times entry matches that of the deleted guideline
+            where: {
+              guideline_id: input.tuid,
+            },
+          }),
+          //Deletes the entered guideline
+          await ctx.prisma.guidelinesCourses.delete({
+            //Where the guideline tuid equals the tuid of the requested guideline to be deleted
+            where: {
+              tuid: input.tuid,
+            },
+          });
 
         //Returns if the delete was successful
         return true;
@@ -292,7 +348,7 @@ export const coursesRouter = createTRPCRouter({
     }),
 
   updateCourseGuideline: protectedProcedure
-    .input(updateCourseGuidelineSchema)
+    .input(addGuidelineSchema)
     .mutation(async ({ ctx, input }) => {
       //Checks to see if the guideline exists by searching for the tuid in a count query
       const hasCourseGuideline = await ctx.prisma.guidelinesCourses.count({
@@ -314,9 +370,40 @@ export const coursesRouter = createTRPCRouter({
             semester_winter: input.semester_winter,
             semester_spring: input.semester_spring,
             credits: input.credits,
-            meeting_amount: input.meeting_total,
+            meeting_amount: input.meeting_amount,
           },
         });
+
+        const getTimes = await ctx.prisma.guidelinesCoursesTimes.deleteMany({
+          where: {
+            guideline_id: input.tuid,
+          },
+        });
+
+        const getDays = await ctx.prisma.guidelinesCoursesDays.deleteMany({
+          where: {
+            guideline_id: input.tuid,
+          },
+        });
+
+        //REFERENCE For attempt... idk
+        // await ctx.prisma.guidelinesCourses.update({
+        //   where: {
+        //     tuid: input.tuid, //Grabs the tuid of the
+        //   },
+        //   data: {
+        //     times: {
+        //       disconnect: getTimes.map((time) => {
+        //         return { tuid: time.tuid };
+        //       }), //Disconnects the guideline based on tuid
+        //     },
+        //     days: {
+        //       disconnect: getTimes.map((days) => {
+        //         return { tuid: days.tuid };
+        //       }), //Disconnects the guideline based on tuid
+        //     },
+        //   },
+        // });
 
         //Disconnects the current days and times from the course guideline
         //Currently non-operable. Believe issue with onDelete: Cascade
@@ -332,16 +419,29 @@ export const coursesRouter = createTRPCRouter({
         //       set: [],
         //     },
         //   },
+        //   include: {
+        //     times: true,
+        //     days: true,
+        //   },
         // });
 
         //Creates a new map for the time input to be taken from the client
-        const times = input.times.map((item, index) => ({
+        const times = input.times.map((time, index) => ({
           where: {
-            tuid: item.tuid,
+            tuid: time.tuid,
           },
           create: {
-            end_time: item.end_time,
-            start_time: item.start_time,
+            tuid: time.tuid,
+            start_time: parseInt(
+              `${time.start_time.hour}${
+                time.start_time.minute == 0 ? "00" : time.start_time.minute
+              }`
+            ),
+            end_time: parseInt(
+              `${time.end_time.hour}${
+                time.end_time.minute == 0 ? "00" : time.end_time.minute
+              } `
+            ),
           },
         }));
 
@@ -362,7 +462,8 @@ export const coursesRouter = createTRPCRouter({
         }));
 
         //Procedure to create a new day or time or connect the day or time to the course guideline
-        const connectOrCreateDaysTimes = ctx.prisma.guidelinesCourses.update({
+
+        await ctx.prisma.guidelinesCourses.update({
           where: {
             tuid: input.tuid,
           },
@@ -375,12 +476,24 @@ export const coursesRouter = createTRPCRouter({
             },
           },
         });
-
-        await prisma?.$transaction([
-          //disconnectDaysTimes,
-          connectOrCreateDaysTimes,
-        ]);
         return true;
       }
+    }),
+
+  addNewRevisionCourse: protectedProcedure
+    .input(addNewRevisionCourse)
+    .mutation(async ({ ctx, input }) => {
+      const courseCreation = await ctx.prisma.scheduleRevision.update({
+        where: {
+          tuid: input.tuid,
+        },
+        data: {
+          courses: {
+            // create: {
+            //   type: input.course.type,
+            // },
+          },
+        },
+      });
     }),
 });

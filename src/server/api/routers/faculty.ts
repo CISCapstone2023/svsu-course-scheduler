@@ -20,8 +20,7 @@ export const facultyRouter = createTRPCRouter({
         //store the input from client in the data field to be written to database
         data: {
           suffix: input.suffix,
-          last_name: input.last_name,
-          first_name: input.first_name,
+          name: input.name,
           email: input.email,
           is_adjunct: input.is_adjunct,
         },
@@ -75,19 +74,14 @@ export const facultyRouter = createTRPCRouter({
       if (input.search != "") {
         facultyResult = await ctx.prisma.guidelinesFaculty.findMany({
           //we want 10
-          take: 10,
+          take: resultsPerPage,
           //we start at 0
-          skip: (input.page - 1) * 10,
+          skip: (input.page - 1) * resultsPerPage,
           //check if the first name and/or last name are being searched for
           where: {
             OR: [
               {
-                first_name: {
-                  contains: input.search,
-                },
-              },
-              {
-                last_name: {
+                name: {
                   contains: input.search,
                 },
               },
@@ -104,12 +98,7 @@ export const facultyRouter = createTRPCRouter({
           where: {
             OR: [
               {
-                first_name: {
-                  contains: input.search,
-                },
-              },
-              {
-                last_name: {
+                name: {
                   contains: input.search,
                 },
               },
@@ -121,9 +110,9 @@ export const facultyRouter = createTRPCRouter({
         //if we don't have a search query, don't worry about the filter
         facultyResult = await ctx.prisma.guidelinesFaculty.findMany({
           //we want 10
-          take: 10,
+          take: resultsPerPage,
           //we start at 0
-          skip: (input.page - 1) * 10,
+          skip: (input.page - 1) * resultsPerPage,
         });
 
         /**
@@ -172,8 +161,7 @@ export const facultyRouter = createTRPCRouter({
         data: {
           tuid: input.tuid,
           suffix: input.suffix,
-          last_name: input.last_name,
-          first_name: input.first_name,
+          name: input.name,
           email: input.email,
           is_adjunct: input.is_adjunct,
         },

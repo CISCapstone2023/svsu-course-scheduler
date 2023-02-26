@@ -178,7 +178,7 @@ export const facultyRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      let facultyDataArr = [];
+      let facultyDataArr = []; //Declares an array to store the faculty data to be passed to the client.
 
       if (input.search != "") {
         //Determines if the string input is not empty. If not, it runs the query.
@@ -202,7 +202,7 @@ export const facultyRouter = createTRPCRouter({
           facultyDataArr.push({ value: faculty.tuid, label: faculty.name });
         });
 
-        return facultyDataArr; //Returns the facultyData including tuid and namew to the client
+        return facultyDataArr; //Returns the facultyDataArr including tuid and name to the client
       }
     }),
 });

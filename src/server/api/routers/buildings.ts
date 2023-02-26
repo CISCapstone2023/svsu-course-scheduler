@@ -8,8 +8,20 @@ import {
   createBuildingSchema,
   updateBuildingSchema,
 } from "src/validation/buildings";
+import { Prisma } from "@prisma/client";
+import { prisma } from "src/server/db";
+import { orderBy } from "lodash";
 
 const TOTAL_RESULTS_PER_PAGE = 10;
+
+const buildingWithCampus = Prisma.validator<Prisma.GuidelineBuildingArgs>()({
+  include: {
+    campus: true,
+  },
+});
+export type BuildingWithCampus = Prisma.GuidelineBuildingGetPayload<
+  typeof buildingWithCampus
+>;
 
 export const buildingsRouter = createTRPCRouter({
   // Campuses -------------------------------------------------------------------------------------
@@ -113,6 +125,7 @@ export const buildingsRouter = createTRPCRouter({
       //Could not delete it
       return false;
     }),
+
   updateCampus: protectedProcedure
     .input(updateCampusSchema)
     .mutation(async ({ ctx, input }) => {
@@ -216,7 +229,64 @@ export const buildingsRouter = createTRPCRouter({
       };
     }),
 
-  // UNIFINISHED ---------------------
+  getBuildingsList: protectedProcedure
+    .input(
+      z.object({
+        search: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Create a list of buildings for a dropdown menu, sorted by campus
+      const buildingsDropdown = [];
+
+      // Do we have a search query
+      if (input.search != "") {
+        // Return buidlings whose name OR campus name fit within the search
+        const buildingResult: BuildingWithCampus[] =
+          await ctx.prisma.guidelineBuilding.findMany({
+            include: {
+              campus: true,
+            },
+            orderBy: {
+              campus: {
+                tuid: "asc",
+              },
+            },
+            where: {
+              OR: [
+                {
+                  name: {
+                    contains: input.search,
+                  },
+                },
+                {
+                  prefix: {
+                    contains: input.search,
+                  },
+                },
+                {
+                  campus: {
+                    name: {
+                      contains: input.search,
+                    },
+                  },
+                },
+              ],
+            },
+          });
+
+        // Building a very specific object structure for the client
+        for (const building of buildingResult) {
+          buildingsDropdown.push({
+            value: building.tuid,
+            label: `${building.campus.name} - ${building.name} (${building.prefix})`,
+          });
+        }
+      }
+
+      return { result: buildingsDropdown };
+    }),
+
   addBuilding: protectedProcedure
     .input(createBuildingSchema)
     .mutation(async ({ ctx, input }) => {
@@ -268,7 +338,6 @@ export const buildingsRouter = createTRPCRouter({
       return false;
     }),
 
-  // UNIFINISHED ---------------------
   updateBuilding: protectedProcedure
     .input(updateBuildingSchema)
     .mutation(async ({ ctx, input }) => {

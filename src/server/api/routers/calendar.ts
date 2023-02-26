@@ -362,6 +362,29 @@ export const calendarRouter = createTRPCRouter({
     .input(courseSchema)
     .mutation(async ({ ctx, input }) => {
       if (parseCourseData(input)) {
+        const deleteFaculty =
+          await ctx.prisma.guidelinesFacultyToCourse.deleteMany({
+            where: {
+              course_tuid: input.tuid,
+            },
+          });
+
+        const deleteNotes = await ctx.prisma.courseNote.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        });
+
+        const deleteLocations = await ctx.prisma.courseLocation.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        });
+
+        // const faculty = input.faculty?.map(facultyMember, index) => ({
+        //  })
+
+        // const notes = input.notes?.map(item, index)
         const updatedCourse = await ctx.prisma.course.update({
           where: {
             tuid: input.tuid,

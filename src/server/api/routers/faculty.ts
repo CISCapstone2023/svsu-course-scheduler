@@ -169,4 +169,18 @@ export const facultyRouter = createTRPCRouter({
       //return the updated faculty member to the client
       return updatedFaculty;
     }),
+
+  getRevisionCourseFaculty: protectedProcedure
+    .input(
+      z.object({
+        search: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (input.search != "") {
+        const facultyData = ctx.prisma.guidelinesFaculty.findFirst({
+          where: {},
+        });
+      }
+    }),
 });

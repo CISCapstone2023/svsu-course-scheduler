@@ -600,7 +600,7 @@ const Courses = () => {
       <Modal
         open={isCourseCreateModalOpen}
         onClickBackdrop={toggleCourseModifyModal}
-        className="h-full  w-11/12 max-w-5xl"
+        className="h-auto  w-11/12 max-w-5xl"
       >
         <Button
           size="sm"

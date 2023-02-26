@@ -260,6 +260,11 @@ export const buildingsRouter = createTRPCRouter({
                   },
                 },
                 {
+                  prefix: {
+                    contains: input.search,
+                  },
+                },
+                {
                   campus: {
                     name: {
                       contains: input.search,

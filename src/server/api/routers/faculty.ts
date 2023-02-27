@@ -179,8 +179,6 @@ export const facultyRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const facultyDataArr: any[] = []; //Declares an array to store the faculty data to be passed to the client.
-
       if (input.search != "") {
         //Determines if the string input is not empty. If not, it runs the query.
         const facultyData = await ctx.prisma.guidelinesFaculty.findMany({
@@ -198,12 +196,10 @@ export const facultyRouter = createTRPCRouter({
           },
         });
 
-        facultyData.forEach((faculty) => {
-          //Iterates over the findMany query and pushes the data into an array of the custom object type needed at the client
-          facultyDataArr.push({ value: faculty.tuid, label: faculty.name });
+        return facultyData.map((faculty) => {
+          //Maps the facultyData array returned
+          return { label: faculty.name, value: faculty.tuid }; //Returns the data mapped to the label and values needed
         });
-
-        return facultyDataArr; //Returns the facultyDataArr including tuid and name to the client
       }
     }),
 });

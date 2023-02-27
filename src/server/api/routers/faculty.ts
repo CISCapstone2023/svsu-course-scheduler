@@ -6,6 +6,7 @@ import {
   createFacultySchemaTUID,
 } from "src/validation/faculty";
 import type { GuidelinesFaculty } from "@prisma/client";
+import { object } from "zod/lib";
 
 //faculty router that will add, delete, update, and get faculty from database
 export const facultyRouter = createTRPCRouter({
@@ -178,7 +179,7 @@ export const facultyRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      let facultyDataArr = []; //Declares an array to store the faculty data to be passed to the client.
+      const facultyDataArr = []; //Declares an array to store the faculty data to be passed to the client.
 
       if (input.search != "") {
         //Determines if the string input is not empty. If not, it runs the query.

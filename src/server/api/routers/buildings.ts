@@ -355,7 +355,9 @@ export const buildingsRouter = createTRPCRouter({
           },
           data: {
             name: input.name,
-            prefix: input.prefix,
+            prefix: input.prefix.toUpperCase(),
+            campus_tuid: input.campus_tuid,
+            classrooms: input.classrooms,
           },
         });
         return true;

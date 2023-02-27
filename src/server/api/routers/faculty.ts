@@ -6,6 +6,7 @@ import {
   createFacultySchemaTUID,
 } from "src/validation/faculty";
 import type { GuidelinesFaculty } from "@prisma/client";
+import { any, object } from "zod/lib";
 
 //faculty router that will add, delete, update, and get faculty from database
 export const facultyRouter = createTRPCRouter({
@@ -168,5 +169,41 @@ export const facultyRouter = createTRPCRouter({
       });
       //return the updated faculty member to the client
       return updatedFaculty;
+    }),
+
+  getRevisionCourseFaculty: protectedProcedure
+    .input(
+      z.object({
+        //Creates an object to take input from the front end as a string for searching a faculty member
+        search: z.string(), //Sets the validation for search as a string
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const facultyDataArr: any[] = []; //Declares an array to store the faculty data to be passed to the client.
+
+      if (input.search != "") {
+        //Determines if the string input is not empty. If not, it runs the query.
+        const facultyData = await ctx.prisma.guidelinesFaculty.findMany({
+          //Query finds many faculty members from the GuidelinesFaculty table
+          where: {
+            //looks for any faculty records where their name contains the search string put in the front end
+            name: {
+              contains: input.search,
+            },
+          },
+          select: {
+            //Selects the tuid and name to return to the client from the records queried
+            tuid: true,
+            name: true,
+          },
+        });
+
+        facultyData.forEach((faculty) => {
+          //Iterates over the findMany query and pushes the data into an array of the custom object type needed at the client
+          facultyDataArr.push({ value: faculty.tuid, label: faculty.name });
+        });
+
+        return facultyDataArr; //Returns the facultyDataArr including tuid and name to the client
+      }
     }),
 });

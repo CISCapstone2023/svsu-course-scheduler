@@ -3,7 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { Prisma } from "@prisma/client";
 import { prisma } from "src/server/db";
 import { createCourseSchema } from "src/server/api/routers/projects";
-import { courseSchema } from "src/validation/courses";
+import { courseSchema, ICourseSchema } from "src/validation/courses";
 import { cssTransition } from "react-toastify";
 
 // Validation -----------------------------------------------------------------------------------------------------
@@ -554,11 +554,11 @@ async function queryCoursesByDay(
   return coursesByDay;
 }
 
-function parseCourseData(input) {
+function parseCourseData(input: ICourseSchema) {
   let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
-  if (input.course != undefined) {
+  if (input != undefined) {
     //Checks to see if the input course is undefined
-    const isSafe = courseSchema.safeParse(input.course); //If it is, conducts a safeParse on the input and stores the object of the parse
+    const isSafe = courseSchema.safeParse(input); //If it is, conducts a safeParse on the input and stores the object of the parse
 
     if (!isSafe.success) {
       //Checks if the provided input is safe based on the return of the parse

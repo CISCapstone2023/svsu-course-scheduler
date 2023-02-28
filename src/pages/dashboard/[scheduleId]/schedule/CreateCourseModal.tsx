@@ -12,6 +12,7 @@ import { courseSchema, ICourseSchema } from "src/validation/courses";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { TimeInput } from "./TimeInput";
+import { ErrorMessage } from "@hookform/error-message";
 
 interface CreateCourseModalProps {
   children?: React.ReactNode;
@@ -51,7 +52,7 @@ const CreateCourseModal = ({
   });
 
   const onCourseAddModifySubmit = (course: ICourseSchema) => {
-    //To Do
+    console.log(course);
   };
 
   const [isCourseEditing, setCourseEditing] = useState<ICourseSchema>();
@@ -94,6 +95,13 @@ const CreateCourseModal = ({
                       size="sm"
                       {...courseAddForm.register("department")}
                     />
+                    <ErrorMessage
+                      errors={courseAddForm.formState.errors}
+                      name="department"
+                      render={({ message }) => (
+                        <p className="font-semibold text-red-600">{message}</p>
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -103,10 +111,17 @@ const CreateCourseModal = ({
                   </div>
                   <div>
                     <Input
-                      type="number"
+                      type="text"
                       className="w-full"
                       size="sm"
                       {...courseAddForm.register("course_number")}
+                    />
+                    <ErrorMessage
+                      errors={courseAddForm.formState.errors}
+                      name="course_number"
+                      render={({ message }) => (
+                        <p className="font-semibold text-red-600">{message}</p>
+                      )}
                     />
                   </div>
                 </div>
@@ -120,7 +135,18 @@ const CreateCourseModal = ({
                       type="number"
                       className="w-full"
                       size="sm"
-                      {...courseAddForm.register("section")}
+                      min="0"
+                      max="100"
+                      {...courseAddForm.register("section", {
+                        setValueAs: (v) => (v === "" ? undefined : parseInt(v)),
+                      })}
+                    />
+                    <ErrorMessage
+                      errors={courseAddForm.formState.errors}
+                      name="section"
+                      render={({ message }) => (
+                        <p className="font-semibold text-red-600">{message}</p>
+                      )}
                     />
                   </div>
                 </div>
@@ -211,6 +237,16 @@ const CreateCourseModal = ({
                                   );
                                 }}
                               />
+
+                              <ErrorMessage
+                                errors={courseAddForm.formState.errors}
+                                name={`locations.${index}.start_time`}
+                                render={({ message }) => (
+                                  <p className="font-semibold text-red-600">
+                                    {message}
+                                  </p>
+                                )}
+                              />
                             </div>
                           </div>
                           <div className="mb-2 flex">
@@ -242,6 +278,15 @@ const CreateCourseModal = ({
                                   );
                                 }}
                               />
+                              <ErrorMessage
+                                errors={courseAddForm.formState.errors}
+                                name={`locations.${index}.end_time`}
+                                render={({ message }) => (
+                                  <p className="font-semibold text-red-600">
+                                    {message}
+                                  </p>
+                                )}
+                              />
                             </div>
                           </div>
                         </div>
@@ -272,6 +317,15 @@ const CreateCourseModal = ({
                               size="sm"
                               {...courseAddForm.register(
                                 `locations.${index}.rooms.0.room`
+                              )}
+                            />
+                            <ErrorMessage
+                              errors={courseAddForm.formState.errors}
+                              name={`locations.${index}.rooms.0.room`}
+                              render={({ message }) => (
+                                <p className="font-semibold text-red-600">
+                                  {message}
+                                </p>
                               )}
                             />
                           </div>
@@ -359,18 +413,31 @@ const CreateCourseModal = ({
                 <p>Information for Provost</p>
                 <Textarea
                   className="h-full w-full"
-                  {...courseAddForm.register(`notes.0.note`)}
+                  {...courseAddForm.register(`notes.1.note`)}
                 />
               </div>
               <div className="grow flex-row text-left" id="3">
                 <p>Additional Notes</p>
                 <Textarea
                   className="h-full w-full"
-                  {...courseAddForm.register(`notes.0.note`)}
+                  {...courseAddForm.register(`notes.2.note`)}
                 />
               </div>
             </div>
           </div>
+          {/* {Object.keys(courseAddForm.formState.errors)
+            .reverse()
+            .reduce(
+              (a, field) =>
+                courseAddForm.formState.errors[field] ? (
+                  <span className="bg-yellow-400">
+                    {courseAddForm.formState.errors[field].message}
+                  </span>
+                ) : (
+                  a
+                ),
+              null
+            )} */}
           <div className="flex w-full">
             <div className="grow">
               <Button>Submit</Button>

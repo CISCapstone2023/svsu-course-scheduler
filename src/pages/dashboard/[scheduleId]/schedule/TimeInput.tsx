@@ -52,14 +52,12 @@ export const TimeInput = ({ value }: TimeInputProps) => {
   }, [hour, minutes, isPM]);
 
   const onChange = () => {
-    let tempHours = hour;
+    // let tempHours = hour;
     // if (isPM == true) {
     //   tempHours += 12;
     // }
 
-    const military = parseInt(
-      `${tempHours}${minutes < 10 ? "0" : ""}${minutes}`
-    );
+    const military = parseInt(`${hour}${minutes < 10 ? "0" : ""}${minutes}`);
     console.log(military);
   };
 

@@ -220,8 +220,8 @@ const CourseListing = ({
   const mapped = calendarMapping(courses!);
 
   return (
-    <div className="wrap relative flex  grow border-r border-base-300">
-      <div className="relative w-full grow basis-0  ">
+    <div className="wrap relative flex h-[900px]  grow border-r border-base-300">
+      <div className="relative w-full grow basis-0">
         {mapped.map((block, index) => {
           return (
             <div
@@ -268,7 +268,7 @@ const CourseListing = ({
             </div>
           );
         })}
-        {Array(16)
+        {Array(15)
           .fill(0)
           .map(function (x, i) {
             return (
@@ -340,26 +340,80 @@ const ScheduleCalendar = ({
 
   return (
     <div className="h-full overflow-hidden">
-      <div className="flex border-b border-base-300">
-        <div className="w-[70px] grow">Time</div>
-        <div className="grow">Monday</div>
-        <div className="grow">Tuesday</div>
-        <div className="grow">Wednesday</div>
-        <div className="grow">Thursday</div>
-        <div className="grow">Friday</div>
-        {weekends && (
-          <>
-            <div className="grow">Saturday</div>
-            <div className="grow">Sunday</div>
-          </>
-        )}
+      <div className="flex h-7 flex-row justify-evenly">
+        <div className="relative flex w-[70px] border-r border-b border-base-300">
+          <div
+            className="absolute  "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Time
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute  "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Monday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Tuesday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Wednesday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b border-base-300">
+          <div
+            className="absolute"
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Thursday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Friday
+          </div>
+        </div>
       </div>
       <div className="flex h-full w-full overflow-y-scroll">
-        <div className="flex h-[750px] w-full flex-col">
+        <div className="flex h-[900px] w-full flex-col">
           {result.data != undefined && (
             <div className="flex h-full flex-row justify-evenly">
               <div className="wrap relative flex h-full w-[70px]  border-r border-base-300">
-                <div className="relative  grow basis-0  ">
+                <div className="relative grow basis-0  ">
                   {times.map(function (x, i) {
                     return (
                       <div

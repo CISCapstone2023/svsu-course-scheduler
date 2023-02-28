@@ -381,10 +381,26 @@ export const calendarRouter = createTRPCRouter({
           },
         });
 
-        // const faculty = input.faculty?.map(facultyMember, index) => ({
-        //  })
+        const faculty = input.faculty?.map((item, index) => ({
+          where: {
+            tuid: item.faculty_tuid,
+          },
+          create: {},
+        }));
+        const notes = input.notes?.map((item, index) => ({
+          where: {
+            tuid: item.tuid,
+          },
+          create: {},
+        }));
 
-        // const notes = input.notes?.map(item, index)
+        // const locations = input.locations?.map((item, index) => ({
+        //   where: {
+        //     tuid: item.tuid,
+        //   },
+        //   create: {},
+        // }));
+
         const updatedCourse = await ctx.prisma.course.update({
           where: {
             tuid: input.tuid,

@@ -11,6 +11,7 @@ import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import useRestUpload from "src/hooks/upload/useUpload";
 import { routeNeedsAuthSession } from "src/server/auth";
+import CreateCourseModal from "../schedule/CreateCourseModal";
 const Dashboard: NextPage = () => {
   /**
    * useSession
@@ -20,14 +21,27 @@ const Dashboard: NextPage = () => {
    */
   const {} = useSession();
 
+  const [open, setOpen] = useState(false);
   return (
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Home">
-          <Button>Example Button</Button>
+          <Button
+            onClick={() => {
+              setOpen(!open);
+            }}
+          >
+            Example Button
+          </Button>
         </DashboardContentHeader>
         <DashboardHomeTabs />
+        <CreateCourseModal
+          open={open}
+          onClose={() => {
+            setOpen(false);
+          }}
+        />
       </DashboardContent>
     </DashboardLayout>
   );

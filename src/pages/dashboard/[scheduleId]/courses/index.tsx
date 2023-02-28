@@ -4,49 +4,28 @@ import { Tabs } from "react-daisyui";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { useState } from "react";
 
-import CampusTab from "./CampusTab";
-
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
-import BuildingsTab from "./BuildingsTab";
+import Courses from "./Courses";
 
 const Buildings: NextPage = () => {
   /**
-   * useSession
+   * JSX
    *
-   * A function provided by the NextJSAuth library which provides data about the user
-   * assuming they are successfully signed-in. If they are it will be null.
+   * In the UI layout we are wrapping our dashboard with the
+   * sidebar and contnent to display this faculty page as its
+   * a child of the content. We also have a header (which is technically optional)
    */
-
-  const { data } = useSession();
-
-  /**
-   * Tabs
-   * Keep the state of the current tab
-   */
-  const [tabValue, setTabValue] = useState(0);
-
   return (
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
-        <DashboardContentHeader title="Buildings" />
-        <Tabs
-          variant="lifted"
-          value={tabValue}
-          onChange={setTabValue}
-          className="mt-2"
-        >
-          <Tabs.Tab value={0}>Buildings</Tabs.Tab>
-          <Tabs.Tab value={1}>Campus</Tabs.Tab>
-        </Tabs>
-        {/* Load the <BuildingTab /> Component */}
-        {tabValue == 0 && <BuildingsTab />}
-        {/*Load the <CampusTab /> Component */}
-        {tabValue == 1 && <CampusTab />}
-        {/* This is the dialog for creating a campus */}
+        <DashboardContentHeader title="Courses" />
+        <div className="container mx-auto px-4">
+          <Courses />
+        </div>
       </DashboardContent>
     </DashboardLayout>
   );

@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+//Regex to ensure that the faculty name field can only contain lowercase or uppercase letters
+//separated by either a hypen or a single space
+const facultyNameRegex =
+  /^(?:[a-zA-Z]+(-?)([a-zA-Z]*)(\s)([a-zA-Z]*)(-?)([a-zA-Z]*))$/;
+
 //zid faculty schema that just grabs the TUID of faculty
 export const createFacultySchemaTUID = z.object({
   tuid: z.string(),
@@ -9,18 +14,22 @@ export const createFacultySchemaTUID = z.object({
 export const createFacultySchema = z.object({
   //use all of GuidlelinesFactuly's fields except tuid
   suffix: z.string(),
-  last_name: z
+  name: z
     .string()
-    .min(2, { message: "Faculty's last name must be at least 2 characters" })
-    .max(30, {
-      message: "Faculty's first name must be no more than 30 characters",
+    .min(2, { message: "Faculty's name must be at least 2 characters" })
+    .max(50, {
+      message: "Faculty's name must be no more than 50 characters",
+    })
+    .regex(facultyNameRegex, {
+      message:
+        "Faculty's name must contain only alphabetical characters optionally separated by a space or hyphen",
     }),
-  first_name: z
-    .string()
-    .min(2, { message: "Faculty's first name must be at least 2 characters" })
-    .max(30, {
-      message: "Faculty's first name must be no more than 30 characters",
-    }),
+  // first_name: z
+  //   .string()
+  //   .min(2, { message: "Faculty's first name must be at least 2 characters" })
+  //   .max(30, {
+  //     message: "Faculty's first name must be no more than 30 characters",
+  //   }),
   email: z
     .string()
     .email({ message: "Faculty's email field must be a valid email address" }),

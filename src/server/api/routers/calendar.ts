@@ -169,7 +169,7 @@ export const calendarRouter = createTRPCRouter({
               .reduce((sum, value) => {
                 return sum + value;
               }, 0);
-
+            console.log({ totalMeetings });
             //Query each course to the guidelines course model
             const result = await ctx.prisma.guidelinesCourses.count({
               where: {

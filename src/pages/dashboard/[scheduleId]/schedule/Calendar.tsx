@@ -250,27 +250,45 @@ const CourseListing = ({
                         onSelect(course.tuid);
                       }}
                       className={classNames(
-                        "flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 p-2 transition-all duration-150 hover:z-[999] hover:shadow-lg",
+                        "z-[100]  flex w-32 cursor-pointer overflow-hidden  text-ellipsis rounded-lg border border-base-100  bg-base-200  transition-all duration-150 hover:z-[999] hover:shadow-lg",
                         {
                           "-ml-10": index > 0 && overlap,
 
-                          "z-[999] bg-base-300 shadow-lg":
+                          "z-[999] shadow-lg":
                             hover != null && hover.tuid == course.tuid,
+                          "bg-base-300":
+                            hover != null &&
+                            hover.tuid == course.tuid &&
+                            course.withinGuideline,
                           "mr-10":
                             hover != null &&
                             hover.tuid == course.tuid &&
                             block.courses.length - 1 != index,
                           "border-green-400": course.state == "ADDED",
-                          "bg-checkerboard ": !course.withinGuideline,
+                          "bg-white": !course.withinGuideline,
                         }
                       )}
                     >
-                      <p style={{ fontSize: 12 }}>
-                        <p className="text-md font-bold">
-                          {course.subject} - {course.course_number}
-                        </p>{" "}
-                        {course.title}
-                      </p>
+                      <div
+                        className={classNames("h-full w-full p-2", {
+                          "bg-orange-400": !course.withinGuideline,
+                        })}
+                      >
+                        <p style={{ fontSize: 12 }}>
+                          <p className="text-md font-bold">
+                            {course.subject} - {course.course_number}
+                          </p>{" "}
+                          {course.title}
+                          {course.credits}
+                          {course.locations.map((loc, i) => {
+                            return (
+                              <div key={i}>
+                                {loc.start_time} {loc.end_time}
+                              </div>
+                            );
+                          })}
+                        </p>
+                      </div>
                     </div>
                   );
                 })}
@@ -284,14 +302,14 @@ const CourseListing = ({
             return (
               <div
                 key={i}
-                className="absolute z-0 w-full"
+                className="absolute w-full"
                 style={{
                   top: i * 60 + 34,
                   left: 0,
                 }}
               >
                 <div key={i} className="flex flex-row text-center">
-                  <div className=" flex  w-full items-center border-b border-base-300 bg-base-200  text-sm"></div>
+                  <div className="flex  w-full items-center border-b border-base-300 bg-base-200 text-sm"></div>
                 </div>
               </div>
             );

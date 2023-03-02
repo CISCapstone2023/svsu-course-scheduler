@@ -272,7 +272,7 @@ interface InvertedObject {
   [key: string]: string;
 }
 
-const createCourseSchema = (
+export const createCourseSchema = (
   row: Required<ICourseSchema>,
   input: { tuid: string }
 ) => {

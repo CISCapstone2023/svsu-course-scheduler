@@ -93,9 +93,8 @@ export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
 });
 
 const facultyToCourseSchema = z.object({
-  faculty_tuid: z
-    .string()
-    .cuid({ message: "Must be an exisitng faculty member!" }),
+  faculty_tuid: z.string().optional(),
+  //.cuid({ message: "Must be an exisitng faculty member!" })
   course_tuid: z.string().optional(),
 });
 
@@ -112,12 +111,13 @@ const revisionSchema = z.object({
 const notesSchema = z.object({
   tuid: z.string().optional(),
   note: z.string().optional(),
-  type: z.nativeEnum(CourseNoteType),
+  type: z.nativeEnum(CourseNoteType).default("CHANGES").optional(),
 });
 
 const roomsSchema = z.object({
-  room: z.string(),
-  building_tuid: z.string().cuid({ message: "Must be a valid building!" }),
+  room: z.string().optional(),
+  building_tuid: z.string().optional(),
+  //.cuid({ message: "Must be a valid building!" }),
 });
 
 const locationsSchema = z.object({
@@ -143,30 +143,30 @@ const twoDigitYear = parseInt(
 export const courseSchema = z
   .object({
     tuid: z.string().optional(),
-    type: z.string(),
+    type: z.string().optional(),
     section_id: z.number().min(1).nullable(),
     revision_tuid: z.string().optional(),
     term: z
       .number()
       .min(twoDigitYear - 2)
-      .max(twoDigitYear + 2),
+      .max(twoDigitYear + 2)
+      .optional(),
     semester_summer: z.boolean().default(false),
     semester_fall: z.boolean().default(false),
     semester_winter: z.boolean().default(false),
     semester_spring: z.boolean().default(false),
-    div: z.string(),
+    div: z.string().optional(),
     department: z
       .string()
       .min(2)
       .max(6, { message: "Department type is larger than expected." }),
-    subject: z
-      .string()
-      .min(2)
-      .max(6, { message: "Subject type is larger than expected." }),
-    course_number: z.string(),
-    section: z.number().min(0).max(500),
-    start_date: z.date(),
-    end_date: z.date(),
+    subject: z.string(),
+    // .min(2)
+    // .max(6, { message: "Subject type is larger than expected." })
+    course_number: z.string().nonempty(),
+    section: z.number().min(0).max(500).int(),
+    start_date: z.date().optional(),
+    end_date: z.date().optional(),
     // start_time: z.number().min(0).max(2200, {
     //   message: "The hour a course starts must be between 0 and 24 hours.",
     // }),
@@ -186,8 +186,8 @@ export const courseSchema = z
     faculty: z.array(facultyToCourseSchema).min(1, {
       message: "A faculty member must be present on a course.",
     }),
-    notes: z.array(notesSchema).min(3),
-    locations: z.array(locationsSchema),
+    notes: z.array(notesSchema).min(3).optional(),
+    locations: z.array(locationsSchema).optional(),
   })
   .partial()
   .refine(

@@ -178,17 +178,21 @@ export const facultyRouter = createTRPCRouter({
         search: z.string(), //Sets the validation for search as a string
       })
     )
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       if (input.search != "") {
         //Determines if the string input is not empty. If not, it runs the query.
         const facultyData = await ctx.prisma.guidelinesFaculty.findMany({
           //Query finds many faculty members from the GuidelinesFaculty table
-          where: {
-            //looks for any faculty records where their name contains the search string put in the front end
-            name: {
-              contains: input.search,
-            },
-          },
+          ...(input.search != ""
+            ? {
+                where: {
+                  //looks for any faculty records where their name contains the search string put in the front end
+                  name: {
+                    contains: input.search,
+                  },
+                },
+              }
+            : {}),
           select: {
             //Selects the tuid and name to return to the client from the records queried
             tuid: true,
@@ -198,7 +202,7 @@ export const facultyRouter = createTRPCRouter({
 
         return facultyData.map((faculty) => {
           //Maps the facultyData array returned
-          return { label: faculty.name, value: faculty.tuid }; //Returns the data mapped to the label and values needed
+          return { label: faculty.name, faculty_tuid: faculty.tuid }; //Returns the data mapped to the label and values needed
         });
       }
     }),

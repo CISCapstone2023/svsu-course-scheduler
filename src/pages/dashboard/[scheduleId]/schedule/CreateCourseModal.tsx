@@ -10,23 +10,31 @@ import {
   Textarea,
 } from "react-daisyui";
 
-//Local imports
-import { courseSchema, ICourseSchema } from "src/validation/courses";
+import { DevTool } from "@hookform/devtools";
+import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
+
+//Local imports
+import { courseSchema, ICourseSchema } from "src/validation/courses";
 import { TimeInput } from "./TimeInput";
-import { ErrorMessage } from "@hookform/error-message";
+import { api } from "src/utils/api";
+import { toast } from "react-toastify";
 
 //Modal
 interface CreateCourseModalProps {
   children?: React.ReactNode;
   open: boolean;
+  revisionTuid: string;
   onClose: () => void;
 }
+
+const seen: any[] = [];
 
 //Component
 const CreateCourseModal = ({
   children,
+  revisionTuid,
   open,
   onClose,
 }: CreateCourseModalProps) => {
@@ -47,9 +55,9 @@ const CreateCourseModal = ({
     callback([{ value: "SW", label: "SW" }]);
   };
 
-  //WHen input on form is changed, zod is called to validate schema
+  //When input on form is changed, zod is called to validate schema
   const { reset, ...courseAddForm } = useForm<ICourseSchema>({
-    mode: "onChange",
+    mode: "onBlur",
     resolver: zodResolver(courseSchema),
   });
 
@@ -59,13 +67,54 @@ const CreateCourseModal = ({
     control: courseAddForm.control,
   });
 
+  //API to get all faculty lists from backend
+  const facultyMutation = api.faculty.getRevisionCourseFaculty.useMutation();
+
+  //API to add course to database for revision
+  const addCourseMutation = api.courses.addNewRevisionCourse.useMutation();
+
   //Logs our submitted course (Will be changed)
-  const onCourseAddModifySubmit = (course: ICourseSchema) => {
-    console.log(course);
+  const onCourseAddModifySubmit = async (course: ICourseSchema) => {
+    if (isCourseEditing != undefined && isCourseEditing!.tuid) {
+      // const result = await courseUpdateMutation.mutateAsync({
+      //   tuid: isCourseEditing!.tuid,
+      //   ...data,
+      // });
+      // if (result) {
+      //   toast.info(`Updated Course Guideline`);
+      // } else {
+      //   toast.error(`Failed to add Course Guideline`);
+      // }
+    } else {
+      const result = await addCourseMutation.mutateAsync({
+        course,
+        tuid: revisionTuid,
+      });
+      // if (result) {
+      //   toast.success(`Added new course guidline`);
+      // } else {
+      //   toast.error(`Failed to add course guideline`);
+      // }
+    }
+
+    //TODO: Tell parent to refetch
+    //courses.refetch();
   };
 
   //asks if you are in edit mode, keeps what you want to edit
   const [isCourseEditing, setCourseEditing] = useState<ICourseSchema>();
+
+  console.log(
+    JSON.stringify(courseAddForm.formState.errors, function (key, val) {
+      if (val != null && typeof val == "object") {
+        if (seen.indexOf(val) >= 0) {
+          return;
+        }
+        seen.push(val);
+      }
+      return val;
+    })
+  );
 
   return (
     //Main modal for body
@@ -87,6 +136,7 @@ const CreateCourseModal = ({
       {/* Header for Modal */}
       <Modal.Header>Add / Edit Course Placement</Modal.Header>
       <Modal.Body className="h-[500px] w-full">
+        <DevTool control={courseAddForm.control} /> {/* set up the dev tool */}
         {/* form to handle course additions, modifications, or submission */}
         <form
           onSubmit={courseAddForm.handleSubmit(onCourseAddModifySubmit)}
@@ -186,11 +236,39 @@ const CreateCourseModal = ({
                   </div>
                   <div>
                     {/* Synchronous selection, allows to grab data from database and wait for it to come in */}
-                    <AsyncSelect
+                    <Controller
+                      name="faculty.0"
+                      control={courseAddForm.control}
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <AsyncSelect
+                          isClearable
+                          defaultOptions
+                          placeholder={"Enter Faculty"}
+                          loadOptions={(search, callback) => {
+                            new Promise<any>(async (resolve) => {
+                              const data = await facultyMutation.mutateAsync({
+                                search: search.toLowerCase(),
+                              });
+
+                              if (data != undefined) {
+                                callback(data);
+                              } else {
+                                callback([]);
+                              }
+                            });
+                          }}
+                          {...field}
+                          // styles={customStyles}
+                        />
+                      )}
+                    />
+
+                    {/* <AsyncSelect
                       cacheOptions
                       loadOptions={facultyLoadOptions}
                       defaultOptions
-                    />
+                    /> */}
                   </div>
                 </div>
               </div>
@@ -259,20 +337,12 @@ const CreateCourseModal = ({
                                 control={courseAddForm.control}
                                 defaultValue={830}
                                 name={`locations.${index}.start_time`}
-                                render={({
-                                  field: { onChange, value, name, ref },
-                                }) => {
-                                  return (
-                                    <TimeInput
-                                      value={value}
-                                      onChange={(value) => {
-                                        onChange(value);
-                                      }}
-                                    />
-                                  );
+                                render={({ field }) => {
+                                  return <TimeInput {...field} />;
                                 }}
                               />
 
+                              {/* Error message thrown when zod detects a problem */}
                               <ErrorMessage
                                 errors={courseAddForm.formState.errors}
                                 name={`locations.${index}.start_time`}
@@ -313,6 +383,8 @@ const CreateCourseModal = ({
                                   );
                                 }}
                               />
+
+                              {/* Error message thrown when zod detects a problem */}
                               <ErrorMessage
                                 errors={courseAddForm.formState.errors}
                                 name={`locations.${index}.end_time`}
@@ -326,7 +398,7 @@ const CreateCourseModal = ({
                           </div>
                         </div>
                       </div>
-
+                      {/* Div to hold in person checkbox and building select */}
                       <div
                         className="flex flex-col space-y-2"
                         id="inPerson+Building"
@@ -354,6 +426,8 @@ const CreateCourseModal = ({
                                 `locations.${index}.rooms.0.room`
                               )}
                             />
+
+                            {/* Error message thrown when zod detects a problem */}
                             <ErrorMessage
                               errors={courseAddForm.formState.errors}
                               name={`locations.${index}.rooms.0.room`}
@@ -368,6 +442,7 @@ const CreateCourseModal = ({
                       </div>
                     </div>
 
+                    {/* Checkboxes for days */}
                     <div className="flex flex-col">
                       <div className="flex space-x-2 text-center">
                         <div>
@@ -439,28 +514,20 @@ const CreateCourseModal = ({
             >
               <div className="grow flex-row text-left" id="1">
                 <p>Changes</p>
-                <Textarea
-                  className="h-full w-full"
-                  {...courseAddForm.register(`notes.0.note`)}
-                />
+                <Textarea className="h-full w-full" />
               </div>
               <div className="grow flex-row text-left" id="2">
                 <p>Information for Provost</p>
-                <Textarea
-                  className="h-full w-full"
-                  {...courseAddForm.register(`notes.1.note`)}
-                />
+                <Textarea className="h-full w-full" />
               </div>
               <div className="grow flex-row text-left" id="3">
                 <p>Additional Notes</p>
-                <Textarea
-                  className="h-full w-full"
-                  {...courseAddForm.register(`notes.2.note`)}
-                />
+                <Textarea className="h-full w-full" />
               </div>
             </div>
           </div>
-          {/* {Object.keys(courseAddForm.formState.errors)
+          {/* {Object.keys(courseAddForm.formState.errors).length}
+          {Object.keys(courseAddForm.formState.errors)
             .reverse()
             .reduce(
               (a, field) =>

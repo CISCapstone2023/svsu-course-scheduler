@@ -6,7 +6,7 @@ import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
-import { Button, Modal, Steps, Tooltip } from "react-daisyui";
+import { Button, Input, Modal, Steps, Tooltip } from "react-daisyui";
 import { useState } from "react";
 import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
@@ -21,8 +21,15 @@ import ProjectFinalize from "src/components/projects/projectUploading/ProjectFin
 
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 
-import { type IProjectOrganizedColumnRowNumerical } from "src/validation/projects";
+import {
+  finalizeProjectOnBoarding,
+  IProjectFinalizeOnboarding,
+  type IProjectOrganizedColumnRowNumerical,
+} from "src/validation/projects";
 import { toast } from "react-toastify";
+import { ErrorMessage } from "@hookform/error-message";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const Projects: NextPage = () => {
   /**
@@ -142,29 +149,29 @@ const Projects: NextPage = () => {
 
   const [organizedColumns, setOrganizeColumns] =
     useState<IProjectOrganizedColumnRowNumerical>({
-      noteWhatHasChanged: 0,
-      section_id: 1,
-      term: 2,
-      div: 3,
-      department: 4,
-      subject: 5,
-      course_number: 6,
-      section: 7,
-      title: 8,
-      instruction_method: 9,
-      faculty: 10,
-      campus: 11,
-      credits: 12,
-      capacity: 13,
-      start_date: 17,
-      end_date: 18,
-      building: 20,
-      room: 21,
-      start_time: 22,
-      end_time: 23,
-      days: 24,
-      noteAcademicAffairs: 27,
-      notePrintedComments: 28,
+      noteWhatHasChanged: -1,
+      section_id: -1,
+      term: -1,
+      div: -1,
+      department: -1,
+      subject: -1,
+      course_number: -1,
+      section: -1,
+      title: -1,
+      instruction_method: -1,
+      faculty: -1,
+      campus: -1,
+      credits: -1,
+      capacity: -1,
+      start_date: -1,
+      end_date: -1,
+      building: -1,
+      room: -1,
+      start_time: -1,
+      end_time: -1,
+      days: -1,
+      noteAcademicAffairs: -1,
+      notePrintedComments: -1,
     });
 
   function getMissingColumns() {
@@ -181,6 +188,45 @@ const Projects: NextPage = () => {
     }
     return missingColumns;
   }
+
+  /**
+   * Onboaring Form
+   *
+   * A form which we can finalize the onboaring process. Uses a custom zod schema
+   * which has a single name to onboard the current revision into the system
+   */
+  const { reset, ...onboardingForm } = useForm<IProjectFinalizeOnboarding>({
+    mode: "onBlur",
+    resolver: zodResolver(finalizeProjectOnBoarding),
+  });
+
+  //Get the mutation from the backend API so we can create said revision!!
+  const createRevisionMutation =
+    api.projects.createScheduleRevision.useMutation();
+
+  /**
+   * Handle Form Submit
+   *
+   * This will handle the form submit to create the new revision.
+   * It will check to make sure a name is present before it runs said function
+   * as this is taken care of by the useForm (react-hook-form) library
+   *
+   * @param value
+   */
+  const onHandleFormSubmit = async (value: IProjectFinalizeOnboarding) => {
+    if (uploadedData?.tuid != undefined && organizedColumns != undefined) {
+      const result = await createRevisionMutation.mutateAsync({
+        columns: organizedColumns,
+        tuid: uploadedData.tuid,
+        name: value.name,
+      });
+      if (result.success) {
+        router.push(`/dashboard/${uploadedData.tuid}/home`);
+      } else {
+        console.log(JSON.stringify(result.errors));
+      }
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -278,14 +324,14 @@ const Projects: NextPage = () => {
                 />
               )}
               {stage === 2 && (
-                <div className="flex w-full flex-col">
-                  <ProjectFinalize
+                <div className="flex h-full w-full  flex-col">
+                  {/* <ProjectFinalize
                     tuid={uploadedData?.tuid}
                     columns={organizedColumns}
-                  />
-                  <div className="flex w-full">
-                    <div className="mr-5 w-3/4">
-                      <strong>Missing Columns</strong>
+                  /> */}
+                  <div className="flex h-full w-full">
+                    <div className="mr-5 max-h-96 min-w-[200px] overflow-y-auto">
+                      <strong className="sticky top-0">Missing Columns</strong>
                       <ul>
                         {getMissingColumns().map((value, i) => {
                           return (
@@ -313,16 +359,54 @@ const Projects: NextPage = () => {
           <div className=" relative mt-3 flex w-full justify-between justify-self-end align-middle">
             {" "}
             {stage > 1.5 ? (
-              <Button className="to-error-content" onClick={backStage}>
-                Cancel
-              </Button>
+              <form
+                onSubmit={onboardingForm.handleSubmit(onHandleFormSubmit)}
+                className=" flex w-full items-end space-x-2 font-sans"
+              >
+                <div className="form-control w-full justify-start">
+                  <label className="label">
+                    <span className="label-text">Name</span>
+                  </label>
+                  <div className="flex w-full justify-between space-x-2">
+                    <Input
+                      type="text"
+                      placeholder="eg. Fall Draft"
+                      className="grow"
+                      {...onboardingForm.register("name")}
+                    />
+                    <Button
+                      className=" bg-error"
+                      type="button"
+                      onClick={backStage}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      color="success"
+                      type="submit"
+                      className=""
+                      disabled={getMissingColumns().length > 0}
+                    >
+                      Finalize
+                    </Button>
+                  </div>
+
+                  <ErrorMessage
+                    errors={onboardingForm.formState.errors}
+                    name="name"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />
+                </div>
+              </form>
             ) : (
               <div className="grow"></div>
             )}
             {stage != 2 && (
               <Button
                 className=""
-                disabled={stage < 1.5 || getMissingColumns().length > 0}
+                disabled={stage < 1.5}
                 onClick={stage == 3 ? goToMain : toggleStage}
               >
                 {stage == 2 ? "Finalize" : "Next"}

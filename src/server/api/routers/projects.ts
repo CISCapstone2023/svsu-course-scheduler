@@ -97,7 +97,7 @@ export const projectsRouter = createTRPCRouter({
 
       //Return the data
       return {
-        result: scheduleResult.map((s) => {
+        result: scheduleResult.reverse().map((s) => {
           const [main, ...revisions] = s.revisions;
           return {
             main: {
@@ -220,7 +220,7 @@ export const projectsRouter = createTRPCRouter({
               if (result.success == false) {
                 valid = false;
                 errors = result.error;
-                return { success: false, errors: ["Somthing went wrong..."] };
+                return { success: false, errors: errors.format() };
               }
             }
           }

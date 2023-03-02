@@ -20,11 +20,11 @@ export const createFacultySchema = z.object({
     .min(2, { message: "Faculty's name must be at least 2 characters" })
     .max(50, {
       message: "Faculty's name must be no more than 50 characters",
-    })
-    .regex(facultyNameRegex, {
-      message:
-        "Faculty's name must contain only alphabetical characters optionally separated by a space or hyphen",
     }),
+  // .regex(facultyNameRegex, {
+  //   message:
+  //     "Faculty's name must contain only alphabetical characters optionally separated by a space or hyphen",
+  // }),
   // first_name: z
   //   .string()
   //   .min(2, { message: "Faculty's first name must be at least 2 characters" })

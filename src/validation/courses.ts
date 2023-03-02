@@ -93,9 +93,22 @@ export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
 });
 
 const facultyToCourseSchema = z.object({
-  faculty_tuid: z
-    .string()
-    .cuid({ message: "Must be an exisitng faculty member!" }),
+  faculty_tuid: z.string().superRefine(async (val, ctx) => {
+    const amount = await prisma?.guidelinesFaculty.count({
+      where: {
+        tuid: val,
+      },
+    });
+    if (amount == 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.too_big,
+        maximum: 3,
+        type: "array",
+        inclusive: true,
+        message: `Faculty member '${val}' does not exist!`,
+      });
+    }
+  }),
   course_tuid: z.string().optional(),
 });
 
@@ -117,7 +130,20 @@ const notesSchema = z.object({
 
 const roomsSchema = z.object({
   room: z.string(),
-  building_tuid: z.string().cuid({ message: "Must be a valid building!" }),
+  building_tuid: z.string().superRefine(async (val, ctx) => {
+    const amount = await prisma?.guidelineBuilding.count({
+      where: {
+        tuid: val,
+      },
+    });
+    if (amount == 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        fatal: false,
+        message: `Building '${val}' does not exist!`,
+      });
+    }
+  }),
 });
 
 const locationsSchema = z.object({

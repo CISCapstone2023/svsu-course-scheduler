@@ -469,7 +469,7 @@ const Courses = () => {
             }}
           >
             <Plus />
-            Add Course
+            Add Course Guideline
           </Button>
         </div>
       </div>
@@ -578,7 +578,7 @@ const Courses = () => {
             <div>
               <Button onClick={toggleCourseModifyModal} className="mt-2">
                 <Plus />
-                Add Course
+                Add Course Guideline
               </Button>
             </div>
              

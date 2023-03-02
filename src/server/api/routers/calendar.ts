@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import { Prisma } from "@prisma/client";
+import { Course, Prisma, ScheduleRevision } from "@prisma/client";
 import { prisma } from "src/server/db";
+
+import { flatten } from "lodash";
+
+import { createCourseSchema } from "src/server/api/routers/projects";
+import { courseSchema, ICourseSchema } from "src/validation/courses";
+import { cssTransition } from "react-toastify";
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -163,7 +169,7 @@ export const calendarRouter = createTRPCRouter({
               .reduce((sum, value) => {
                 return sum + value;
               }, 0);
-
+            console.log({ totalMeetings });
             //Query each course to the guidelines course model
             const result = await ctx.prisma.guidelinesCourses.count({
               where: {
@@ -205,15 +211,16 @@ export const calendarRouter = createTRPCRouter({
                       every: {
                         //Grabs the times from each location associated with the course
                         //Uncomment once merged and database CourseLocation has times as Ints
-                        // AND:[
-                        //   ...course.locations.map((location) =>{
-                        //     return {
-                        //       start_time: location.start_time,
-                        //       end_time: location.end_time,}
-                        //   })
-                        // ],
-                        start_time: course.start_time,
-                        end_time: course.end_time,
+                        AND: [
+                          ...course.locations.map((location) => {
+                            return {
+                              start_time: location.start_time,
+                              end_time: location.end_time,
+                            };
+                          }),
+                        ],
+                        // start_time: course.start_time,
+                        // end_time: course.end_time,
                       },
                     },
                   },
@@ -317,6 +324,293 @@ export const calendarRouter = createTRPCRouter({
       });
 
       return allCourses;
+    }),
+
+  /**
+   * getSemesters
+   * Get the semester based on the revision
+   * @author Brendan Fuller
+   */
+  getSemestersByRevision: protectedProcedure
+    .input(
+      z.object({
+        revision: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      //Get each semester count
+      const [sp, fa, wi, su] = await ctx.prisma.$transaction([
+        //Spring
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_spring: true,
+          },
+        }),
+        //Fall
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_fall: true,
+          },
+        }),
+        //Winter
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_winter: true,
+          },
+        }),
+        //Summer
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_summer: true,
+          },
+        }),
+      ]);
+      //Temp list of possible semesters for this current revision
+      const semesters: ITab[] = [];
+
+      if (fa > 0) {
+        //Add fall to this list for the current revision
+        semesters.push({
+          title: "Fall",
+          semester: "FA",
+          revision: input.revision,
+        });
+      }
+      if (wi > 0) {
+        //Add winter to this list for the current revision
+        semesters.push({
+          title: "Winter",
+          semester: "WI",
+          revision: input.revision,
+        });
+      }
+      if (sp > 0) {
+        //Add spring to this list for the current revision
+        semesters.push({
+          title: "Spring",
+          semester: "SP",
+          revision: input.revision,
+        });
+      }
+      if (su > 0) {
+        //Add summer to the list for the current revision
+        semesters.push({
+          title: "Summer",
+          semester: "SU",
+          revision: input.revision,
+        });
+      }
+      return semesters;
+    }),
+  /**
+   * Get Semesters
+   *
+   * Get a list of revision and every semeseter possible for said, for
+   * fall, winter, spring, and summer
+   * @author Brendan Fuller
+   */
+  getSemesters: protectedProcedure.query(async ({ ctx, input }) => {
+    //Get the list of revision by the current user
+    const schedules = await ctx.prisma.scheduleRevision.findMany({
+      where: {
+        creator_tuid: ctx.session.user.id,
+      },
+      //Make sure to include the courses
+      include: {
+        courses: true,
+      },
+    });
+
+    /**
+     * Geneates the information regarding a revision
+     * for use with the select input on the frontend
+     * @param valid
+     * @param revision
+     * @param semester
+     * @returns
+     */
+    const generateSelectRevisionInformation = (
+      valid: boolean,
+      revision: ScheduleRevision & {
+        courses: Course[];
+      },
+      semester: string
+    ) => {
+      //Are we valid? If so created the object, if not make it empty
+      return valid
+        ? ({
+            label: revision.name + " " + semester,
+            value: {
+              semester,
+              revision: revision.tuid,
+              title: revision.name + " " + semester,
+            },
+          } as IRevisionSelect)
+        : {};
+    };
+
+    //Loop all of the revisions
+    const data = schedules.map((revision) => {
+      //State if we have a semesters
+      const semesters = {
+        fall: false,
+        winter: false,
+        spring: false,
+        summer: false,
+      };
+
+      //Loop all courses and set that state to true depending on if a
+      //semester does occur
+      for (const index in revision.courses) {
+        const course = revision.courses[index];
+        if (course?.semester_fall) semesters.fall = true;
+        if (course?.semester_winter) semesters.winter = true;
+        if (course?.semester_spring) semesters.spring = true;
+        if (course?.semester_summer) semesters.summer = true;
+      }
+
+      //Create the list of possible ones
+      const listOfPossbileSemesters = [
+        generateSelectRevisionInformation(semesters.fall, revision, "FA"),
+        generateSelectRevisionInformation(semesters.winter, revision, "WI"),
+        generateSelectRevisionInformation(semesters.spring, revision, "SP"),
+        generateSelectRevisionInformation(semesters.summer, revision, "SU"),
+      ];
+
+      //Remove the empty semesters and force the type to be an array of Revisions
+      const revisionWithSemesters = listOfPossbileSemesters.filter((ele) => {
+        return ele.constructor === Object && Object.keys(ele).length > 0;
+      }) as IRevisionSelect[];
+
+      //Return that
+      return revisionWithSemesters;
+    });
+
+    //Now we flatten that so we don't have a 2D array but now a 1D array
+    return flatten(data);
+  }),
+
+  //This will add a new course to a revision in the add course box
+  addNewRevisonCourse: protectedProcedure
+    .input(
+      z.object({
+        //Input comes in as a revision tuid and a courseSchema variable
+        tuid: z.string(),
+        course: courseSchema,
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      //
+
+      if (parseCourseData(input)) {
+        //If parse was successful then...
+        const createNewCourse = await ctx.prisma.course.create(
+          //Create a new course in course table
+          createCourseSchema(input.course as any, input.tuid as any) //Calls the course creation schema and passes in course and tuid as any
+          //There was an issue with the typing as it was passed in so these parameters are casted to type 'any'
+        );
+
+        await ctx.prisma.scheduleRevision.update({
+          //Performs an update on the scheduleRevision table
+          where: {
+            //Where the tuid is equal to the tuid passed in for the revision
+            tuid: input.tuid,
+          },
+          data: {
+            courses: {
+              //Updates the courses relation by connecting the newly created course to said revision
+              connect: [createNewCourse],
+            },
+          },
+        });
+      }
+    }),
+
+  updateRevisionCourse: protectedProcedure
+    .input(courseSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (parseCourseData(input)) {
+        const deleteFaculty =
+          await ctx.prisma.guidelinesFacultyToCourse.deleteMany({
+            where: {
+              course_tuid: input.tuid,
+            },
+          });
+
+        const deleteNotes = await ctx.prisma.courseNote.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        });
+
+        const deleteLocations = await ctx.prisma.courseLocation.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        });
+
+        const faculty = input.faculty?.map((item, index) => ({
+          where: {
+            tuid: item.faculty_tuid,
+          },
+          create: {},
+        }));
+        const notes = input.notes?.map((item, index) => ({
+          where: {
+            tuid: item.tuid,
+          },
+          create: {},
+        }));
+
+        // const locations = input.locations?.map((item, index) => ({
+        //   where: {
+        //     tuid: item.tuid,
+        //   },
+        //   create: {},
+        // }));
+
+        const updatedCourse = await ctx.prisma.course.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            type: input.type,
+            section_id: input.section_id,
+            revision_tuid: input.revision_tuid,
+            term: input.term,
+            semester_summer: input.semester_summer,
+            semester_fall: input.semester_fall,
+            semester_winter: input.semester_winter,
+            semester_spring: input.semester_spring,
+            div: input.div,
+            department: input.department,
+            subject: input.subject,
+            course_number: input.course_number,
+            section: input.course_number,
+            start_date: input.start_date,
+            end_date: input.end_date,
+            credits: input.credits,
+            title: input.title,
+            status: input.status,
+            instruction_method: input.instruction_method,
+            capacity: input.capacity,
+            original_state: input.original_state,
+            state: "MODIFIED",
+          },
+        });
+      }
     }),
 });
 
@@ -438,4 +732,34 @@ async function queryCoursesByDay(
     });
 
   return coursesByDay;
+}
+
+/**
+ * Tab Interface
+ * The interface
+ */
+export interface ITab {
+  title: string;
+  semester: "FA" | "WI" | "SP" | "SU";
+  revision: string;
+}
+
+export interface IRevisionSelect {
+  value: ITab;
+  label: string;
+}
+
+function parseCourseData(input: ICourseSchema) {
+  let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
+  if (input != undefined) {
+    //Checks to see if the input course is undefined
+    const isSafe = courseSchema.safeParse(input); //If it is, conducts a safeParse on the input and stores the object of the parse
+
+    if (!isSafe.success) {
+      //Checks if the provided input is safe based on the return of the parse
+      isSuccess = false; //If not, then isSuccess is set to false
+      console.log(isSafe.error); //And error is printed to console
+    }
+    return isSuccess;
+  }
 }

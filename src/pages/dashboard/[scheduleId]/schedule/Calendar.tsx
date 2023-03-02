@@ -3,6 +3,7 @@ import { difference } from "lodash";
 import React, { useEffect, useState } from "react";
 import { Button } from "react-daisyui";
 import { start } from "repl";
+import AnimatedSpinner from "src/components/AnimatedSpinner";
 import {
   IScheduleCourse,
   RevisionWithCourses,
@@ -11,9 +12,10 @@ import { api } from "src/utils/api";
 import { number } from "zod";
 
 interface CourseListingProps {
-  courses: IScheduleCourse[] | undefined;
+  courses: (IScheduleCourse & { withinGuideline: boolean })[] | undefined;
   overlap?: boolean;
   setCourseHover: (value: IScheduleCourseWithTimes | null) => void;
+  onSelect: (value: string) => void;
   hover: IScheduleCourseWithTimes | null;
 }
 
@@ -50,6 +52,7 @@ export type IScheduleCourseWithTimes = IScheduleCourse & {
   startTime: number;
   endTime: number;
   difference: number;
+  withinGuideline: boolean;
 };
 
 interface ICalendarMapping {
@@ -216,12 +219,14 @@ const CourseListing = ({
   overlap = true,
   setCourseHover,
   hover,
+  onSelect,
 }: CourseListingProps) => {
+  //Get the mapped version of the calendar from the list of courses
   const mapped = calendarMapping(courses!);
 
   return (
-    <div className="wrap relative flex  grow border-r border-base-300">
-      <div className="relative w-full grow basis-0  ">
+    <div className="wrap relative flex h-[900px]  grow border-r border-base-300">
+      <div className="relative w-full grow basis-0">
         {mapped.map((block, index) => {
           return (
             <div
@@ -240,27 +245,50 @@ const CourseListing = ({
                       style={{ height: (course.difference / 10) * 10 }}
                       onMouseEnter={() => setCourseHover(course)}
                       onMouseLeave={() => setCourseHover(null)}
+                      tabIndex={index}
+                      onClick={() => {
+                        onSelect(course.tuid);
+                      }}
                       className={classNames(
-                        "flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 p-2 transition-all duration-150 hover:z-[999] hover:shadow-lg",
+                        "z-[100]  flex w-32 cursor-pointer overflow-hidden  text-ellipsis rounded-lg border border-base-100  bg-base-200  transition-all duration-150 hover:z-[999] hover:shadow-lg",
                         {
                           "-ml-10": index > 0 && overlap,
 
-                          "z-[999] bg-base-300 shadow-lg":
+                          "z-[999] shadow-lg":
                             hover != null && hover.tuid == course.tuid,
+                          "bg-base-300":
+                            hover != null &&
+                            hover.tuid == course.tuid &&
+                            course.withinGuideline,
                           "mr-10":
                             hover != null &&
                             hover.tuid == course.tuid &&
                             block.courses.length - 1 != index,
                           "border-green-400": course.state == "ADDED",
+                          "bg-white": !course.withinGuideline,
                         }
                       )}
                     >
-                      <p style={{ fontSize: 12 }}>
-                        <p className="text-md font-bold">
-                          {course.subject} - {course.course_number}
-                        </p>{" "}
-                        {course.title}
-                      </p>
+                      <div
+                        className={classNames("h-full w-full p-2", {
+                          "bg-orange-400": !course.withinGuideline,
+                        })}
+                      >
+                        <p style={{ fontSize: 12 }}>
+                          <p className="text-md font-bold">
+                            {course.subject} - {course.course_number}
+                          </p>{" "}
+                          {course.title}
+                          {course.credits}
+                          {course.locations.map((loc, i) => {
+                            return (
+                              <div key={i}>
+                                {loc.start_time} {loc.end_time}
+                              </div>
+                            );
+                          })}
+                        </p>
+                      </div>
                     </div>
                   );
                 })}
@@ -268,20 +296,20 @@ const CourseListing = ({
             </div>
           );
         })}
-        {Array(16)
+        {Array(15)
           .fill(0)
           .map(function (x, i) {
             return (
               <div
                 key={i}
-                className="absolute z-0 w-full"
+                className="absolute w-full"
                 style={{
                   top: i * 60 + 34,
                   left: 0,
                 }}
               >
                 <div key={i} className="flex flex-row text-center">
-                  <div className=" flex  w-full items-center border-b border-base-300 bg-base-200  text-sm"></div>
+                  <div className="flex  w-full items-center border-b border-base-300 bg-base-200 text-sm"></div>
                 </div>
               </div>
             );
@@ -296,6 +324,7 @@ interface CalendarComponentProps {
   semester: "FA" | "WI" | "SP" | "SU";
   revision: string;
   weekends: boolean;
+  onSelect: (course: string) => void;
   onCourseHover: (course: IScheduleCourseWithTimes) => void;
 }
 
@@ -304,6 +333,7 @@ const ScheduleCalendar = ({
   semester,
   weekends = false,
   revision,
+  onSelect,
   onCourseHover,
 }: CalendarComponentProps) => {
   const [hover, setCourseHover] = useState<IScheduleCourseWithTimes | null>(
@@ -340,26 +370,80 @@ const ScheduleCalendar = ({
 
   return (
     <div className="h-full overflow-hidden">
-      <div className="flex border-b border-base-300">
-        <div className="w-[70px] grow">Time</div>
-        <div className="grow">Monday</div>
-        <div className="grow">Tuesday</div>
-        <div className="grow">Wednesday</div>
-        <div className="grow">Thursday</div>
-        <div className="grow">Friday</div>
-        {weekends && (
-          <>
-            <div className="grow">Saturday</div>
-            <div className="grow">Sunday</div>
-          </>
-        )}
+      <div className="flex h-7 flex-row justify-evenly">
+        <div className="relative flex w-[70px] border-r border-b border-base-300">
+          <div
+            className="absolute  "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Time
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute  "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Monday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Tuesday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Wednesday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b border-base-300">
+          <div
+            className="absolute"
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Thursday
+          </div>
+        </div>
+        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
+          <div
+            className="absolute "
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            Friday
+          </div>
+        </div>
       </div>
       <div className="flex h-full w-full overflow-y-scroll">
-        <div className="flex h-[750px] w-full flex-col">
+        <div className="flex h-[900px] w-full flex-col">
           {result.data != undefined && (
             <div className="flex h-full flex-row justify-evenly">
               <div className="wrap relative flex h-full w-[70px]  border-r border-base-300">
-                <div className="relative  grow basis-0  ">
+                <div className="relative grow basis-0  ">
                   {times.map(function (x, i) {
                     return (
                       <div
@@ -397,6 +481,7 @@ const ScheduleCalendar = ({
                 </div>
               </div>
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.monday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -405,6 +490,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.tuesday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -413,6 +499,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.wednesday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -421,6 +508,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.thursday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -429,6 +517,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.friday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -439,6 +528,7 @@ const ScheduleCalendar = ({
               {weekends && (
                 <>
                   <CourseListing
+                    onSelect={onSelect}
                     courses={result.data.saturday_courses}
                     setCourseHover={(course) => {
                       setCourseHover(course);
@@ -447,6 +537,7 @@ const ScheduleCalendar = ({
                     hover={hover}
                   />
                   <CourseListing
+                    onSelect={onSelect}
                     courses={result.data.sunday_courses}
                     setCourseHover={(course) => {
                       setCourseHover(course);
@@ -456,6 +547,12 @@ const ScheduleCalendar = ({
                   />
                 </>
               )}
+            </div>
+          )}
+          {result.data == undefined && (
+            <div className="flex h-[200px] w-full flex-col items-center justify-center">
+              <AnimatedSpinner />
+              <p>Loading...</p>
             </div>
           )}
         </div>

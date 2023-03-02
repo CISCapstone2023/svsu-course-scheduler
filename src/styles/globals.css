@@ -21,3 +21,8 @@ body {
   height: inherit;
   width: inherit;
 }
+
+.bg-checkerboard {
+  background: repeating-conic-gradient(#f0eaea 0% 25%, transparent 0% 50%) 50% /
+    20px 20px;
+}

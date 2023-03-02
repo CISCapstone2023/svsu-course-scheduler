@@ -23,7 +23,11 @@ export const reportRouter = createTRPCRouter({
           },
           distinct: ["name"],
           include: {
-            to_courses: true,
+            to_courses: {
+              include: {
+                course: true,
+              },
+            },
           },
         });
 
@@ -33,7 +37,11 @@ export const reportRouter = createTRPCRouter({
           where: {},
           distinct: ["name"],
           include: {
-            to_courses: true,
+            to_courses: {
+              include: {
+                course: true,
+              },
+            },
           },
         });
 

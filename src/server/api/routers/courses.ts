@@ -78,9 +78,11 @@ export const coursesRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      const AMOUNT_PER_PAGE = 10;
+
       let courseGuidelinesResult: CourseGuidelinesTimeAndDays[] = [];
       //Defines the query to find the guidelines based on the selected filters
-      courseGuidelinesResult = await ctx.prisma.guidelinesCourses.findMany({
+      const prismaQuery = {
         where: {
           AND: [
             {
@@ -88,22 +90,22 @@ export const coursesRouter = createTRPCRouter({
                 //An OR statement using ternary operators to check if the condition is true.
                 input.semester_summer //If true, then the where is set to the input from the user, otherwise do nothing
                   ? {
-                      semester_summer: input.semester_summer,
+                      semester_summer: true,
                     }
                   : {},
                 input.semester_fall
                   ? {
-                      semester_fall: input.semester_fall,
+                      semester_fall: true,
                     }
                   : {},
                 input.semester_winter
                   ? {
-                      semester_winter: input.semester_winter,
+                      semester_winter: true,
                     }
                   : {},
                 input.semester_spring
                   ? {
-                      semester_spring: input.semester_spring,
+                      semester_spring: true,
                     }
                   : {},
               ],
@@ -167,6 +169,13 @@ export const coursesRouter = createTRPCRouter({
                           },
                         }
                       : {},
+                    input.days.friday
+                      ? {
+                          day_friday: {
+                            equals: input.days.friday,
+                          },
+                        }
+                      : {},
                   ],
                 },
               },
@@ -190,18 +199,18 @@ export const coursesRouter = createTRPCRouter({
             },
           ],
         },
-
-        //Takes 10 results and skips to the next 10
-        take: 10,
-        skip: (input.page - 1) * 10,
-
         //Tells the schema to include the days and times relatons
         include: {
           days: true,
           times: true,
         },
+      };
+      courseGuidelinesResult = await ctx.prisma.guidelinesCourses.findMany({
+        ...prismaQuery,
+        //Takes 10 results and skips to the next 10
+        take: AMOUNT_PER_PAGE,
+        skip: (input.page - 1) * AMOUNT_PER_PAGE,
       });
-
       const militaryToSplit = (time: number) => {
         //initializes hour variable to parse integer time numbers
         const hour = parseInt(
@@ -256,10 +265,19 @@ export const coursesRouter = createTRPCRouter({
           })),
         };
       });
+
+      //Total pages based on length of the results divided by AMOUNT_PER_PAGE constant.
+
+      const facultyCount = await ctx.prisma.guidelinesCourses.findMany({
+        ...prismaQuery,
+      });
+
+      const totalPages = Math.ceil(facultyCount.length / AMOUNT_PER_PAGE);
+      console.log({ totalPages, l: courseGuidelinesResult.length });
       return {
         result: values,
         page: input.page,
-        totalPages: courseGuidelinesResult.length,
+        totalPages,
       };
     }),
 

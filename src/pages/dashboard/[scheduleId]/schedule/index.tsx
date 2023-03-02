@@ -227,33 +227,36 @@ export default Scheduler;
  *
  */
 
-export const getServerSideProps = routeNeedsAuthSession(async ({ query }) => {
-  const scheduleId = query.scheduleId || "";
+export const getServerSideProps = routeNeedsAuthSession(
+  async ({ query }, session) => {
+    const scheduleId = query.scheduleId || "";
+    console.log({ scheduleId });
+    if (typeof scheduleId === "string") {
+      const hasRevision =
+        (await prisma.scheduleRevision.count({
+          where: {
+            tuid: query.scheduleId as string,
+            creator_tuid: session?.user?.id,
+          },
+        })) == 1;
 
-  if (typeof scheduleId === "string") {
-    const hasRevision =
-      (await prisma.scheduleRevision.count({
-        where: {
-          tuid: query.scheduleId as string,
-        },
-      })) == 1;
-
-    if (false) {
-      return {
-        redirect: {
-          destination: "/projects", //Path to the Login Screen
-          permanent: false,
-        },
-      };
+      if (!hasRevision) {
+        return {
+          redirect: {
+            destination: "/projects", //Path to the Login Screen
+            permanent: false,
+          },
+        };
+      }
     }
-  }
 
-  //NOTE: Passing the entire session to the NextPage will error,
-  //which is likely due to undefined values.
-  //Ideally just hook with "useSession" in the page
-  return {
-    props: {
-      scheduleId,
-    },
-  };
-});
+    //NOTE: Passing the entire session to the NextPage will error,
+    //which is likely due to undefined values.
+    //Ideally just hook with "useSession" in the page
+    return {
+      props: {
+        scheduleId,
+      },
+    };
+  }
+);

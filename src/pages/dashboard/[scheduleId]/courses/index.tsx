@@ -22,7 +22,7 @@ const Buildings: NextPage = () => {
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
-        <DashboardContentHeader title="Courses" />
+        <DashboardContentHeader title="Course Guidelines" />
         <div className="container mx-auto px-4">
           <Courses />
         </div>

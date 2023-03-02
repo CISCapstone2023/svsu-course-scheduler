@@ -139,7 +139,7 @@ export const projectsRouter = createTRPCRouter({
         //Parse the excel file from the database
         //TODO: Make sure this doesn't error out. NOTE: This should be check in the uploadExcel api ideally.
         const results = xlsx.parse(revision?.file);
-
+        console.log(results[0]?.data);
         //Check if we have the sheet from the file
         if (results[0] != undefined) {
           const sheet = results[0];
@@ -156,12 +156,15 @@ export const projectsRouter = createTRPCRouter({
           let errors: z.ZodError;
           for (const row of formattedColumns) {
             if (row != undefined) {
-              const result = courseSchema.safeParse(row);
+              const result = await courseSchema.safeParseAsync(row, {
+                errorMap: excelErrorMap,
+              });
+
               //console.log({ result, row, json: JSON.stringify(row) });
               if (result.success == false) {
                 valid = false;
                 errors = result.error;
-                console.log(errors);
+                return { success: false, errors: errors.format() };
                 break;
               }
             }
@@ -171,7 +174,7 @@ export const projectsRouter = createTRPCRouter({
       }
       //Do we have a search query
 
-      return verifyColumns;
+      return { success: verifyColumns, errors: [] };
     }),
   createScheduleRevision: protectedProcedure
     .input(createRevisionOnboarding)
@@ -192,7 +195,7 @@ export const projectsRouter = createTRPCRouter({
         //Parse the excel file from the database
         //TODO: Make sure this doesn't error out. NOTE: This should be check in the uploadExcel api ideally.
         const results = xlsx.parse(revision?.file);
-
+        console.log(results);
         //Check if we have the sheet from the file
         if (results[0] != undefined) {
           const sheet = results[0];
@@ -212,12 +215,12 @@ export const projectsRouter = createTRPCRouter({
           for (const row of formattedColumns) {
             console.log(row);
             if (row != undefined) {
-              const result = courseSchema.safeParse(row);
+              const result = await courseSchema.safeParseAsync(row);
               //console.log({ result, row, json: JSON.stringify(row) });
               if (result.success == false) {
                 valid = false;
                 errors = result.error;
-                break;
+                return { success: false, errors: ["Somthing went wrong..."] };
               }
             }
           }
@@ -272,7 +275,28 @@ interface InvertedObject {
   [key: string]: string;
 }
 
-const createCourseSchema = (
+const excelErrorMap: z.ZodErrorMap = (error, ctx) => {
+  /*
+  This is where you override the various error codes
+  */
+  switch (error.code) {
+    case z.ZodIssueCode.custom:
+      // produce a custom message using error.params
+      // error.params won't be set unless you passed
+      // a `params` arguments into a custom validator
+      const params = error.params || {};
+      console.log("Custom error?");
+      if (params.myField) {
+        return { message: `Bad input: ${params.myField}` };
+      }
+      break;
+  }
+
+  // fall back to default message!
+  return { message: ctx.defaultError };
+};
+
+export const createCourseSchema = (
   row: Required<ICourseSchema>,
   input: { tuid: string }
 ) => {
@@ -396,19 +420,24 @@ const invertedNestedOrganizedColumns = async (
    * Converts the columns from the inverted key: value to value: key
    * based on the rows provided by the client as a lookup table
    */
-  const invertedOrganizedColumns = columns.splice(1).map(
-    (c) =>
-      //Reduce each row by adding a new key to each row
-      c.reduce(
-        (obj, item, index) => ({
-          ...obj,
-          //get the name of the key and set it to the value of the item
-          [getIndexFromOrganizedColumns(index)]: `${item}`,
-        }),
-        {}
-      )
-    //make sure the type of this is defined
-  ) as IProjectOrganizedColumnRow[];
+  const invertedOrganizedColumns = columns
+    .splice(1)
+    .map(
+      (c) =>
+        //Reduce each row by adding a new key to each row
+        c.reduce(
+          (obj, item, index) => ({
+            ...obj,
+            //get the name of the key and set it to the value of the item
+            [getIndexFromOrganizedColumns(index)]: `${item}`,
+          }),
+          {}
+        )
+      //make sure the type of this is defined
+    )
+    .filter((ele) => {
+      return ele.constructor === Object && Object.keys(ele).length > 0;
+    }) as IProjectOrganizedColumnRow[];
 
   console.log(JSON.stringify(invertedOrganizedColumns));
 
@@ -595,7 +624,10 @@ const invertedNestedOrganizedColumns = async (
                   ? [
                       {
                         room: updatedRoom[index],
-                        building_tuid: buildingResult?.tuid,
+                        building_tuid:
+                          buildingResult?.tuid != undefined
+                            ? buildingResult?.tuid
+                            : item,
                       },
                     ]
                   : []),
@@ -633,7 +665,10 @@ const invertedNestedOrganizedColumns = async (
             });
             //That's it, faculty member has been check. Will be null if can't be found and the validation doesn't allow it.
             return {
-              faculty_tuid: resultFaculty?.tuid,
+              faculty_tuid:
+                resultFaculty?.tuid != undefined
+                  ? resultFaculty?.tuid
+                  : faculty,
             };
           })
         );

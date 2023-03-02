@@ -450,7 +450,7 @@ const Projects: NextPage = () => {
                   let offSetTime =
                     (current.valueOf() - updatedAt.valueOf()) / 1000;
 
-                  if (offSetTime === 0) return "Now";
+                  if (offSetTime === 0) return "Just Now";
                   else if (offSetTime < 60)
                     return Math.trunc(offSetTime) + " seconds ago";
                   else if (offSetTime >= 60 && offSetTime < 3600) {

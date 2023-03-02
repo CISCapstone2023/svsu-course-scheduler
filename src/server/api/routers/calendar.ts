@@ -2,7 +2,13 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { Course, Prisma, ScheduleRevision } from "@prisma/client";
 import { prisma } from "src/server/db";
+
 import { flatten } from "lodash";
+
+import { createCourseSchema } from "src/server/api/routers/projects";
+import { courseSchema, ICourseSchema } from "src/validation/courses";
+import { cssTransition } from "react-toastify";
+
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -320,6 +326,7 @@ export const calendarRouter = createTRPCRouter({
       return allCourses;
     }),
 
+
   /**
    * getSemesters
    * Get the semester based on the revision
@@ -495,6 +502,117 @@ export const calendarRouter = createTRPCRouter({
     //Now we flatten that so we don't have a 2D array but now a 1D array
     return flatten(data);
   }),
+
+  //This will add a new course to a revision in the add course box
+  addNewRevisonCourse: protectedProcedure
+    .input(
+      z.object({
+        //Input comes in as a revision tuid and a courseSchema variable
+        tuid: z.string(),
+        course: courseSchema,
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      //
+
+      if (parseCourseData(input)) {
+        //If parse was successful then...
+        const createNewCourse = await ctx.prisma.course.create(
+          //Create a new course in course table
+          createCourseSchema(input.course as any, input.tuid as any) //Calls the course creation schema and passes in course and tuid as any
+          //There was an issue with the typing as it was passed in so these parameters are casted to type 'any'
+        );
+
+        await ctx.prisma.scheduleRevision.update({
+          //Performs an update on the scheduleRevision table
+          where: {
+            //Where the tuid is equal to the tuid passed in for the revision
+            tuid: input.tuid,
+          },
+          data: {
+            courses: {
+              //Updates the courses relation by connecting the newly created course to said revision
+              connect: [createNewCourse],
+            },
+          },
+        });
+      }
+    }),
+
+  updateRevisionCourse: protectedProcedure
+    .input(courseSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (parseCourseData(input)) {
+        const deleteFaculty =
+          await ctx.prisma.guidelinesFacultyToCourse.deleteMany({
+            where: {
+              course_tuid: input.tuid,
+            },
+          });
+
+        const deleteNotes = await ctx.prisma.courseNote.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        });
+
+        const deleteLocations = await ctx.prisma.courseLocation.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        });
+
+        const faculty = input.faculty?.map((item, index) => ({
+          where: {
+            tuid: item.faculty_tuid,
+          },
+          create: {},
+        }));
+        const notes = input.notes?.map((item, index) => ({
+          where: {
+            tuid: item.tuid,
+          },
+          create: {},
+        }));
+
+        // const locations = input.locations?.map((item, index) => ({
+        //   where: {
+        //     tuid: item.tuid,
+        //   },
+        //   create: {},
+        // }));
+
+        const updatedCourse = await ctx.prisma.course.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            type: input.type,
+            section_id: input.section_id,
+            revision_tuid: input.revision_tuid,
+            term: input.term,
+            semester_summer: input.semester_summer,
+            semester_fall: input.semester_fall,
+            semester_winter: input.semester_winter,
+            semester_spring: input.semester_spring,
+            div: input.div,
+            department: input.department,
+            subject: input.subject,
+            course_number: input.course_number,
+            section: input.course_number,
+            start_date: input.start_date,
+            end_date: input.end_date,
+            credits: input.credits,
+            title: input.title,
+            status: input.status,
+            instruction_method: input.instruction_method,
+            capacity: input.capacity,
+            original_state: input.original_state,
+            state: "MODIFIED",
+          },
+        });
+      }
+    }),
 });
 
 // Methods --------------------------------------------------------------------------------------------------------
@@ -617,6 +735,7 @@ async function queryCoursesByDay(
   return coursesByDay;
 }
 
+
 /**
  * Tab Interface
  * The interface
@@ -630,4 +749,18 @@ export interface ITab {
 export interface IRevisionSelect {
   value: ITab;
   label: string;
+
+function parseCourseData(input: ICourseSchema) {
+  let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
+  if (input != undefined) {
+    //Checks to see if the input course is undefined
+    const isSafe = courseSchema.safeParse(input); //If it is, conducts a safeParse on the input and stores the object of the parse
+
+    if (!isSafe.success) {
+      //Checks if the provided input is safe based on the return of the parse
+      isSuccess = false; //If not, then isSuccess is set to false
+      console.log(isSafe.error); //And error is printed to console
+    }
+    return isSuccess;
+  }
 }

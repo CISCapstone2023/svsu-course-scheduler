@@ -20,6 +20,8 @@ export const updateCampusSchema = createCampusSchema.extend({
   tuid: z.string(),
 });
 
+//const buildingRegex =
+//Regex needs to be built for string validation using .regex
 export const createBuildingSchema = z.object({
   campus_tuid: z.string().cuid({ message: "A valid campus must be selected." }),
   name: z

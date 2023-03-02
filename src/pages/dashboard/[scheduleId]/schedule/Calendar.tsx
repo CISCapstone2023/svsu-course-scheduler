@@ -3,6 +3,7 @@ import { difference } from "lodash";
 import React, { useEffect, useState } from "react";
 import { Button } from "react-daisyui";
 import { start } from "repl";
+import AnimatedSpinner from "src/components/AnimatedSpinner";
 import {
   IScheduleCourse,
   RevisionWithCourses,
@@ -11,9 +12,10 @@ import { api } from "src/utils/api";
 import { number } from "zod";
 
 interface CourseListingProps {
-  courses: IScheduleCourse[] | undefined;
+  courses: (IScheduleCourse & { withinGuideline: boolean })[] | undefined;
   overlap?: boolean;
   setCourseHover: (value: IScheduleCourseWithTimes | null) => void;
+  onSelect: (value: string) => void;
   hover: IScheduleCourseWithTimes | null;
 }
 
@@ -50,6 +52,7 @@ export type IScheduleCourseWithTimes = IScheduleCourse & {
   startTime: number;
   endTime: number;
   difference: number;
+  withinGuideline: boolean;
 };
 
 interface ICalendarMapping {
@@ -216,7 +219,9 @@ const CourseListing = ({
   overlap = true,
   setCourseHover,
   hover,
+  onSelect,
 }: CourseListingProps) => {
+  //Get the mapped version of the calendar from the list of courses
   const mapped = calendarMapping(courses!);
 
   return (
@@ -240,6 +245,10 @@ const CourseListing = ({
                       style={{ height: (course.difference / 10) * 10 }}
                       onMouseEnter={() => setCourseHover(course)}
                       onMouseLeave={() => setCourseHover(null)}
+                      tabIndex={index}
+                      onClick={() => {
+                        onSelect(course.tuid);
+                      }}
                       className={classNames(
                         "flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 p-2 transition-all duration-150 hover:z-[999] hover:shadow-lg",
                         {
@@ -252,6 +261,7 @@ const CourseListing = ({
                             hover.tuid == course.tuid &&
                             block.courses.length - 1 != index,
                           "border-green-400": course.state == "ADDED",
+                          "bg-checkerboard ": !course.withinGuideline,
                         }
                       )}
                     >
@@ -296,6 +306,7 @@ interface CalendarComponentProps {
   semester: "FA" | "WI" | "SP" | "SU";
   revision: string;
   weekends: boolean;
+  onSelect: (course: string) => void;
   onCourseHover: (course: IScheduleCourseWithTimes) => void;
 }
 
@@ -304,6 +315,7 @@ const ScheduleCalendar = ({
   semester,
   weekends = false,
   revision,
+  onSelect,
   onCourseHover,
 }: CalendarComponentProps) => {
   const [hover, setCourseHover] = useState<IScheduleCourseWithTimes | null>(
@@ -451,6 +463,7 @@ const ScheduleCalendar = ({
                 </div>
               </div>
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.monday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -459,6 +472,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.tuesday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -467,6 +481,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.wednesday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -475,6 +490,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.thursday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -483,6 +499,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                onSelect={onSelect}
                 courses={result.data.friday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
@@ -493,6 +510,7 @@ const ScheduleCalendar = ({
               {weekends && (
                 <>
                   <CourseListing
+                    onSelect={onSelect}
                     courses={result.data.saturday_courses}
                     setCourseHover={(course) => {
                       setCourseHover(course);
@@ -501,6 +519,7 @@ const ScheduleCalendar = ({
                     hover={hover}
                   />
                   <CourseListing
+                    onSelect={onSelect}
                     courses={result.data.sunday_courses}
                     setCourseHover={(course) => {
                       setCourseHover(course);
@@ -510,6 +529,12 @@ const ScheduleCalendar = ({
                   />
                 </>
               )}
+            </div>
+          )}
+          {result.data == undefined && (
+            <div className="flex h-[200px] w-full flex-col items-center justify-center">
+              <AnimatedSpinner />
+              <p>Loading...</p>
             </div>
           )}
         </div>

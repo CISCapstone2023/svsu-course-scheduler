@@ -7,6 +7,7 @@ import {
   addGuidelineSchema,
   addNewRevisionCourse,
 } from "src/validation/courses";
+import { cssTransition } from "react-toastify";
 
 //Imports course guidelines schema with days and times
 const courseGuidelinesTD = Prisma.validator<Prisma.GuidelinesCoursesArgs>()({
@@ -478,22 +479,5 @@ export const coursesRouter = createTRPCRouter({
         });
         return true;
       }
-    }),
-
-  addNewRevisionCourse: protectedProcedure
-    .input(addNewRevisionCourse)
-    .mutation(async ({ ctx, input }) => {
-      const courseCreation = await ctx.prisma.scheduleRevision.update({
-        where: {
-          tuid: input.tuid,
-        },
-        data: {
-          courses: {
-            // create: {
-            //   type: input.course.type,
-            // },
-          },
-        },
-      });
     }),
 });

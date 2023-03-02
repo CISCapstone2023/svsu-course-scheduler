@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import { Prisma } from "@prisma/client";
+import { Course, Prisma, ScheduleRevision } from "@prisma/client";
 import { prisma } from "src/server/db";
+import { flatten } from "lodash";
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -318,6 +319,147 @@ export const calendarRouter = createTRPCRouter({
 
       return allCourses;
     }),
+
+  /**
+   * getSemesters - Get the semester based on the revision
+   */
+  getSemestersByRevision: protectedProcedure
+    .input(
+      z.object({
+        revision: z.string(),
+      })
+    )
+    //Query
+    .query(async ({ ctx, input }) => {
+      //Get each semester count
+      const [sp, fa, wi, su] = await ctx.prisma.$transaction([
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_spring: true,
+          },
+        }),
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_fall: true,
+          },
+        }),
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_winter: true,
+          },
+        }),
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_summer: true,
+          },
+        }),
+      ]);
+      //Temp list of possible semesters for this current revision
+      const semesters: ITab[] = [];
+
+      if (fa > 0) {
+        //Add fall to this list for the current revision
+        semesters.push({
+          title: "Fall",
+          semester: "FA",
+          revision: input.revision,
+        });
+      }
+      if (wi > 0) {
+        //Add winter to this list for the current revision
+        semesters.push({
+          title: "Winter",
+          semester: "WI",
+          revision: input.revision,
+        });
+      }
+      if (sp > 0) {
+        //Add spring to this list for the current revision
+        semesters.push({
+          title: "Spring",
+          semester: "SP",
+          revision: input.revision,
+        });
+      }
+      if (su > 0) {
+        //Add summer to the list for the current revision
+        semesters.push({
+          title: "Summer",
+          semester: "SU",
+          revision: input.revision,
+        });
+      }
+      return semesters;
+    }),
+  getSemesters: protectedProcedure.query(async ({ ctx, input }) => {
+    const schedules = await ctx.prisma.scheduleRevision.findMany({
+      where: {
+        creator_tuid: ctx.session.user.id,
+      },
+      include: {
+        courses: true,
+      },
+    });
+    const data = schedules.map((revision) => {
+      const semesters = {
+        fall: false,
+        winter: false,
+        spring: false,
+        summer: false,
+      };
+
+      for (const index in revision.courses) {
+        const course = revision.courses[index];
+        if (course?.semester_fall) semesters.fall = true;
+        if (course?.semester_winter) semesters.winter = true;
+        if (course?.semester_spring) semesters.spring = true;
+        if (course?.semester_summer) semesters.summer = true;
+      }
+
+      const getType = (
+        valid: boolean,
+        revision: ScheduleRevision & {
+          courses: Course[];
+        },
+        semester: string
+      ) => {
+        return valid
+          ? ({
+              label: revision.name + " " + semester,
+              value: {
+                semester,
+                revision: revision.tuid,
+                title: revision.name + " " + semester,
+              },
+            } as IRevisionSelect)
+          : {};
+      };
+
+      const out = [
+        getType(semesters.fall, revision, "FA"),
+        getType(semesters.winter, revision, "WI"),
+        getType(semesters.spring, revision, "SP"),
+        getType(semesters.summer, revision, "SU"),
+      ];
+
+      return out.filter((ele) => {
+        return ele.constructor === Object && Object.keys(ele).length > 0;
+      });
+    });
+    return flatten(data);
+  }),
 });
 
 // Methods --------------------------------------------------------------------------------------------------------
@@ -438,4 +580,19 @@ async function queryCoursesByDay(
     });
 
   return coursesByDay;
+}
+
+/**
+ * Tab Interface
+ * The interface
+ */
+export interface ITab {
+  title: string;
+  semester: "FA" | "WI" | "SP" | "SU";
+  revision: string;
+}
+
+export interface IRevisionSelect {
+  value: ITab;
+  label: string;
 }

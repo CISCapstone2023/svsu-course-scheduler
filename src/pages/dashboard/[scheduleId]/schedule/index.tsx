@@ -1,45 +1,26 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { routeNeedsAuthSession } from "src/server/auth";
 import { useState } from "react";
+import { InfoCircle } from "tabler-icons-react";
+import { Button } from "react-daisyui";
+import Select from "react-select";
+
+import { prisma } from "src/server/db";
+import { routeNeedsAuthSession } from "src/server/auth";
+import { api } from "src/utils/api";
 
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
-import ScheduleCalendar, {
-  IScheduleCourseWithTimes,
-} from "./CalendarComponent";
-import { InfoCircle } from "tabler-icons-react";
-import { Button } from "react-daisyui";
+import AnimatedSpinner from "src/components/AnimatedSpinner";
+import { Tabs } from "./Tabs";
 
-import { prisma } from "src/server/db";
-
-interface Tab {
-  name: string;
-  revision: string;
-}
-
-interface TabProps {
-  children?: React.ReactNode;
-}
-
-const Tab = () => {
-  return (
-    <div className="h-50 flex grow cursor-pointer items-center justify-center border-r-2 bg-base-100 text-center hover:bg-base-200">
-      <p>Winter</p>
-    </div>
-  );
-};
-
-const Tabs = ({}: TabProps) => {
-  return (
-    <div className="flex w-full border-spacing-1 border-2 border-x">
-      <Tab />
-      <Tab />
-    </div>
-  );
-};
+import ScheduleCalendar, { type IScheduleCourseWithTimes } from "./Calendar";
+import {
+  type IRevisionSelect,
+  type ITab,
+} from "src/server/api/routers/calendar";
 
 interface ScheduleCalendar {
   scheduleId: string;
@@ -59,13 +40,50 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
    * Tabs
    * Keep the state of the current tab
    */
-  const [tabValue, setTabValue] = useState(0);
+  const [currentSemesterTabs, setCurrentSemesterTabValue] = useState(0);
+  const currentRevisionSemesters = api.calendar.getSemestersByRevision.useQuery(
+    {
+      revision: scheduleId,
+    }
+  );
 
+  const revisionList = api.calendar.getSemesters.useQuery();
+
+  const [currentReivisionTab, setCurrentRevisionTab] = useState(0);
+  const [revisionTabs, setSchedueleTab] = useState<ITab[]>([]);
+
+  // useEffect(() => {
+  //   setCurrentRevisionTab(revisionTabs.length - 1);
+  // }, [revisionTabs]);
+
+  /**
+   * Add a schedule for a revision on the list of revision tabs
+   * @param tab
+   */
+  const addSchedule = (tab: ITab) => {
+    setSchedueleTab([...revisionTabs, tab]);
+  };
+
+  /**
+   *
+   * @param index
+   */
+  const removeSchedule = (index: number) => {
+    setSchedueleTab(revisionTabs.splice(index, 1));
+  };
+
+  /**
+   * Last Hovered Course
+   * Sets the last hovered course to this value. Used for
+   * passing down hover events to the calendars to sync
+   */
   const [lastHovered, setLastHoveredCourse] =
     useState<IScheduleCourseWithTimes | null>();
 
   const [courseInformationSidebar, toggleCourseInformationSidebar] =
     useState<boolean>(false);
+
+  const [selectedRevision, setSelectRevision] = useState<IRevisionSelect>();
 
   return (
     <DashboardLayout>
@@ -83,20 +101,86 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               <InfoCircle />
             </Button>
           </DashboardContentHeader>
-          <Tabs />
-          <ScheduleCalendar
-            semester="WI"
-            revision={scheduleId}
-            weekends={false}
-            onCourseHover={setLastHoveredCourse}
-          />
-          <Tabs />
-          <ScheduleCalendar
-            semester="SU"
-            revision=""
-            weekends={false}
-            onCourseHover={setLastHoveredCourse}
-          />
+          {currentRevisionSemesters.data != undefined && (
+            <>
+              <Tabs
+                tabs={currentRevisionSemesters.data}
+                active={currentSemesterTabs}
+                onSelect={(tab) => {
+                  console.log(tab);
+                  setCurrentSemesterTabValue(tab);
+                }}
+              />
+              <ScheduleCalendar
+                onSelect={(value) => {
+                  console.log(value);
+                }}
+                semester={
+                  currentRevisionSemesters.data[currentSemesterTabs]!.semester
+                }
+                revision={scheduleId}
+                weekends={false}
+                onCourseHover={setLastHoveredCourse}
+              />
+            </>
+          )}
+          {/* Animated Spinner for making sure the application will load correctly */}
+          {currentRevisionSemesters.data == undefined && (
+            <div>
+              <div className="flex h-[200px] w-full flex-col items-center justify-center">
+                <AnimatedSpinner />
+                <p>Loading...</p>
+              </div>
+            </div>
+          )}
+          {/* Make sure we have the list of revision data  */}
+          {revisionList.data != undefined && (
+            <>
+              <Tabs
+                tabs={revisionTabs}
+                active={currentReivisionTab}
+                onSelect={(tab) => {
+                  console.log(tab);
+                  setCurrentRevisionTab(tab);
+                }}
+                dropdown={true}
+              >
+                <Select
+                  menuPlacement="top"
+                  options={revisionList.data as IRevisionSelect[]}
+                  value={selectedRevision}
+                  classNamePrefix="selection"
+                  onChange={(selectedRevision) => {
+                    //Check to make sure the reivison won't be undefined
+                    if (selectedRevision != undefined) {
+                      setSelectRevision(selectedRevision);
+                    }
+                  }}
+                />
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (selectedRevision != undefined) {
+                      addSchedule(selectedRevision?.value);
+                    }
+                  }}
+                >
+                  Open
+                </Button>
+              </Tabs>
+              {revisionTabs.length > 0 && (
+                <ScheduleCalendar
+                  onSelect={(value) => {
+                    console.log(value);
+                  }}
+                  semester={revisionTabs[currentReivisionTab]!.semester}
+                  revision={revisionTabs[currentReivisionTab]!.revision}
+                  weekends={false}
+                  onCourseHover={setLastHoveredCourse}
+                />
+              )}
+            </>
+          )}
         </div>
       </DashboardContent>
       {courseInformationSidebar && (
@@ -139,7 +223,7 @@ export const getServerSideProps = routeNeedsAuthSession(async ({ query }) => {
         },
       })) == 1;
 
-    if (!hasRevision) {
+    if (false) {
       return {
         redirect: {
           destination: "/projects", //Path to the Login Screen

@@ -5,8 +5,21 @@ import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
 import { routeNeedsAuthSession } from "src/server/auth";
-import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
-import { Button, Input, Modal, Steps, Tooltip } from "react-daisyui";
+import {
+  AlertTriangle,
+  FilePlus,
+  Logout,
+  QuestionMark,
+} from "tabler-icons-react";
+import {
+  Button,
+  Collapse,
+  Divider,
+  Input,
+  Modal,
+  Steps,
+  Tooltip,
+} from "react-daisyui";
 import { useState } from "react";
 import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
@@ -17,7 +30,6 @@ import ProjectDataTableEdit, {
 } from "src/components/projects/projectUploading/ProjectDataTableEdit";
 import { useRouter } from "next/router";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
-import ProjectFinalize from "src/components/projects/projectUploading/ProjectFinalize";
 
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 
@@ -52,6 +64,9 @@ const Projects: NextPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [setReset, setResetFlag] = useState(false);
   const [stage, setStage] = useState<number>(1);
+  const [error, setError] = useState<{ _errors: string[] } | undefined>(
+    undefined
+  );
 
   const verifyOrganizedColumnsMutation =
     api.projects.verifyOrganizedColumns.useMutation();
@@ -134,7 +149,6 @@ const Projects: NextPage = () => {
         });
       }
     } catch (error) {
-      console.log("error");
       // handle error
       toast.error(`Failed to Connect Database`, {
         position: toast.POSITION.TOP_RIGHT,
@@ -149,29 +163,52 @@ const Projects: NextPage = () => {
 
   const [organizedColumns, setOrganizeColumns] =
     useState<IProjectOrganizedColumnRowNumerical>({
-      noteWhatHasChanged: -1,
-      section_id: -1,
-      term: -1,
-      div: -1,
-      department: -1,
-      subject: -1,
-      course_number: -1,
-      section: -1,
-      title: -1,
-      instruction_method: -1,
-      faculty: -1,
-      campus: -1,
-      credits: -1,
-      capacity: -1,
-      start_date: -1,
-      end_date: -1,
-      building: -1,
-      room: -1,
-      start_time: -1,
-      end_time: -1,
-      days: -1,
-      noteAcademicAffairs: -1,
-      notePrintedComments: -1,
+      noteWhatHasChanged: 0,
+      section_id: 1,
+      term: 2,
+      div: 3,
+      department: 4,
+      subject: 5,
+      course_number: 6,
+      section: 7,
+      title: 8,
+      instruction_method: 9,
+      faculty: 10,
+      campus: 11,
+      credits: 12,
+      capacity: 13,
+      start_date: 17,
+      end_date: 18,
+      building: 20,
+      room: 21,
+      start_time: 22,
+      end_time: 23,
+      days: 24,
+      noteAcademicAffairs: 27,
+      notePrintedComments: 28,
+      // noteWhatHasChanged: -1,
+      // section_id: -1,
+      // term: -1,
+      // div: -1,
+      // department: -1,
+      // subject: -1,
+      // course_number: -1,
+      // section: -1,
+      // title: -1,
+      // instruction_method: -1,
+      // faculty: -1,
+      // campus: -1,
+      // credits: -1,
+      // capacity: -1,
+      // start_date: -1,
+      // end_date: -1,
+      // building: -1,
+      // room: -1,
+      // start_time: -1,
+      // end_time: -1,
+      // days: -1,
+      // noteAcademicAffairs: -1,
+      // notePrintedComments: -1,
     });
 
   function getMissingColumns() {
@@ -224,6 +261,7 @@ const Projects: NextPage = () => {
         router.push(`/dashboard/${uploadedData.tuid}/home`);
       } else {
         console.log(JSON.stringify(result.errors));
+        setError(result.errors);
       }
     }
   };
@@ -259,11 +297,7 @@ const Projects: NextPage = () => {
             Log Out
           </button>
         </div>
-
-        <Modal
-          open={visible}
-          className="max-h-[250rem]  w-11/12 max-w-5xl transition-all duration-200"
-        >
+        <Modal open={visible} className=" max-h-[250rem] min-w-[90%] max-w-5xl">
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
               <Steps.Step
@@ -276,7 +310,7 @@ const Projects: NextPage = () => {
                 color={stage >= 2 ? "success" : "ghost"}
                 value={stage > 2 ? "✓" : "2"}
               >
-                Organize Column & Finalize
+                Finalize
               </Steps.Step>
             </Steps>
             {stage === 2 ? (
@@ -305,7 +339,7 @@ const Projects: NextPage = () => {
             </Button>
           </Modal.Header>
 
-          <Modal.Body className=" h-4/5 w-full flex-col overflow-y-auto ">
+          <Modal.Body className=" h-4/5 w-full flex-col overflow-y-auto  transition-all duration-200 ">
             <div className="flex  w-full justify-center overflow-y-auto align-middle transition-all duration-200">
               {stage <= 1.5 && (
                 <ProjectsUpload
@@ -330,18 +364,39 @@ const Projects: NextPage = () => {
                     columns={organizedColumns}
                   /> */}
                   <div className="flex h-full w-full">
-                    <div className="mr-5 max-h-96 min-w-[200px] overflow-y-auto">
-                      <strong className="sticky top-0">Missing Columns</strong>
-                      <ul>
-                        {getMissingColumns().map((value, i) => {
-                          return (
-                            <li className="" key={i}>
-                              •{value}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
+                    {getMissingColumns().length > 0 && (
+                      <div className="mr-5 max-h-96 min-w-[200px] overflow-y-auto">
+                        <strong className="sticky top-0 bg-white">
+                          Missing Columns
+                        </strong>
+                        <ul>
+                          {getMissingColumns().map((value, i) => {
+                            return (
+                              <li className="" key={i}>
+                                •{value}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                    {error !== undefined && (
+                      <div className="mr-5 max-h-96 min-w-[200px] overflow-y-auto">
+                        <strong className="sticky top-0 bg-white text-red-600">
+                          Errors Found!
+                        </strong>
+                        <ul>
+                          {error._errors.map((value, i) => {
+                            alert(value);
+                            return (
+                              <li className="" key={i}>
+                                •{value}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
                     <ProjectDataTableEdit
                       uploaded={uploadedData?.table}
                       columns={organizedColumns}
@@ -375,7 +430,7 @@ const Projects: NextPage = () => {
                       {...onboardingForm.register("name")}
                     />
                     <Button
-                      className=" bg-error"
+                      className="  bg-error"
                       type="button"
                       onClick={backStage}
                     >

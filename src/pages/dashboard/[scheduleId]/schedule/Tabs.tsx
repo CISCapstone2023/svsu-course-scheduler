@@ -45,7 +45,7 @@ const Tabs = ({
   showChildren = false,
 }: TabsProps) => {
   return (
-    <div className="flex h-10 w-full border-spacing-1 border-2 border-x">
+    <div className="min-h-14 flex w-full border-spacing-1 border-2 border-x">
       {tabs.length > 0 &&
         tabs.map((tab, index) => {
           return (
@@ -61,7 +61,7 @@ const Tabs = ({
         })}
 
       {showChildren && (
-        <div className="flex items-center justify-center space-x-3 p-1">
+        <div className=" flex items-center justify-center space-x-3">
           {/* Before the attempt at inline the children, it was in a dropdown */}
           {/* <Dropdown vertical="top">
             <Dropdown.Toggle size="sm">

@@ -93,7 +93,7 @@ const ProjectDataTableEdit = ({
   };
 
   return (
-    <div className="sticky top-0 h-96 overflow-x-auto overflow-y-auto">
+    <div className="sticky top-0 h-96 overflow-x-auto overflow-y-scroll">
       {uploaded != undefined ? (
         <Table className="sticky top-0 table-fixed border-collapse">
           <thead className="sticky top-0">

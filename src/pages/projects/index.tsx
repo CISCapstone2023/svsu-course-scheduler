@@ -73,7 +73,7 @@ const Projects: NextPage = () => {
           tuid: uploadedData.tuid,
           columns: { ...organizedColumns },
         });
-        if (result == true) {
+        if (result.success == true) {
           toast.success("Successfully organized the columns!.", {
             position: toast.POSITION.TOP_RIGHT,
           });
@@ -82,6 +82,7 @@ const Projects: NextPage = () => {
           toast.error("Internal Error had occured...", {
             position: toast.POSITION.TOP_RIGHT,
           });
+          alert(JSON.stringify(result.errors));
         }
       } else {
         toast.error("Could not organize columns. Please try again.", {

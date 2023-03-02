@@ -87,7 +87,7 @@ const Courses = () => {
   //Query all of the data based on the search value
 
   const courses = api.courses.getAllCourseGuidelines.useQuery({
-    page: 1,
+    page: currentPage,
     days: {
       monday: filterDaysMonday,
       tuesday: filterDaysTuesday,
@@ -587,7 +587,7 @@ const Courses = () => {
         <div className="flex w-full justify-center p-2">
           {courses.data != undefined && (
             <PaginationBar
-              totalPageCount={0}
+              totalPageCount={courses.data?.totalPages}
               currentPage={courses.data?.page}
               onClick={(page) => {
                 setCurrentPage(page);

@@ -9,7 +9,6 @@ import { createCourseSchema } from "src/server/api/routers/projects";
 import { courseSchema, ICourseSchema } from "src/validation/courses";
 import { cssTransition } from "react-toastify";
 
-
 // Validation -----------------------------------------------------------------------------------------------------
 
 // Essentially creates a new data tyoe built to store comprehensive queries for the calendar
@@ -325,7 +324,6 @@ export const calendarRouter = createTRPCRouter({
 
       return allCourses;
     }),
-
 
   /**
    * getSemesters
@@ -735,7 +733,6 @@ async function queryCoursesByDay(
   return coursesByDay;
 }
 
-
 /**
  * Tab Interface
  * The interface
@@ -749,6 +746,7 @@ export interface ITab {
 export interface IRevisionSelect {
   value: ITab;
   label: string;
+}
 
 function parseCourseData(input: ICourseSchema) {
   let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful

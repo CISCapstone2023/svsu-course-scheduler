@@ -78,10 +78,6 @@ const ProjectDataTableEdit = ({
    * @param event
    */
   const onSelect = (column: number, title: string) => {
-    // //Get the column
-    // const column = +event.target.id;
-    // //Get the title
-    // const title = event.target.value;
     //Get the previous key
     const previousKey = getSelectValue(column);
     //Grab all organized columns, update the current column to new and make the old key null

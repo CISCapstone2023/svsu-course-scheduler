@@ -46,7 +46,6 @@ const ProjectFinalize = ({ children, tuid, columns }: ProjectFinalizeProps) => {
    */
   const onHandleFormSubmit = async (value: IProjectFinalizeOnboarding) => {
     if (tuid != undefined && columns != undefined) {
-      console.log("im doing this");
       const result = await createRevisionMutation.mutateAsync({
         columns,
         tuid,
@@ -55,7 +54,7 @@ const ProjectFinalize = ({ children, tuid, columns }: ProjectFinalizeProps) => {
       if (result.success) {
         router.push(`/dashboard/${tuid}/home`);
       } else {
-        alert("An erroed had occured...");
+        alert("An error had occured...");
       }
     }
   };
@@ -63,26 +62,9 @@ const ProjectFinalize = ({ children, tuid, columns }: ProjectFinalizeProps) => {
   return (
     <form
       onSubmit={onboardingForm.handleSubmit(onHandleFormSubmit)}
-      className="component-preview flex w-full items-center justify-center gap-2 p-4 font-sans"
+      className=" flex w-full flex-col  justify-start gap-2 p-4 font-sans"
     >
-      <div className="form-control w-full max-w-xs">
-        {/* <label className="label">
-          <span className="label-text">Semester</span>
-        </label> */}
-        {/* <Select defaultValue={"default"} onChange={console.log} required>
-          <option value={"default"} disabled>
-            Semester
-          </option>
-          <option value="Fall">Fall</option>
-          <option value="Winter">Winter</option>
-          <option value="Spring">Spring</option>
-          <option value="Summer">Summer</option>
-        </Select>
-        <label className="label">
-          <span className="label-text">Year</span>
-        </label>
-        <Input type="number" required placeholder="00" min="0" max="99" /> */}
-
+      <div className="form-control w-full justify-start">
         <label className="label">
           <span className="label-text">Name</span>
         </label>
@@ -98,12 +80,11 @@ const ProjectFinalize = ({ children, tuid, columns }: ProjectFinalizeProps) => {
             <p className="font-semibold text-red-600">{message}</p>
           )}
         />
-        <div className="flex justify-end">
-          <Button color="success" type="submit" className="mt-2">
-            Finalize
-          </Button>
-        </div>
       </div>
+
+      <Button color="success" type="submit" className="mt-2 ">
+        Finalize
+      </Button>
     </form>
   );
 };

@@ -157,7 +157,7 @@ export const projectsRouter = createTRPCRouter({
           for (const row of formattedColumns) {
             if (row != undefined) {
               const result = courseSchema.safeParse(row);
-              //console.log({ result, row, json: JSON.stringify(row) });
+              // console.log({ result, row, json: JSON.stringify(row) });
               if (result.success == false) {
                 valid = false;
                 errors = result.error;
@@ -500,8 +500,6 @@ const invertedNestedOrganizedColumns = async (
 
         //Split the time
         const splittedTime = value.split(":");
-
-        console.log("Did we split here?");
 
         //make sure the splitted time isn't undefined or the length has two parts
         if (splittedTime != undefined && splittedTime.length == 2) {

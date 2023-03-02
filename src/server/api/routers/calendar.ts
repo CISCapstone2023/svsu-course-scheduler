@@ -535,7 +535,11 @@ export const calendarRouter = createTRPCRouter({
             },
           },
         });
+
+        return true;
       }
+
+      return false;
     }),
 
   updateRevisionCourse: protectedProcedure

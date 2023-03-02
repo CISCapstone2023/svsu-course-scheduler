@@ -1,6 +1,6 @@
 import { CourseNoteType, CourseState } from "@prisma/client";
 import { z } from "zod";
-
+import { prisma } from "src/server/db";
 interface Thing {
   type: string;
 }
@@ -94,7 +94,7 @@ export const updateCourseGuidelineSchema = addGuidelineSchema.extend({
 
 const facultyToCourseSchema = z.object({
   faculty_tuid: z.string().superRefine(async (val, ctx) => {
-    const amount = await prisma?.guidelinesFaculty.count({
+    const amount = await prisma.guidelinesFaculty.count({
       where: {
         tuid: val,
       },
@@ -131,7 +131,7 @@ const notesSchema = z.object({
 const roomsSchema = z.object({
   room: z.string(),
   building_tuid: z.string().superRefine(async (val, ctx) => {
-    const amount = await prisma?.guidelineBuilding.count({
+    const amount = await prisma.guidelineBuilding.count({
       where: {
         tuid: val,
       },

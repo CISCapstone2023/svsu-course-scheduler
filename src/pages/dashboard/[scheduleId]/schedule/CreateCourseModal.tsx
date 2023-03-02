@@ -71,10 +71,11 @@ const CreateCourseModal = ({
   const facultyMutation = api.faculty.getRevisionCourseFaculty.useMutation();
 
   //API to add course to database for revision
-  const addCourseMutation = api.courses.addNewRevisionCourse.useMutation();
+  const addCourseMutation = api.calendar.addNewRevisonCourse.useMutation();
 
   //Logs our submitted course (Will be changed)
   const onCourseAddModifySubmit = async (course: ICourseSchema) => {
+    console.log("Hey we got here!");
     if (isCourseEditing != undefined && isCourseEditing!.tuid) {
       // const result = await courseUpdateMutation.mutateAsync({
       //   tuid: isCourseEditing!.tuid,
@@ -90,11 +91,11 @@ const CreateCourseModal = ({
         course,
         tuid: revisionTuid,
       });
-      // if (result) {
-      //   toast.success(`Added new course guidline`);
-      // } else {
-      //   toast.error(`Failed to add course guideline`);
-      // }
+      if (result) {
+        toast.success(`Added new course guidline`);
+      } else {
+        toast.error(`Failed to add course guideline`);
+      }
     }
 
     //TODO: Tell parent to refetch

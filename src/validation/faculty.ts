@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 //Regex to ensure that the faculty name field can only contain lowercase or uppercase letters
-//separated by either a hypen or a single space
+//separated by either a hypen, a single space, or a period and a single space. It will allow up to
+//four different names
 const facultyNameRegex =
-  /^(?:[a-zA-Z]+(-?)([a-zA-Z]*)(\s)([a-zA-Z]*)(-?)([a-zA-Z]*))$/;
+  /^(?:[a-zA-Z]+(-?)([a-zA-Z]*)((\s)|(\.))?(\s)?([a-zA-Z]+(-?)([a-zA-Z]*)((\s)|(\.))?(\s)?)([a-zA-Z]+(-?)([a-zA-Z]*)((\s)|(\.))?(\s)?)([a-zA-Z]+(-?)([a-zA-Z]*)(\.)?))$/;
 
 //zid faculty schema that just grabs the TUID of faculty
 export const createFacultySchemaTUID = z.object({

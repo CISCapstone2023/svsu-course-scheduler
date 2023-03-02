@@ -41,15 +41,20 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
    * Keep the state of the current tab
    */
   const [currentSemesterTabs, setCurrentSemesterTabValue] = useState(0);
+
+  //Get the possible semesters for the current revision we are editing
   const currentRevisionSemesters = api.calendar.getSemestersByRevision.useQuery(
     {
       revision: scheduleId,
     }
   );
 
+  //The list of revisions for the selection on the bottom calendar poration
   const revisionList = api.calendar.getSemesters.useQuery();
 
+  //The current reivison (bottom) tab
   const [currentReivisionTab, setCurrentRevisionTab] = useState(0);
+  //The current list of tabs (bottom)
   const [revisionTabs, setSchedueleTab] = useState<ITab[]>([]);
 
   // useEffect(() => {
@@ -57,18 +62,20 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   // }, [revisionTabs]);
 
   /**
-   * Add a schedule for a revision on the list of revision tabs
+   * Add a calendar for a revision
    * @param tab
+   * @author Brendan Fuller
    */
-  const addSchedule = (tab: ITab) => {
+  const addScheduleCalendar = (tab: ITab) => {
     setSchedueleTab([...revisionTabs, tab]);
   };
 
   /**
-   *
+   * Remove a calendar for a revision
    * @param index
+   * @author Brendan Fuller
    */
-  const removeSchedule = (index: number) => {
+  const removeScheduleCalendar = (index: number) => {
     setSchedueleTab(revisionTabs.splice(index, 1));
   };
 
@@ -80,6 +87,12 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   const [lastHovered, setLastHoveredCourse] =
     useState<IScheduleCourseWithTimes | null>();
 
+  /**
+   * Information Sidebar State
+   * Boolean state for the right sidebar to toggle course infomation
+   * based who is hovering the data
+   * @author Brendan Fuller
+   */
   const [courseInformationSidebar, toggleCourseInformationSidebar] =
     useState<boolean>(false);
 
@@ -143,7 +156,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   console.log(tab);
                   setCurrentRevisionTab(tab);
                 }}
-                dropdown={true}
+                showChildren={true}
               >
                 <Select
                   menuPlacement="top"
@@ -161,7 +174,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   size="sm"
                   onClick={() => {
                     if (selectedRevision != undefined) {
-                      addSchedule(selectedRevision?.value);
+                      addScheduleCalendar(selectedRevision?.value);
                     }
                   }}
                 >

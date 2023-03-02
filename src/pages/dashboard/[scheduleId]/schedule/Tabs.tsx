@@ -3,18 +3,15 @@ import { Button, Dropdown } from "react-daisyui";
 import { ITab } from "src/server/api/routers/calendar";
 import { Plus } from "tabler-icons-react";
 
-interface Tab {
-  name: string;
-  revision: string;
-}
-
+//Properities for the <Tabs> Component
 interface TabsProps {
   children?: React.ReactNode;
   tabs: ITab[];
-  dropdown?: boolean;
+  showChildren?: boolean;
   active: number;
   onSelect: (value: number) => void;
 }
+//Properities for the <Tab> Component
 interface TabProps {
   children?: React.ReactNode;
   title: string;
@@ -22,6 +19,7 @@ interface TabProps {
   onClick: () => void;
 }
 
+//Tab Component
 const Tab = ({ title, onClick, active }: TabProps) => {
   return (
     <div
@@ -38,12 +36,13 @@ const Tab = ({ title, onClick, active }: TabProps) => {
   );
 };
 
+//Tabs
 export const Tabs = ({
   children,
   onSelect,
   active,
   tabs,
-  dropdown = false,
+  showChildren = false,
 }: TabsProps) => {
   return (
     <div className="flex h-10 w-full border-spacing-1 border-2 border-x">
@@ -61,8 +60,9 @@ export const Tabs = ({
           );
         })}
 
-      {dropdown && (
+      {showChildren && (
         <div className="flex items-center justify-center space-x-3 p-1">
+          {/* Before the attempt at inline the children, it was in a dropdown */}
           {/* <Dropdown vertical="top">
             <Dropdown.Toggle size="sm">
               <Plus />

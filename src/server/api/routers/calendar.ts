@@ -321,7 +321,9 @@ export const calendarRouter = createTRPCRouter({
     }),
 
   /**
-   * getSemesters - Get the semester based on the revision
+   * getSemesters
+   * Get the semester based on the revision
+   * @author Brendan Fuller
    */
   getSemestersByRevision: protectedProcedure
     .input(
@@ -329,10 +331,10 @@ export const calendarRouter = createTRPCRouter({
         revision: z.string(),
       })
     )
-    //Query
     .query(async ({ ctx, input }) => {
       //Get each semester count
       const [sp, fa, wi, su] = await ctx.prisma.$transaction([
+        //Spring
         ctx.prisma.course.count({
           where: {
             revision: {
@@ -341,6 +343,7 @@ export const calendarRouter = createTRPCRouter({
             semester_spring: true,
           },
         }),
+        //Fall
         ctx.prisma.course.count({
           where: {
             revision: {
@@ -349,6 +352,7 @@ export const calendarRouter = createTRPCRouter({
             semester_fall: true,
           },
         }),
+        //Winter
         ctx.prisma.course.count({
           where: {
             revision: {
@@ -357,6 +361,7 @@ export const calendarRouter = createTRPCRouter({
             semester_winter: true,
           },
         }),
+        //Summer
         ctx.prisma.course.count({
           where: {
             revision: {
@@ -403,16 +408,56 @@ export const calendarRouter = createTRPCRouter({
       }
       return semesters;
     }),
+  /**
+   * Get Semesters
+   *
+   * Get a list of revision and every semeseter possible for said, for
+   * fall, winter, spring, and summer
+   * @author Brendan Fuller
+   */
   getSemesters: protectedProcedure.query(async ({ ctx, input }) => {
+    //Get the list of revision by the current user
     const schedules = await ctx.prisma.scheduleRevision.findMany({
       where: {
         creator_tuid: ctx.session.user.id,
       },
+      //Make sure to include the courses
       include: {
         courses: true,
       },
     });
+
+    /**
+     * Geneates the information regarding a revision
+     * for use with the select input on the frontend
+     * @param valid
+     * @param revision
+     * @param semester
+     * @returns
+     */
+    const generateSelectRevisionInformation = (
+      valid: boolean,
+      revision: ScheduleRevision & {
+        courses: Course[];
+      },
+      semester: string
+    ) => {
+      //Are we valid? If so created the object, if not make it empty
+      return valid
+        ? ({
+            label: revision.name + " " + semester,
+            value: {
+              semester,
+              revision: revision.tuid,
+              title: revision.name + " " + semester,
+            },
+          } as IRevisionSelect)
+        : {};
+    };
+
+    //Loop all of the revisions
     const data = schedules.map((revision) => {
+      //State if we have a semesters
       const semesters = {
         fall: false,
         winter: false,
@@ -420,6 +465,8 @@ export const calendarRouter = createTRPCRouter({
         summer: false,
       };
 
+      //Loop all courses and set that state to true depending on if a
+      //semester does occur
       for (const index in revision.courses) {
         const course = revision.courses[index];
         if (course?.semester_fall) semesters.fall = true;
@@ -428,36 +475,24 @@ export const calendarRouter = createTRPCRouter({
         if (course?.semester_summer) semesters.summer = true;
       }
 
-      const getType = (
-        valid: boolean,
-        revision: ScheduleRevision & {
-          courses: Course[];
-        },
-        semester: string
-      ) => {
-        return valid
-          ? ({
-              label: revision.name + " " + semester,
-              value: {
-                semester,
-                revision: revision.tuid,
-                title: revision.name + " " + semester,
-              },
-            } as IRevisionSelect)
-          : {};
-      };
-
-      const out = [
-        getType(semesters.fall, revision, "FA"),
-        getType(semesters.winter, revision, "WI"),
-        getType(semesters.spring, revision, "SP"),
-        getType(semesters.summer, revision, "SU"),
+      //Create the list of possible ones
+      const listOfPossbileSemesters = [
+        generateSelectRevisionInformation(semesters.fall, revision, "FA"),
+        generateSelectRevisionInformation(semesters.winter, revision, "WI"),
+        generateSelectRevisionInformation(semesters.spring, revision, "SP"),
+        generateSelectRevisionInformation(semesters.summer, revision, "SU"),
       ];
 
-      return out.filter((ele) => {
+      //Remove the empty semesters and force the type to be an array of Revisions
+      const revisionWithSemesters = listOfPossbileSemesters.filter((ele) => {
         return ele.constructor === Object && Object.keys(ele).length > 0;
-      });
+      }) as IRevisionSelect[];
+
+      //Return that
+      return revisionWithSemesters;
     });
+
+    //Now we flatten that so we don't have a 2D array but now a 1D array
     return flatten(data);
   }),
 });

@@ -12,7 +12,7 @@ import { api } from "src/utils/api";
 import { number } from "zod";
 
 interface CourseListingProps {
-  courses: IScheduleCourse[] | undefined;
+  courses: (IScheduleCourse & { withinGuideline: boolean })[] | undefined;
   overlap?: boolean;
   setCourseHover: (value: IScheduleCourseWithTimes | null) => void;
   onSelect: (value: string) => void;
@@ -52,6 +52,7 @@ export type IScheduleCourseWithTimes = IScheduleCourse & {
   startTime: number;
   endTime: number;
   difference: number;
+  withinGuideline: boolean;
 };
 
 interface ICalendarMapping {
@@ -260,6 +261,7 @@ const CourseListing = ({
                             hover.tuid == course.tuid &&
                             block.courses.length - 1 != index,
                           "border-green-400": course.state == "ADDED",
+                          "bg-checkerboard ": !course.withinGuideline,
                         }
                       )}
                     >

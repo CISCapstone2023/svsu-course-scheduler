@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { InfoCircle } from "tabler-icons-react";
-import { Button } from "react-daisyui";
+import { Button, Toggle } from "react-daisyui";
 import Select from "react-select";
 
 import { prisma } from "src/server/db";
@@ -104,15 +104,17 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
       <DashboardContent>
         <div className="flex h-full w-full flex-col">
           <DashboardContentHeader title="Scheduler">
-            <Button
-              active={courseInformationSidebar}
-              size="sm"
-              onClick={() => {
-                toggleCourseInformationSidebar(!courseInformationSidebar);
-              }}
-            >
-              <InfoCircle />
-            </Button>
+            <div className="flex items-center">
+              <p>Show Course Info?</p>
+              <Toggle
+                className="ml-2"
+                checked={courseInformationSidebar}
+                size="sm"
+                onClick={() => {
+                  toggleCourseInformationSidebar(!courseInformationSidebar);
+                }}
+              />
+            </div>
           </DashboardContentHeader>
           {currentRevisionSemesters.data != undefined && (
             <>

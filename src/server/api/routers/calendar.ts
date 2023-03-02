@@ -211,15 +211,16 @@ export const calendarRouter = createTRPCRouter({
                       every: {
                         //Grabs the times from each location associated with the course
                         //Uncomment once merged and database CourseLocation has times as Ints
-                        // AND:[
-                        //   ...course.locations.map((location) =>{
-                        //     return {
-                        //       start_time: location.start_time,
-                        //       end_time: location.end_time,}
-                        //   })
-                        // ],
-                        start_time: course.start_time,
-                        end_time: course.end_time,
+                        AND: [
+                          ...course.locations.map((location) => {
+                            return {
+                              start_time: location.start_time,
+                              end_time: location.end_time,
+                            };
+                          }),
+                        ],
+                        // start_time: course.start_time,
+                        // end_time: course.end_time,
                       },
                     },
                   },

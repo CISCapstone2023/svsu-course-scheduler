@@ -1,8 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import { Course, GuidelinesFaculty } from "@prisma/client";
 
+//Router to generate reports on the report page
 export const reportRouter = createTRPCRouter({
+  //Gets all faculty including all the courses they teach and the total
+  //number of credits that they teach
   getAllReports: protectedProcedure
     .input(
       z.object({
@@ -14,38 +16,62 @@ export const reportRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      let courseResult: GuidelinesFaculty[] = [];
-      //do we have a search query
-      if (input.search != "") {
-        courseResult = await ctx.prisma.guidelinesFaculty.findMany({
-          where: {
-            name: input.search,
-          },
-          distinct: ["name"],
-          include: {
-            to_courses: {
-              include: {
-                course: true,
+      //Query to get an array of faculty objects that match the semester given
+      //by the user and the search string if it is not empty.
+      const courseResult = await ctx.prisma.guidelinesFaculty.findMany({
+        where: {
+          to_courses: {
+            every: {
+              course: {
+                OR: [
+                  input.semester_fall ? { semester_fall: true } : {},
+                  input.semester_winter ? { semester_winter: true } : {},
+                  input.semester_spring ? { semester_spring: true } : {},
+                  input.semester_summer ? { semester_summer: true } : {},
+                ],
               },
             },
           },
-        });
-
-        console.log(courseResult);
-      } else {
-        courseResult = await ctx.prisma.guidelinesFaculty.findMany({
-          where: {},
-          distinct: ["name"],
-          include: {
-            to_courses: {
-              include: {
-                course: true,
+          //If the user searches for a certain faculty then check if the name contains
+          //the user's search, otherwise don't filter by name
+          ...(input.search != "" ? { name: { contains: input.search } } : {}),
+        },
+        include: {
+          to_courses: {
+            include: {
+              course: {
+                include: {
+                  locations: {
+                    include: {
+                      rooms: {
+                        include: {
+                          building: true,
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
-        });
+        },
+      });
+      //Map each faculty member from the above query to return an array of objects
+      //with each faculty member, their courses taught and total number of credits taught
+      //and send it to the front end
+      const faculties = courseResult.map((faculty) => {
+        //Get the total amount of credits that a faculty member is teaching
+        const totalCredits = faculty.to_courses
+          .map((toCourse) => {
+            return toCourse.course.credits;
+          })
+          .reduce((sum, value) => {
+            return sum + value;
+          }, 0);
+        return { totalCredits, ...faculty };
+      });
 
-        console.log(courseResult);
-      }
+      //return the faculties array of objects
+      return faculties;
     }),
 });

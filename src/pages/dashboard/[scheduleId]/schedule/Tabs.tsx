@@ -37,11 +37,11 @@ const Tab = ({ title, onClick, active }: TabProps) => {
 };
 
 //Tabs
-export const Tabs = ({
+const Tabs = ({
   children,
   onSelect,
   active,
-  tabs,
+  tabs = [],
   showChildren = false,
 }: TabsProps) => {
   return (
@@ -75,3 +75,5 @@ export const Tabs = ({
     </div>
   );
 };
+
+export default Tabs;

@@ -14,7 +14,7 @@ import DashboardContentHeader from "src/components/dashboard/DashboardContentHea
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
-import { Tabs } from "./Tabs";
+import Tabs from "./Tabs";
 
 import ScheduleCalendar, { type IScheduleCourseWithTimes } from "./Calendar";
 import {

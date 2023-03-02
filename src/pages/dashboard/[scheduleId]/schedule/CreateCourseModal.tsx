@@ -1,3 +1,4 @@
+// Imports
 import React, { useState } from "react";
 import AsyncSelect from "react-select/async";
 import {
@@ -8,18 +9,22 @@ import {
   Select,
   Textarea,
 } from "react-daisyui";
+
+//Local imports
 import { courseSchema, ICourseSchema } from "src/validation/courses";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { TimeInput } from "./TimeInput";
 import { ErrorMessage } from "@hookform/error-message";
 
+//Modal
 interface CreateCourseModalProps {
   children?: React.ReactNode;
   open: boolean;
   onClose: () => void;
 }
 
+//Component
 const CreateCourseModal = ({
   children,
   open,
@@ -33,6 +38,7 @@ const CreateCourseModal = ({
     callback([{ value: "Bob", label: "Bob" }]);
   };
 
+  //Component
   const buildingLoadOptions = (
     value: string,
     callback: (options: any) => void
@@ -41,28 +47,34 @@ const CreateCourseModal = ({
     callback([{ value: "SW", label: "SW" }]);
   };
 
+  //WHen input on form is changed, zod is called to validate schema
   const { reset, ...courseAddForm } = useForm<ICourseSchema>({
     mode: "onChange",
     resolver: zodResolver(courseSchema),
   });
 
+  //returns list of locations
   const locationFields = useFieldArray({
     name: "locations",
     control: courseAddForm.control,
   });
 
+  //Logs our submitted course (Will be changed)
   const onCourseAddModifySubmit = (course: ICourseSchema) => {
     console.log(course);
   };
 
+  //asks if you are in edit mode, keeps what you want to edit
   const [isCourseEditing, setCourseEditing] = useState<ICourseSchema>();
 
   return (
+    //Main modal for body
     <Modal
       open={open}
       onClickBackdrop={onClose}
       className="h-full  w-3/4 max-w-5xl "
     >
+      {/* Button to close */}
       <Button
         size="sm"
         shape="circle"
@@ -71,18 +83,26 @@ const CreateCourseModal = ({
       >
         ✕
       </Button>
+
+      {/* Header for Modal */}
       <Modal.Header>Add / Edit Course Placement</Modal.Header>
       <Modal.Body className="h-[500px] w-full">
+        {/* form to handle course additions, modifications, or submission */}
         <form
           onSubmit={courseAddForm.handleSubmit(onCourseAddModifySubmit)}
           className="w-full"
         >
+          {/* Parent Div */}
+          {/* Note: id="" will tell you what section is which for the divs */}
           <div className="flex h-full w-full" id="parent">
+            {/* Div for mainSection of modal */}
             <div
               className="flex w-full flex-col space-y-5 p-2"
               id="mainSection"
             >
+              {/* Div to align first row */}
               <div className="flex w-full flex-row space-x-4" id="firstRow">
+                {/* div to align dpartment  */}
                 <div className="grow flex-col" id="departmentAlign">
                   <div className="w-50 m-2 flex h-8 items-center">
                     <p>Department</p>
@@ -95,6 +115,8 @@ const CreateCourseModal = ({
                       size="sm"
                       {...courseAddForm.register("department")}
                     />
+
+                    {/* Error message thrown when zod detects a problem */}
                     <ErrorMessage
                       errors={courseAddForm.formState.errors}
                       name="department"
@@ -105,17 +127,20 @@ const CreateCourseModal = ({
                   </div>
                 </div>
 
+                {/* Div aligns course */}
                 <div className="grow flex-col" id="courseAlign">
                   <div className="w-50 m-2 flex h-8 items-center">
                     <p>Course</p>
                   </div>
                   <div>
+                    {/* Course */}
                     <Input
                       type="text"
                       className="w-full"
                       size="sm"
                       {...courseAddForm.register("course_number")}
                     />
+                    {/* Error message thrown when zod detects a problem */}
                     <ErrorMessage
                       errors={courseAddForm.formState.errors}
                       name="course_number"
@@ -126,11 +151,13 @@ const CreateCourseModal = ({
                   </div>
                 </div>
 
+                {/* div aligns section info */}
                 <div className="grow flex-col" id="sectionAlign">
                   <div className="w-50 m-2 flex h-8 items-center">
                     <p>Section</p>
                   </div>
                   <div>
+                    {/* section info */}
                     <Input
                       type="number"
                       className="w-full"
@@ -141,6 +168,7 @@ const CreateCourseModal = ({
                         setValueAs: (v) => (v === "" ? undefined : parseInt(v)),
                       })}
                     />
+                    {/* Error message thrown when zod detects a problem */}
                     <ErrorMessage
                       errors={courseAddForm.formState.errors}
                       name="section"
@@ -151,11 +179,13 @@ const CreateCourseModal = ({
                   </div>
                 </div>
 
+                {/* Div aligns faculty */}
                 <div className="grow flex-col" id="facultyAlign">
                   <div className="w-50 m-2 flex h-8 items-center">
                     <p>Faculty Member</p>
                   </div>
                   <div>
+                    {/* Synchronous selection, allows to grab data from database and wait for it to come in */}
                     <AsyncSelect
                       cacheOptions
                       loadOptions={facultyLoadOptions}
@@ -164,12 +194,15 @@ const CreateCourseModal = ({
                   </div>
                 </div>
               </div>
-              <div className="flex" id="timeHeader">
-                <div className="grow" id="timesLabel">
+
+              {/* header for label and add location button */}
+              <div className="flex" id="locationHeader">
+                <div className="grow" id="locationLabel">
                   <p>Locations</p>
                 </div>
 
-                <div id="timeButton">
+                {/* button to add location, open up new location field */}
+                <div id="addLocationButton">
                   <Button
                     size="xs"
                     type="button"
@@ -198,6 +231,8 @@ const CreateCourseModal = ({
                   </Button>
                 </div>
               </div>
+
+              {/* field for time input (in 24 hour format) */}
               {locationFields.fields.map((item, index) => {
                 return (
                   <div

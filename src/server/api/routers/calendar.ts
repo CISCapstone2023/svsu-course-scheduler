@@ -6,7 +6,10 @@ import { prisma } from "src/server/db";
 import { flatten } from "lodash";
 
 import { createCourseSchema } from "src/server/api/routers/projects";
-import { courseSchema, ICourseSchema } from "src/validation/courses";
+import {
+  calendarCourseSchema,
+  ICalendarCourseSchema,
+} from "src/validation/calendar";
 import { cssTransition } from "react-toastify";
 
 // Validation -----------------------------------------------------------------------------------------------------
@@ -508,7 +511,7 @@ export const calendarRouter = createTRPCRouter({
       z.object({
         //Input comes in as a revision tuid and a courseSchema variable
         tuid: z.string(),
-        course: courseSchema,
+        course: calendarCourseSchema,
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -539,7 +542,7 @@ export const calendarRouter = createTRPCRouter({
     }),
 
   updateRevisionCourse: protectedProcedure
-    .input(courseSchema)
+    .input(calendarCourseSchema)
     .mutation(async ({ ctx, input }) => {
       if (parseCourseData(input)) {
         const deleteFaculty =
@@ -749,11 +752,11 @@ export interface IRevisionSelect {
   label: string;
 }
 
-function parseCourseData(input: ICourseSchema) {
+function parseCourseData(input: ICalendarCourseSchema) {
   let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
   if (input != undefined) {
     //Checks to see if the input course is undefined
-    const isSafe = courseSchema.safeParse(input); //If it is, conducts a safeParse on the input and stores the object of the parse
+    const isSafe = calendarCourseSchema.safeParse(input); //If it is, conducts a safeParse on the input and stores the object of the parse
 
     if (!isSafe.success) {
       //Checks if the provided input is safe based on the return of the parse

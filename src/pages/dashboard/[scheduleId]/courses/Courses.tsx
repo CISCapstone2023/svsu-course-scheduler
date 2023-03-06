@@ -32,8 +32,8 @@ import { debounce, min } from "lodash";
 
 //Import types
 import {
-  addGuidelineSchema,
-  type IAddGuidelineCourse,
+  guidelineCourseAddSchema,
+  type IGuidelineCourseAdd,
 } from "src/validation/courses";
 import { type GuidelinesFaculty as GuidelinesCourse } from "@prisma/client";
 
@@ -146,14 +146,14 @@ const Courses = () => {
   const [isCourseDeleteModalOpen, openCourseDeleteModal] =
     useState<boolean>(false);
   const [courseDeleteValue, setCourseDeleteValue] =
-    useState<IAddGuidelineCourse>();
+    useState<IGuidelineCourseAdd>();
 
   /**
    * openDeleteModal
    * Open the deletion modal for the current faculty member
    * @param course
    */
-  const openDeleteModal = (course: IAddGuidelineCourse) => {
+  const openDeleteModal = (course: IGuidelineCourseAdd) => {
     setCourseDeleteValue(course);
     openCourseDeleteModal(true);
   };
@@ -164,9 +164,9 @@ const Courses = () => {
    * This form hook will provide all the needed function to validate and parse
    * the data on the form
    */
-  const { reset, ...courseForm } = useForm<IAddGuidelineCourse>({
+  const { reset, ...courseForm } = useForm<IGuidelineCourseAdd>({
     mode: "onBlur",
-    resolver: zodResolver(addGuidelineSchema),
+    resolver: zodResolver(guidelineCourseAddSchema),
   });
 
   const dayFields = useFieldArray({
@@ -195,7 +195,7 @@ const Courses = () => {
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onCourseModifySubmit = async (data: IAddGuidelineCourse) => {
+  const onCourseModifySubmit = async (data: IGuidelineCourseAdd) => {
     //Do we have to update said faculty
     console.log("Wooo!");
     console.log(isCourseEditing);
@@ -261,7 +261,7 @@ const Courses = () => {
    *
    * Are we editing a faculty member? If so its null or the faculty object
    */
-  const [isCourseEditing, setCourseEditing] = useState<IAddGuidelineCourse>();
+  const [isCourseEditing, setCourseEditing] = useState<IGuidelineCourseAdd>();
 
   // function for splitting course times
   const militaryToTime = (time: number) => {

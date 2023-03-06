@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { Prisma } from "@prisma/client";
 import {
-  addGuidelineSchema,
+  guidelineCourseAddSchema,
   addNewRevisionCourse,
 } from "src/validation/courses";
 import { cssTransition } from "react-toastify";
@@ -283,7 +283,7 @@ export const coursesRouter = createTRPCRouter({
 
   //Procedure to add course guideline
   addCourseGuideline: protectedProcedure
-    .input(addGuidelineSchema) //Takes input from zod validator
+    .input(guidelineCourseAddSchema) //Takes input from zod validator
     .mutation(async ({ ctx, input }) => {
       //Query to create a new course guideline
       const guideline = await ctx.prisma.guidelinesCourses.create({
@@ -367,7 +367,7 @@ export const coursesRouter = createTRPCRouter({
     }),
 
   updateCourseGuideline: protectedProcedure
-    .input(addGuidelineSchema)
+    .input(guidelineCourseAddSchema)
     .mutation(async ({ ctx, input }) => {
       //Checks to see if the guideline exists by searching for the tuid in a count query
       const hasCourseGuideline = await ctx.prisma.guidelinesCourses.count({

@@ -235,56 +235,54 @@ export const buildingsRouter = createTRPCRouter({
         search: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
+    .mutation(async ({ ctx, input }) => {
       // Create a list of buildings for a dropdown menu, sorted by campus
-      const buildingsDropdown = [];
 
-      // Do we have a search query
-      if (input.search != "") {
-        // Return buidlings whose name OR campus name fit within the search
-        const buildingResult: BuildingWithCampus[] =
-          await ctx.prisma.guidelineBuilding.findMany({
-            include: {
-              campus: true,
+      // Return buidlings whose name OR campus name fit within the search
+      const buildingResult: BuildingWithCampus[] =
+        await ctx.prisma.guidelineBuilding.findMany({
+          include: {
+            campus: true,
+          },
+          orderBy: {
+            campus: {
+              tuid: "asc",
             },
-            orderBy: {
-              campus: {
-                tuid: "asc",
-              },
-            },
-            where: {
-              OR: [
-                {
-                  name: {
-                    contains: input.search,
-                  },
-                },
-                {
-                  prefix: {
-                    contains: input.search,
-                  },
-                },
-                {
-                  campus: {
-                    name: {
-                      contains: input.search,
+          },
+          ...(input.search != ""
+            ? {
+                where: {
+                  OR: [
+                    {
+                      name: {
+                        contains: input.search,
+                      },
                     },
-                  },
+                    {
+                      prefix: {
+                        contains: input.search,
+                      },
+                    },
+                    {
+                      campus: {
+                        name: {
+                          contains: input.search,
+                        },
+                      },
+                    },
+                  ],
                 },
-              ],
-            },
-          });
+              }
+            : {}),
+        });
 
-        // Building a very specific object structure for the client
-        for (const building of buildingResult) {
-          buildingsDropdown.push({
-            value: building.tuid,
-            label: `${building.campus.name} - ${building.name} (${building.prefix})`,
-          });
-        }
-      }
-
-      return { result: buildingsDropdown };
+      return buildingResult.map((building) => {
+        return {
+          label: `${building.campus.name} - ${building.name} (${building.prefix})`,
+          building_tuid: building.tuid,
+          value: building.tuid,
+        };
+      });
     }),
 
   addBuilding: protectedProcedure

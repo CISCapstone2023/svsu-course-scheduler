@@ -179,31 +179,33 @@ export const facultyRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (input.search != "") {
-        //Determines if the string input is not empty. If not, it runs the query.
-        const facultyData = await ctx.prisma.guidelinesFaculty.findMany({
-          //Query finds many faculty members from the GuidelinesFaculty table
-          ...(input.search != ""
-            ? {
-                where: {
-                  //looks for any faculty records where their name contains the search string put in the front end
-                  name: {
-                    contains: input.search,
-                  },
+      //Determines if the string input is not empty. If not, it runs the query.
+      const facultyData = await ctx.prisma.guidelinesFaculty.findMany({
+        //Query finds many faculty members from the GuidelinesFaculty table
+        ...(input.search != ""
+          ? {
+              where: {
+                //looks for any faculty records where their name contains the search string put in the front end
+                name: {
+                  contains: input.search,
                 },
-              }
-            : {}),
-          select: {
-            //Selects the tuid and name to return to the client from the records queried
-            tuid: true,
-            name: true,
-          },
-        });
+              },
+            }
+          : {}),
+        select: {
+          //Selects the tuid and name to return to the client from the records queried
+          tuid: true,
+          name: true,
+        },
+      });
 
-        return facultyData.map((faculty) => {
-          //Maps the facultyData array returned
-          return { label: faculty.name, faculty_tuid: faculty.tuid }; //Returns the data mapped to the label and values needed
-        });
-      }
+      return facultyData.map((faculty) => {
+        //Maps the facultyData array returned
+        return {
+          label: faculty.name,
+          faculty_tuid: faculty.tuid,
+          value: faculty.tuid, //The value field is REQUIRED by react-select, but faculty_tuid is needed by hook forms...
+        }; //Returns the data mapped to the label and values needed
+      });
     }),
 });

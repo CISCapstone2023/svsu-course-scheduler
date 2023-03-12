@@ -553,7 +553,7 @@ const CreateCourseModal = ({
                           day_friday: false,
                           day_saturday: false,
                           day_sunday: false,
-                          end_time: 1020,
+                          end_time: 1030,
                           start_time: 830,
                           is_online: false,
                           rooms: {
@@ -606,7 +606,6 @@ const CreateCourseModal = ({
                                 {/* Custom Time Input */}
                                 <Controller
                                   control={courseAddForm.control}
-                                  defaultValue={830}
                                   name={`locations.${index}.start_time`}
                                   render={({ field }) => {
                                     return <TimeInput {...field} />;
@@ -639,15 +638,16 @@ const CreateCourseModal = ({
                                 {/* Custom Time Input */}
                                 <Controller
                                   control={courseAddForm.control}
-                                  defaultValue={830}
                                   name={`locations.${index}.end_time`}
                                   render={({
                                     field: { onChange, value, name, ref },
                                   }) => {
                                     return (
                                       <TimeInput
+                                        ref={ref}
                                         value={value}
                                         onChange={(value) => {
+                                          console.log(value);
                                           onChange(value);
                                         }}
                                       />

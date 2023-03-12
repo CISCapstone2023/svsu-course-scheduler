@@ -4,6 +4,7 @@ import { Checkbox, Input } from "react-daisyui";
 interface TimeInputProps {
   value: number;
   onChange: (time: number) => void;
+  ref: any;
 }
 
 const militaryToSplit = (time: number) => {
@@ -35,7 +36,7 @@ const militaryToSplit = (time: number) => {
   };
 };
 
-export const TimeInput = ({ value }: TimeInputProps) => {
+export const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
   const [hour, setHour] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [isPM, setIsPM] = useState(false);
@@ -48,10 +49,10 @@ export const TimeInput = ({ value }: TimeInputProps) => {
   }, []);
 
   useEffect(() => {
-    onChange();
+    onChangeLocally();
   }, [hour, minutes, isPM]);
 
-  const onChange = () => {
+  const onChangeLocally = () => {
     let tempHours = hour;
     if (isPM == true) {
       tempHours += 12;
@@ -60,17 +61,28 @@ export const TimeInput = ({ value }: TimeInputProps) => {
     const military = parseInt(
       `${tempHours}${minutes < 10 ? "0" : ""}${minutes}`
     );
-    console.log(military);
+    onChange(military);
   };
 
   return (
-    <div className="flex rounded-lg border-[1px] border-gray-300 p-1">
+    <div className="flex rounded-lg border-[1px] border-gray-300 p-1" ref={ref}>
       <input
         type="number"
         className="time-input w-8"
         value={hour}
         onChange={(event) => {
-          setHour(parseInt(event.currentTarget.value));
+          const hours = parseInt(event.currentTarget.value);
+          if (hours != undefined && hours > 100) {
+            setHour(hour);
+          } else {
+            setHour(hours);
+          }
+        }}
+        onBlur={(event) => {
+          const hours = parseInt(event.currentTarget.value);
+          if (hours != undefined && hours > 12) {
+            setHour(12);
+          }
         }}
         min="1"
         max="12"
@@ -81,7 +93,18 @@ export const TimeInput = ({ value }: TimeInputProps) => {
         className="time-input w-8"
         value={minutes}
         onChange={(event) => {
-          setMinutes(parseInt(event.currentTarget.value));
+          const mins = parseInt(event.currentTarget.value);
+          if (mins != undefined && mins > 60) {
+            setMinutes(minutes);
+          } else {
+            setMinutes(mins);
+          }
+        }}
+        onBlur={(event) => {
+          const mins = parseInt(event.currentTarget.value);
+          if (mins != undefined && mins > 60) {
+            setMinutes(59);
+          }
         }}
         min="0"
         max="60"

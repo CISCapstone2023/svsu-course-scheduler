@@ -29,6 +29,27 @@ const revisionWithCourses = Prisma.validator<Prisma.ScheduleRevisionArgs>()({
     },
   },
 });
+
+const courseWithRelationships = Prisma.validator<Prisma.CourseArgs>()({
+  include: {
+    faculty: {
+      include: {
+        faculty: true,
+      },
+    },
+    notes: true,
+    locations: {
+      include: {
+        rooms: true,
+      },
+    },
+  },
+});
+
+export type CourseWithLocationsFacultyAndNotes = Prisma.CourseGetPayload<
+  typeof courseWithRelationships
+>;
+
 export type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
   typeof revisionWithCourses
 >;
@@ -287,16 +308,95 @@ export const calendarRouter = createTRPCRouter({
         tuid: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
-      const course = await ctx.prisma.course.findUnique({
-        where: {
-          tuid: input.tuid,
-        },
-      });
+    .mutation(async ({ ctx, input }) => {
+      const course: CourseWithLocationsFacultyAndNotes | null =
+        await ctx.prisma.course.findUnique({
+          include: {
+            faculty: {
+              include: {
+                faculty: true,
+              },
+            },
+            notes: true,
+            locations: {
+              include: {
+                rooms: true,
+              },
+            },
+          },
+          where: {
+            tuid: input.tuid,
+          },
+        });
 
-      return {
-        course,
-      };
+      if (course != null) {
+        return {
+          capacity: course.capacity,
+          course_number: course.course_number,
+          credits: course.credits,
+          department: course.department,
+          div: course.div,
+          end_date: course.end_date,
+          start_date: course.start_date,
+          faculty: {
+            faculty_tuid:
+              course.faculty.map((faculty) => {
+                return faculty.faculty_tuid;
+              })[0] ?? null,
+          },
+
+          notes: {
+            ACAMDEMIC_AFFAIRS:
+              course.notes.filter((note) => note.type == "ACAMDEMIC_AFFAIRS")[0]
+                ?.note ?? "",
+            CHANGES:
+              course.notes.filter((note) => note.type == "CHANGES")[0]?.note ??
+              "",
+            DEPARTMENT:
+              course.notes.filter((note) => note.type == "DEPARTMENT")[0]
+                ?.note ?? "",
+          },
+          locations: [
+            ...course.locations.map((location) => {
+              return {
+                day_friday: location.day_friday,
+                day_monday: location.day_monday,
+                day_saturday: location.day_saturday,
+                day_sunday: location.day_sunday,
+                day_thursday: location.day_thursday,
+                day_tuesday: location.day_tuesday,
+                day_wednesday: location.day_wednesday,
+                end_time: location.end_time,
+                is_online: location.is_online,
+                start_time: location.start_time,
+                rooms: {
+                  ...location.rooms.map((room) => {
+                    return {
+                      building: {
+                        buiding_tuid: room.building_tuid,
+                      },
+                      room: room.room,
+                    };
+                  })[0],
+                },
+              };
+            }),
+          ],
+          instruction_method: course.instruction_method,
+          original_state: course.original_state,
+          section: course.section,
+          semester_fall: course.semester_fall,
+          semester_winter: course.semester_winter,
+          semester_spring: course.semester_spring,
+          semester_summer: course.semester_summer,
+          state: course.state,
+          status: course.status,
+          type: course.type,
+          subject: course.subject,
+          term: course.term,
+          title: course.title,
+        } as ICalendarCourseSchema;
+      }
     }),
 
   //This will grab one revision by tuid and return all courses attached to it
@@ -505,7 +605,10 @@ export const calendarRouter = createTRPCRouter({
     return flatten(data);
   }),
 
-  //This will add a new course to a revision in the add course box
+  /**
+   * addCourseToRevision
+   * Adds a newly created course to a revision
+   */
   addCourseToRevision: protectedProcedure
     .input(
       z.object({
@@ -535,7 +638,7 @@ export const calendarRouter = createTRPCRouter({
                 room: location.rooms.room.toString(),
                 building: {
                   connect: {
-                    tuid: location.rooms.building_tuid,
+                    tuid: location.rooms.building?.buiding_tuid,
                   },
                 },
               },
@@ -545,7 +648,7 @@ export const calendarRouter = createTRPCRouter({
       });
       const course = input.course;
       //If parse was successful then...
-      const createNewCourse = await ctx.prisma.course.create({
+      await ctx.prisma.course.create({
         data: {
           revision: {
             connect: {
@@ -576,17 +679,24 @@ export const calendarRouter = createTRPCRouter({
           semester_summer: course.semester_summer,
           semester_winter: course.semester_winter,
 
-          //Create the associated notes to the current course dynamically
-
+          //Add the locations to the course from the mapping above the trasnsacton
           locations: {
             create: [...locations],
           },
 
+          //Add all of the faculty to the course by creating and connecting the many to many
           faculty: {
-            connect: {
-              tuid: course.faculty_tuid,
+            create: {
+              faculty: {
+                connect: {
+                  tuid: course.faculty.faculty_tuid,
+                },
+              },
             },
           },
+
+          //Add the notes, but because are validation supports 3 notes, we manually
+          //need to specify them because of issues with dynamic notes on the front end.
           notes: {
             create: [
               {
@@ -605,24 +715,17 @@ export const calendarRouter = createTRPCRouter({
           },
         },
       });
-      // await ctx.prisma.scheduleRevision.update({
-      //   //Performs an update on the scheduleRevision table
-      //   where: {
-      //     //Where the tuid is equal to the tuid passed in for the revision
-      //     tuid: input.tuid,
-      //   },
-      //   data: {
-      //     courses: {
-      //       //Updates the courses relation by connecting the newly created course to said revision
-      //       connect: [createNewCourse],
-      //     },
-      //   },
-      // });
+      return true;
     }),
 
+  /**
+   * updateRevisionCourse
+   * Updates a course on a revision
+   */
   updateRevisionCourse: protectedProcedure
     .input(calendarCourseSchema)
     .mutation(async ({ ctx, input }) => {
+      //Generate the list of locations with the building connections
       const locations = input.locations.map((location) => {
         return {
           day_friday: location.day_friday,
@@ -641,7 +744,7 @@ export const calendarRouter = createTRPCRouter({
                 room: location.rooms.room.toString(),
                 building: {
                   connect: {
-                    tuid: location.rooms.building_tuid,
+                    tuid: location.rooms.building?.buiding_tuid,
                   },
                 },
               },
@@ -653,23 +756,29 @@ export const calendarRouter = createTRPCRouter({
       const course = input;
 
       await ctx.prisma.$transaction([
+        //First delete all of te faculty relationships to the curse
         ctx.prisma.guidelinesFacultyToCourse.deleteMany({
           where: {
             course_tuid: input.tuid,
           },
         }),
 
+        //Delete any notes assocaited with this course
         ctx.prisma.courseNote.deleteMany({
           where: {
             course_tuid: input.tuid,
           },
         }),
 
+        //Delete any locations with the course, and because its cascade
+        //any rooms will be deleted as well
         ctx.prisma.courseLocation.deleteMany({
           where: {
             course_tuid: input.tuid,
           },
         }),
+
+        //Now we update the course
         ctx.prisma.course.update({
           where: {
             tuid: input.tuid,
@@ -699,17 +808,23 @@ export const calendarRouter = createTRPCRouter({
             semester_summer: course.semester_summer,
             semester_winter: course.semester_winter,
 
-            //Create the associated notes to the current course dynamically
-
+            //Add the locations to the course from the mapping above the trasnsacton
             locations: {
               create: [...locations],
             },
 
+            //Add all of the faculty to the course by creating and connecting the many to many
             faculty: {
-              connect: {
-                tuid: course.faculty_tuid,
+              create: {
+                faculty: {
+                  connect: {
+                    tuid: course.faculty.faculty_tuid,
+                  },
+                },
               },
             },
+            //Add the notes, but because are validation supports 3 notes, we manually
+            //need to specify them because of issues with dynamic notes on the front end.
             notes: {
               create: [
                 {

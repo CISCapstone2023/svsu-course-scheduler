@@ -1,14 +1,15 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { InfoCircle } from "tabler-icons-react";
 import { Button, Toggle } from "react-daisyui";
 import Select from "react-select";
 
+//Database and authentiation
 import { prisma } from "src/server/db";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { api } from "src/utils/api";
 
+//Databhaord, spinners, and tabs
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
@@ -16,16 +17,27 @@ import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
 import Tabs from "./Tabs";
 
+//Local components and types
 import ScheduleCalendar, { type IScheduleCourseWithTimes } from "./Calendar";
 import {
   type IRevisionSelect,
   type ITab,
 } from "src/server/api/routers/calendar";
+import CreateCourseModal from "./CourseModifyModal";
 
+//Type that defines the current NextJS page for use
 interface ScheduleCalendar {
   scheduleId: string;
 }
 
+/**
+ * Scheduler
+ * The schedueler allows vieing, adding, updting, and removal (not-transactively) to the current revision.
+ * Any changes will show in the current viewing of a calendar, which is a group of courses for said current
+ * semester
+ * @param scheduleId Identifier of the current schedudle revision
+ * @returns
+ */
 const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   /**
    * useSession
@@ -96,7 +108,14 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   const [courseInformationSidebar, toggleCourseInformationSidebar] =
     useState<boolean>(false);
 
+  //The revision which is selected for the tabs at the bottom
   const [selectedRevision, setSelectRevision] = useState<IRevisionSelect>();
+
+  //The state of the course modal
+  const [openModifyCourseModal, setModifyCourseModal] = useState(false);
+
+  //The course tuid that will be currently edited
+  const [courseToEdit, setCourseToEdit] = useState<string | null>(null);
 
   return (
     <DashboardLayout>
@@ -104,7 +123,16 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
       <DashboardContent>
         <div className="flex h-full w-full flex-col">
           <DashboardContentHeader title="Scheduler">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
+              <Button
+                size="sm"
+                onClick={() => {
+                  setCourseToEdit(null);
+                  setModifyCourseModal(true);
+                }}
+              >
+                Add Course
+              </Button>
               <p>Show Course Info?</p>
               <Toggle
                 className="ml-2"
@@ -122,13 +150,14 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                 tabs={currentRevisionSemesters.data}
                 active={currentSemesterTabs}
                 onSelect={(tab) => {
-                  console.log(tab);
                   setCurrentSemesterTabValue(tab);
                 }}
               />
               <ScheduleCalendar
+                update={openModifyCourseModal}
                 onSelect={(value) => {
-                  console.log(value);
+                  setCourseToEdit(value);
+                  setModifyCourseModal(true);
                 }}
                 semester={
                   currentRevisionSemesters.data[currentSemesterTabs]!.semester
@@ -197,6 +226,19 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
             </>
           )}
         </div>
+        {openModifyCourseModal && (
+          <CreateCourseModal
+            revisionTuid={scheduleId}
+            open={openModifyCourseModal}
+            edit={courseToEdit}
+            onSuccess={() => {
+              setModifyCourseModal(false);
+            }}
+            onClose={() => {
+              setModifyCourseModal(false);
+            }}
+          />
+        )}
       </DashboardContent>
       {courseInformationSidebar && (
         <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">

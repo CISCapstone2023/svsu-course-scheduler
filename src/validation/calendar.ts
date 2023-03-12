@@ -14,7 +14,11 @@ const facultyToCourseSchema = z.object({
  */
 const roomsSchema = z.object({
   room: z.string(),
-  building_tuid: z.string().cuid(),
+  building: z
+    .object({
+      buiding_tuid: z.string().cuid(),
+    })
+    .nullable(),
 });
 
 /**
@@ -47,7 +51,7 @@ export const calendarCourseSchema = z
   .object({
     section_id: z.number().optional(),
     tuid: z.string().optional(),
-    type: z.string(),
+    type: z.string().optional().default("?"),
     term: z
       .number()
       .min(0)
@@ -56,7 +60,7 @@ export const calendarCourseSchema = z
     semester_fall: z.boolean().default(false),
     semester_winter: z.boolean().default(false),
     semester_spring: z.boolean().default(false),
-    div: z.string(),
+    div: z.string().optional().default("SC"),
     department: z
       .string()
       .min(2)
@@ -66,11 +70,11 @@ export const calendarCourseSchema = z
       .min(2)
       .max(6, { message: "Subject type is larger than expected." }),
     course_number: z.string(),
-    section: z.number().min(0).max(500),
+    section: z.string(),
     start_date: z.date(),
     end_date: z.date(),
     credits: z.number(),
-    title: z.string().min(7).max(100),
+    title: z.string().max(100).optional().default(""),
     status: z.string().default("Active"),
     instruction_method: z.string().default("LEC"),
     capacity: z
@@ -84,7 +88,7 @@ export const calendarCourseSchema = z
     state: z.nativeEnum(CourseState).default("UNMODIFIED"),
 
     //Get a single faculty member on a course
-    faculty_tuid: z.string().cuid(),
+    faculty: facultyToCourseSchema,
     //Force set the notes type here
     notes: z.object({
       ACAMDEMIC_AFFAIRS: z.string(),

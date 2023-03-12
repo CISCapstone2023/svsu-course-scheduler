@@ -4,8 +4,8 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { Prisma } from "@prisma/client";
 import {
-  addGuidelineSchema,
-  addNewRevisionCourse,
+  guidelineCourseAddSchema,
+  guidelineCourseUpdateSchema,
 } from "src/validation/courses";
 import { cssTransition } from "react-toastify";
 
@@ -283,7 +283,7 @@ export const coursesRouter = createTRPCRouter({
 
   //Procedure to add course guideline
   addCourseGuideline: protectedProcedure
-    .input(addGuidelineSchema) //Takes input from zod validator
+    .input(guidelineCourseAddSchema) //Takes input from zod validator
     .mutation(async ({ ctx, input }) => {
       //Query to create a new course guideline
       const guideline = await ctx.prisma.guidelinesCourses.create({
@@ -367,7 +367,7 @@ export const coursesRouter = createTRPCRouter({
     }),
 
   updateCourseGuideline: protectedProcedure
-    .input(addGuidelineSchema)
+    .input(guidelineCourseUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       //Checks to see if the guideline exists by searching for the tuid in a count query
       const hasCourseGuideline = await ctx.prisma.guidelinesCourses.count({
@@ -445,9 +445,9 @@ export const coursesRouter = createTRPCRouter({
         // });
 
         //Creates a new map for the time input to be taken from the client
-        const times = input.times.map((time, index) => ({
+        const times = input.times.map((time) => ({
           where: {
-            tuid: time.tuid,
+            ...(time.tuid ? { tuid: time.tuid } : { tuid: "" }),
           },
           create: {
             tuid: time.tuid,
@@ -465,9 +465,9 @@ export const coursesRouter = createTRPCRouter({
         }));
 
         //Creates a new map for the days input to be taken from the client
-        const days = input.days.map((item, index) => ({
+        const days = input.days.map((item) => ({
           where: {
-            tuid: item.tuid,
+            ...(item.tuid ? { tuid: item.tuid } : { tuid: "" }),
           },
           create: {
             day_monday: item.day_monday,

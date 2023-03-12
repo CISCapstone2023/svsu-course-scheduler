@@ -202,7 +202,7 @@ export const projectsRouter = createTRPCRouter({
               if (result.success == false) {
                 valid = false;
                 errors = result.error;
-                return { success: false, errors: errors.format() };
+                return { success: false, errors: errors.flatten() };
                 break;
               }
             }
@@ -258,7 +258,7 @@ export const projectsRouter = createTRPCRouter({
               if (result.success == false) {
                 valid = false;
                 errors = result.error;
-                return { success: false, errors: ["Somthing went wrong..."] };
+                return { success: false, errors: errors.flatten() };
               }
             }
           }
@@ -299,7 +299,7 @@ export const projectsRouter = createTRPCRouter({
             );
             //Its a valid course!
             if (scheduele != undefined && courses != undefined) {
-              return { success: true, errrors: [] };
+              return { success: true, errors: [] };
             }
           }
         }

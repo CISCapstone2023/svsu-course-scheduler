@@ -36,7 +36,7 @@ const militaryToSplit = (time: number) => {
   };
 };
 
-export const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
+const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
   const [hour, setHour] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [isPM, setIsPM] = useState(false);
@@ -121,3 +121,5 @@ export const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
     </div>
   );
 };
+
+export default TimeInput;

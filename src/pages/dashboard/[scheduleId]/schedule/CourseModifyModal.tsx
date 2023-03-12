@@ -21,7 +21,7 @@ import {
   calendarCourseSchema,
   type ICalendarCourseSchema,
 } from "src/validation/calendar";
-import { TimeInput } from "./TimeInput";
+import TimeInput from "./TimeInput";
 import { api } from "src/utils/api";
 import { toast } from "react-toastify";
 import { Edit, Trash } from "tabler-icons-react";

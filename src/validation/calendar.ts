@@ -31,7 +31,7 @@ const locationsSchema = z.object({
   day_saturday: z.boolean().default(false),
   day_sunday: z.boolean().default(false),
   is_online: z.boolean().default(false),
-  rooms: z.array(roomsSchema),
+  rooms: roomsSchema,
 });
 
 //Provides the two digit year
@@ -45,10 +45,9 @@ const twoDigitYear = parseInt(
  */
 export const calendarCourseSchema = z
   .object({
+    section_id: z.number().optional(),
     tuid: z.string().optional(),
     type: z.string(),
-    section_id: z.number().min(1).nullable(),
-    revision_tuid: z.string().optional(),
     term: z
       .number()
       .min(0)
@@ -74,14 +73,18 @@ export const calendarCourseSchema = z
     title: z.string().min(7).max(100),
     status: z.string().default("Active"),
     instruction_method: z.string().default("LEC"),
-    capacity: z.number().min(1).max(500, {
-      message: "Capacity has a limit of 500 students on a course.",
-    }),
+    capacity: z
+      .number()
+      .min(1)
+      .max(500, {
+        message: "Capacity has a limit of 500 students on a course.",
+      })
+      .default(30),
     original_state: z.nativeEnum(CourseState).default("UNMODIFIED"),
     state: z.nativeEnum(CourseState).default("UNMODIFIED"),
-    faculty: z.array(facultyToCourseSchema).min(1, {
-      message: "A faculty member must be present on a course.",
-    }),
+
+    //Get a single faculty member on a course
+    faculty_tuid: z.string().cuid(),
     //Force set the notes type here
     notes: z.object({
       ACAMDEMIC_AFFAIRS: z.string(),
@@ -90,7 +93,6 @@ export const calendarCourseSchema = z
     }),
     locations: z.array(locationsSchema),
   })
-  .partial()
   .refine(
     ({ semester_fall, semester_winter, semester_spring, semester_summer }) =>
       !(

@@ -1,16 +1,16 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import { Course, Prisma, ScheduleRevision } from "@prisma/client";
-import { prisma } from "src/server/db";
-
+import { type Course, Prisma, type ScheduleRevision } from "@prisma/client";
 import { flatten } from "lodash";
 
+//Get instance of prisma
+import { prisma } from "src/server/db";
+
+import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { createCourseSchema } from "src/server/api/routers/projects";
 import {
   calendarCourseSchema,
-  ICalendarCourseSchema,
+  type ICalendarCourseSchema,
 } from "src/validation/calendar";
-import { cssTransition } from "react-toastify";
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -506,7 +506,7 @@ export const calendarRouter = createTRPCRouter({
   }),
 
   //This will add a new course to a revision in the add course box
-  addNewRevisonCourse: protectedProcedure
+  addCourseToRevision: protectedProcedure
     .input(
       z.object({
         //Input comes in as a revision tuid and a courseSchema variable
@@ -517,103 +517,218 @@ export const calendarRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       //
 
-      if (parseCourseData(input)) {
-        //If parse was successful then...
-        const createNewCourse = await ctx.prisma.course.create(
-          //Create a new course in course table
-          createCourseSchema(input.course as any, input.tuid as any) //Calls the course creation schema and passes in course and tuid as any
-          //There was an issue with the typing as it was passed in so these parameters are casted to type 'any'
-        );
-
-        await ctx.prisma.scheduleRevision.update({
-          //Performs an update on the scheduleRevision table
-          where: {
-            //Where the tuid is equal to the tuid passed in for the revision
-            tuid: input.tuid,
+      const locations = input.course.locations.map((location) => {
+        return {
+          day_friday: location.day_friday,
+          day_monday: location.day_monday,
+          day_saturday: location.day_saturday,
+          day_sunday: location.day_sunday,
+          day_thursday: location.day_thursday,
+          day_tuesday: location.day_tuesday,
+          day_wednesday: location.day_wednesday,
+          end_time: location.end_time,
+          is_online: location.is_online,
+          start_time: location.start_time,
+          rooms: {
+            create: [
+              {
+                room: location.rooms.room.toString(),
+                building: {
+                  connect: {
+                    tuid: location.rooms.building_tuid,
+                  },
+                },
+              },
+            ],
           },
-          data: {
-            courses: {
-              //Updates the courses relation by connecting the newly created course to said revision
-              connect: [createNewCourse],
+        };
+      });
+      const course = input.course;
+      //If parse was successful then...
+      const createNewCourse = await ctx.prisma.course.create({
+        data: {
+          revision: {
+            connect: {
+              tuid: input.tuid,
             },
           },
-        });
-      }
+          capacity: course.capacity,
+          course_number: course.course_number,
+          credits: course.credits,
+          instruction_method: course.instruction_method,
+          department: course.department,
+          div: course.department,
+          end_date: course.end_date,
+          start_date: course.start_date,
+          end_time: 0,
+          start_time: 0,
+          original_state: "ADDED",
+          section: course.section.toString(),
+          section_id: null,
+          state: "ADDED",
+          subject: course.subject,
+          term: course.term,
+          title: course.title,
+          type: course.type,
+          status: course.status,
+          semester_fall: course.semester_fall,
+          semester_spring: course.semester_spring,
+          semester_summer: course.semester_summer,
+          semester_winter: course.semester_winter,
+
+          //Create the associated notes to the current course dynamically
+
+          locations: {
+            create: [...locations],
+          },
+
+          faculty: {
+            connect: {
+              tuid: course.faculty_tuid,
+            },
+          },
+          notes: {
+            create: [
+              {
+                note: course.notes.ACAMDEMIC_AFFAIRS,
+                type: "ACAMDEMIC_AFFAIRS",
+              },
+              {
+                note: course.notes.CHANGES,
+                type: "CHANGES",
+              },
+              {
+                note: course.notes.DEPARTMENT,
+                type: "DEPARTMENT",
+              },
+            ],
+          },
+        },
+      });
+      // await ctx.prisma.scheduleRevision.update({
+      //   //Performs an update on the scheduleRevision table
+      //   where: {
+      //     //Where the tuid is equal to the tuid passed in for the revision
+      //     tuid: input.tuid,
+      //   },
+      //   data: {
+      //     courses: {
+      //       //Updates the courses relation by connecting the newly created course to said revision
+      //       connect: [createNewCourse],
+      //     },
+      //   },
+      // });
     }),
 
   updateRevisionCourse: protectedProcedure
     .input(calendarCourseSchema)
     .mutation(async ({ ctx, input }) => {
-      if (parseCourseData(input)) {
-        const deleteFaculty =
-          await ctx.prisma.guidelinesFacultyToCourse.deleteMany({
-            where: {
-              course_tuid: input.tuid,
-            },
-          });
+      const locations = input.locations.map((location) => {
+        return {
+          day_friday: location.day_friday,
+          day_monday: location.day_monday,
+          day_saturday: location.day_saturday,
+          day_sunday: location.day_sunday,
+          day_thursday: location.day_thursday,
+          day_tuesday: location.day_tuesday,
+          day_wednesday: location.day_wednesday,
+          end_time: location.end_time,
+          is_online: location.is_online,
+          start_time: location.start_time,
+          rooms: {
+            create: [
+              {
+                room: location.rooms.room.toString(),
+                building: {
+                  connect: {
+                    tuid: location.rooms.building_tuid,
+                  },
+                },
+              },
+            ],
+          },
+        };
+      });
 
-        const deleteNotes = await ctx.prisma.courseNote.deleteMany({
+      const course = input;
+
+      await ctx.prisma.$transaction([
+        ctx.prisma.guidelinesFacultyToCourse.deleteMany({
           where: {
             course_tuid: input.tuid,
           },
-        });
+        }),
 
-        const deleteLocations = await ctx.prisma.courseLocation.deleteMany({
+        ctx.prisma.courseNote.deleteMany({
           where: {
             course_tuid: input.tuid,
           },
-        });
+        }),
 
-        const faculty = input.faculty?.map((item, index) => ({
+        ctx.prisma.courseLocation.deleteMany({
           where: {
-            tuid: item.faculty_tuid,
+            course_tuid: input.tuid,
           },
-          create: {},
-        }));
-        const notes = input.notes?.map((item, index) => ({
-          where: {
-            tuid: item.tuid,
-          },
-          create: {},
-        }));
-
-        // const locations = input.locations?.map((item, index) => ({
-        //   where: {
-        //     tuid: item.tuid,
-        //   },
-        //   create: {},
-        // }));
-
-        const updatedCourse = await ctx.prisma.course.update({
+        }),
+        ctx.prisma.course.update({
           where: {
             tuid: input.tuid,
           },
           data: {
-            type: input.type,
-            section_id: input.section_id,
-            revision_tuid: input.revision_tuid,
-            term: input.term,
-            semester_summer: input.semester_summer,
-            semester_fall: input.semester_fall,
-            semester_winter: input.semester_winter,
-            semester_spring: input.semester_spring,
-            div: input.div,
-            department: input.department,
-            subject: input.subject,
-            course_number: input.course_number,
-            section: input.course_number,
-            start_date: input.start_date,
-            end_date: input.end_date,
-            credits: input.credits,
-            title: input.title,
-            status: input.status,
-            instruction_method: input.instruction_method,
-            capacity: input.capacity,
-            original_state: input.original_state,
-            state: "MODIFIED",
+            capacity: course.capacity,
+            course_number: course.course_number,
+            credits: course.credits,
+            instruction_method: course.instruction_method,
+            department: course.department,
+            div: course.department,
+            end_date: course.end_date,
+            start_date: course.start_date,
+            end_time: 0,
+            start_time: 0,
+            original_state: "ADDED",
+            section: course.section.toString(),
+            section_id: null,
+            state: "ADDED",
+            subject: course.subject,
+            term: course.term,
+            title: course.title,
+            type: course.type,
+            status: course.status,
+            semester_fall: course.semester_fall,
+            semester_spring: course.semester_spring,
+            semester_summer: course.semester_summer,
+            semester_winter: course.semester_winter,
+
+            //Create the associated notes to the current course dynamically
+
+            locations: {
+              create: [...locations],
+            },
+
+            faculty: {
+              connect: {
+                tuid: course.faculty_tuid,
+              },
+            },
+            notes: {
+              create: [
+                {
+                  note: course.notes.ACAMDEMIC_AFFAIRS,
+                  type: "ACAMDEMIC_AFFAIRS",
+                },
+                {
+                  note: course.notes.CHANGES,
+                  type: "CHANGES",
+                },
+                {
+                  note: course.notes.DEPARTMENT,
+                  type: "DEPARTMENT",
+                },
+              ],
+            },
           },
-        });
-      }
+        }),
+      ]);
     }),
 });
 

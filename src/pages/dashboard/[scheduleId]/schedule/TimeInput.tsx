@@ -41,7 +41,7 @@ export const TimeInput = ({ value }: TimeInputProps) => {
   const [isPM, setIsPM] = useState(false);
 
   useEffect(() => {
-    const time = militaryToSplit(1001);
+    const time = militaryToSplit(value);
     setHour(time.anteMeridiemHour);
     setMinutes(time.minute);
     setIsPM(time.anteMeridiem == "PM");
@@ -52,32 +52,33 @@ export const TimeInput = ({ value }: TimeInputProps) => {
   }, [hour, minutes, isPM]);
 
   const onChange = () => {
-    // let tempHours = hour;
-    // if (isPM == true) {
-    //   tempHours += 12;
-    // }
+    let tempHours = hour;
+    if (isPM == true) {
+      tempHours += 12;
+    }
 
-    const military = parseInt(`${hour}${minutes < 10 ? "0" : ""}${minutes}`);
+    const military = parseInt(
+      `${tempHours}${minutes < 10 ? "0" : ""}${minutes}`
+    );
     console.log(military);
   };
 
   return (
-    <>
-      <Input
+    <div className="flex rounded-lg border-[1px] border-gray-300 p-1">
+      <input
         type="number"
-        className="w-20"
-        size="sm"
+        className="time-input w-8"
         value={hour}
         onChange={(event) => {
           setHour(parseInt(event.currentTarget.value));
         }}
-        min="0"
-        max="23"
+        min="1"
+        max="12"
       />
-      <Input
+      :
+      <input
         type="number"
-        className="w-20"
-        size="sm"
+        className="time-input w-8"
         value={minutes}
         onChange={(event) => {
           setMinutes(parseInt(event.currentTarget.value));
@@ -85,13 +86,15 @@ export const TimeInput = ({ value }: TimeInputProps) => {
         min="0"
         max="60"
       />
-      {/* <Checkbox
-        checked={isPM}
+      <select
+        value={isPM == true ? "PM" : "AM"}
         onChange={(event) => {
-          setIsPM(event.currentTarget.checked);
+          setIsPM(event.currentTarget.value == "PM");
         }}
-      />
-      <p>PM</p> */}
-    </>
+      >
+        <option value={"AM"}>AM</option>
+        <option value={"PM"}>PM</option>
+      </select>
+    </div>
   );
 };

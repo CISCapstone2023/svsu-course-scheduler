@@ -1,30 +1,68 @@
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
+//Import Prisma (type object reference)
 import { Prisma } from "@prisma/client";
+
+//Import Prisma for indirect access that's not by the TRPC context
 import { prisma } from "src/server/db";
+
+//Import all required information for TRPC for making APIs
+import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
+
+//Import all validation for creating revision, onboarding, etc
 import {
-  IProjectOrganizedColumnRow,
   organizeColumnRows,
-  type IProjectOrganizedColumnRowNumerical,
-  type IProjectOrganizedColumnFromClient,
   createRevisionOnboarding,
+  createRevisionSchemaTUID,
+  type IProjectOrganizedColumnRowNumerical,
+  type IProjectOrganizedColumnRow,
+  type IProjectsExcelCourseSchema,
+  excelCourseSchema,
 } from "src/validation/projects";
+
+//Import Node-XLSX for manupulating excel files (reading, and writing)
 import xlsx from "node-xlsx";
-import { invert } from "lodash";
-import { componentShapes } from "react-daisyui/dist/constants";
-import Faculty from "src/pages/dashboard/[scheduleId]/faculty/Faculty";
-import { courseSchema, ICourseSchema } from "src/validation/courses";
+
+/**
+ * ExcelDataColumns
+ * The data provided by excel. As the node-xlsx library
+ * does not provide typed information we will assume the multidimensional
+ * array will contain a string representation of a value or undefined if no
+ * value is found. This would not be null as no value should no be represented
+ * and either fail to check.
+ */
 type ExcelDataColumns = Array<Array<string | undefined>>;
 
-//import validation next
-import { createRevisionSchemaTUID } from "src/validation/projects";
 const scheduleWithRevisions = Prisma.validator<Prisma.ScheduleArgs>()({
   include: { revisions: true },
 });
+
+/**
+ * ScheduleWithRevisions
+ *
+ * Create a type from Prisma that contains the schedule with its revision as
+ * a union type based on the payload from Prisma
+ */
 type ScheduleWithRevisions = Prisma.ScheduleGetPayload<
   typeof scheduleWithRevisions
 >;
+
+/**
+ *
+ */
+interface InvertedObject {
+  [key: string]: string;
+}
+
+/**
+ * Projects Router
+ *
+ * This is the router from the projects screen.
+ * - Allows projects to be view
+ * - Allows projects to be created, via uploading excel and organizing columns
+ * - Allows projects to be deleted*
+ * - Allows projects to be uploaded with revisions like above*
+ */
 export const projectsRouter = createTRPCRouter({
   // ScheduleRevision -------------------------------------------------------------------------------------
   //delete schedule revision
@@ -156,7 +194,7 @@ export const projectsRouter = createTRPCRouter({
           let errors: z.ZodError;
           for (const row of formattedColumns) {
             if (row != undefined) {
-              const result = await courseSchema.safeParseAsync(row, {
+              const result = await excelCourseSchema.safeParseAsync(row, {
                 errorMap: excelErrorMap,
               });
 
@@ -215,7 +253,7 @@ export const projectsRouter = createTRPCRouter({
           for (const row of formattedColumns) {
             console.log(row);
             if (row != undefined) {
-              const result = await courseSchema.safeParseAsync(row);
+              const result = await excelCourseSchema.safeParseAsync(row);
               //console.log({ result, row, json: JSON.stringify(row) });
               if (result.success == false) {
                 valid = false;
@@ -252,11 +290,11 @@ export const projectsRouter = createTRPCRouter({
                   },
                 }),
                 //Add all courses in the current transaction
-                ...(formattedColumns as Required<ICourseSchema>[]).map(
-                  (row, index) => {
-                    return prisma.course.create(createCourseSchema(row, input));
-                  }
-                ),
+                ...(
+                  formattedColumns as Required<IProjectsExcelCourseSchema>[]
+                ).map((row, index) => {
+                  return prisma.course.create(createCourseSchema(row, input));
+                }),
               ]
             );
             //Its a valid course!
@@ -270,10 +308,6 @@ export const projectsRouter = createTRPCRouter({
       return { success: false, errrors: ["Somthing went wrong..."] };
     }),
 });
-
-interface InvertedObject {
-  [key: string]: string;
-}
 
 const excelErrorMap: z.ZodErrorMap = (error, ctx) => {
   /*
@@ -297,7 +331,7 @@ const excelErrorMap: z.ZodErrorMap = (error, ctx) => {
 };
 
 export const createCourseSchema = (
-  row: Required<ICourseSchema>,
+  row: Required<IProjectsExcelCourseSchema>,
   input: { tuid: string }
 ) => {
   return {
@@ -409,8 +443,9 @@ const invertedNestedOrganizedColumns = async (
   ) as InvertedObject;
 
   const getIndexFromOrganizedColumns = (index: number): string => {
-    //have to set type 'unknown as string' so that TS will not get mad
-    //we are assuming that we will know the type
+    //Have to set type 'unknown as string' so that TS will not error out
+    //as its assuming that the type could be a possible undefined, which is true
+    //but said value but that's discarded later on, so it doesn't affect the outcome
     const indexKey = invertOrganizedColumns[index] as unknown as string;
     return indexKey == undefined ? "_" : indexKey;
   };
@@ -685,7 +720,7 @@ const invertedNestedOrganizedColumns = async (
         department: data.department,
         subject: data.subject,
         course_number: data.course_number,
-        section: parseInt(data.section) || 0,
+        section: parseInt(data.section) || data.section,
         //The "excel time" to js time
         start_date: new Date(
           Date.UTC(0, 0, (parseInt(data.start_date) || 0) - 1)
@@ -732,7 +767,7 @@ const invertedNestedOrganizedColumns = async (
             type: "CHANGES",
           },
         ],
-      } as Partial<ICourseSchema>;
+      } as Partial<IProjectsExcelCourseSchema>;
 
       //Return each course output
       return mergedCourseOutput;

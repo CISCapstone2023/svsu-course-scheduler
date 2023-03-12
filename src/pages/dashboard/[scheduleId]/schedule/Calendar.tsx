@@ -323,6 +323,7 @@ interface CalendarComponentProps {
   children?: React.ReactNode;
   semester: "FA" | "WI" | "SP" | "SU";
   revision: string;
+  update?: boolean;
   weekends: boolean;
   onSelect: (course: string) => void;
   onCourseHover: (course: IScheduleCourseWithTimes) => void;
@@ -332,6 +333,7 @@ const ScheduleCalendar = ({
   children,
   semester,
   weekends = false,
+  update,
   revision,
   onSelect,
   onCourseHover,
@@ -339,6 +341,10 @@ const ScheduleCalendar = ({
   const [hover, setCourseHover] = useState<IScheduleCourseWithTimes | null>(
     null
   );
+
+  useEffect(() => {
+    result.refetch();
+  }, [update]);
 
   const result = api.calendar.getRevision.useQuery({
     tuid: revision,

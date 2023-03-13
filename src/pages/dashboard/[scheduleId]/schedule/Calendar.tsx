@@ -250,7 +250,7 @@ const CourseListing = ({
                         onSelect(course.tuid);
                       }}
                       className={classNames(
-                        "z-[100]  flex w-32 cursor-pointer overflow-hidden  text-ellipsis rounded-lg border border-base-100  bg-base-200  transition-all duration-150 hover:z-[999] hover:shadow-lg",
+                        "z-[100]  flex w-32 cursor-pointer overflow-hidden  text-ellipsis rounded-lg  border  border-base-100 bg-base-200 transition-all duration-150 hover:z-[999] hover:shadow-lg",
                         {
                           "-ml-10": index > 0 && overlap,
 
@@ -264,14 +264,19 @@ const CourseListing = ({
                             hover != null &&
                             hover.tuid == course.tuid &&
                             block.courses.length - 1 != index,
-                          "border-green-400": course.state == "ADDED",
-                          "bg-white": !course.withinGuideline,
+                          "border-[3px] border-green-400":
+                            course.state == "ADDED",
+                          "border-[3px] border-yellow-400":
+                            course.state == "MODIFIED",
+                          "border-[3px] border-red-400":
+                            course.state == "REMOVED",
+                          "border-dotted bg-white": !course.withinGuideline,
                         }
                       )}
                     >
                       <div
                         className={classNames("h-full w-full p-2", {
-                          "bg-orange-400": !course.withinGuideline,
+                          "bg-brand": !course.withinGuideline,
                         })}
                       >
                         <p style={{ fontSize: 12 }}>

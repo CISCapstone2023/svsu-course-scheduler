@@ -53,6 +53,19 @@ export type IScheduleCourseWithTimes = IScheduleCourse & {
   endTime: number;
   difference: number;
   withinGuideline: boolean;
+  faculty: {
+    faculty: {
+      name: string;
+    };
+  };
+  locations: Array<{
+    rooms: {
+      building: {
+        name: string;
+        prefix: string;
+      };
+    };
+  }>;
 };
 
 interface ICalendarMapping {

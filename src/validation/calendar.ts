@@ -13,10 +13,10 @@ const facultyToCourseSchema = z.object({
  * Rooms
  */
 const roomsSchema = z.object({
-  room: z.string(),
+  room: z.string().nullable(),
   building: z
     .object({
-      buiding_tuid: z.string().cuid(),
+      buiding_tuid: z.string().cuid().nullable(),
     })
     .nullable(),
 });
@@ -35,7 +35,12 @@ const locationsSchema = z.object({
   day_saturday: z.boolean().default(false),
   day_sunday: z.boolean().default(false),
   is_online: z.boolean().default(false),
-  rooms: roomsSchema,
+  rooms: roomsSchema.optional().default({
+    building: {
+      buiding_tuid: null,
+    },
+    room: null,
+  }),
 });
 
 //Provides the two digit year

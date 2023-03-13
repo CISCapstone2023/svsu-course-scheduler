@@ -705,18 +705,22 @@ export const calendarRouter = createTRPCRouter({
           end_time: location.end_time,
           is_online: location.is_online,
           start_time: location.start_time,
-          rooms: {
-            create: [
-              {
-                room: location.rooms.room.toString(),
-                building: {
-                  connect: {
-                    tuid: location.rooms.building?.buiding_tuid,
-                  },
+          ...(location.rooms.room && location.rooms?.building?.buiding_tuid
+            ? {
+                rooms: {
+                  create: [
+                    {
+                      room: location.rooms.room.toString(),
+                      building: {
+                        connect: {
+                          tuid: location.rooms?.building?.buiding_tuid,
+                        },
+                      },
+                    },
+                  ],
                 },
-              },
-            ],
-          },
+              }
+            : {}),
         };
       });
       const course = input.course;
@@ -811,18 +815,24 @@ export const calendarRouter = createTRPCRouter({
           end_time: location.end_time,
           is_online: location.is_online,
           start_time: location.start_time,
-          rooms: {
-            create: [
-              {
-                room: location.rooms.room.toString(),
-                building: {
-                  connect: {
-                    tuid: location.rooms.building?.buiding_tuid,
-                  },
+          ...(location.rooms.room &&
+          location.rooms?.building &&
+          location.rooms?.building?.buiding_tuid
+            ? {
+                rooms: {
+                  create: [
+                    {
+                      room: location.rooms.room.toString(),
+                      building: {
+                        connect: {
+                          tuid: location.rooms?.building?.buiding_tuid,
+                        },
+                      },
+                    },
+                  ],
                 },
-              },
-            ],
-          },
+              }
+            : {}),
         };
       });
 

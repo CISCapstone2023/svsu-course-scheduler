@@ -1,49 +1,81 @@
+//Next and NextAuth
 import type { NextPage } from "next";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+
+//React Component Libraries and Icons
+import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
+import { Button, Input, Modal, Steps, Tooltip } from "react-daisyui";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { ErrorMessage } from "@hookform/error-message";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type typeToFlattenedError } from "zod";
+
+//TRPC
+import { routeNeedsAuthSession } from "src/server/auth";
+import { api } from "src/utils/api";
+
+//Local file imports
 import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
-import { routeNeedsAuthSession } from "src/server/auth";
-import {
-  AlertTriangle,
-  FilePlus,
-  Logout,
-  QuestionMark,
-} from "tabler-icons-react";
-import {
-  Button,
-  Collapse,
-  Divider,
-  Input,
-  Modal,
-  Steps,
-  Tooltip,
-} from "react-daisyui";
-import { useState } from "react";
-import { api } from "src/utils/api";
 import PaginationBar from "src/components/Pagination";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectsUpload from "src/components/projects/projectUploading/ProjectsUpload";
 import ProjectDataTableEdit, {
   columnLookupTable,
 } from "src/components/projects/projectUploading/ProjectDataTableEdit";
-import { useRouter } from "next/router";
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 
+//Images
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 
+//Validations
 import {
   finalizeProjectOnBoarding,
-  IProjectFinalizeOnboarding,
+  type IProjectFinalizeOnboarding,
   type IProjectOrganizedColumnRowNumerical,
 } from "src/validation/projects";
-import { toast } from "react-toastify";
-import { ErrorMessage } from "@hookform/error-message";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { never, typeToFlattenedError } from "zod";
 
+//THE DEFAULT SCHEMA FOR THE ORGANIZED COLUMNS
+const DEFAULT_ORGANIZED_COLUMNS = {
+  noteWhatHasChanged: -1,
+  section_id: -1,
+  term: -1,
+  div: -1,
+  department: -1,
+  subject: -1,
+  course_number: -1,
+  section: -1,
+  title: -1,
+  instruction_method: -1,
+  faculty: -1,
+  campus: -1,
+  credits: -1,
+  capacity: -1,
+  start_date: -1,
+  end_date: -1,
+  building: -1,
+  room: -1,
+  start_time: -1,
+  end_time: -1,
+  days: -1,
+  noteAcademicAffairs: -1,
+  notePrintedComments: -1,
+};
+
+/**
+ * Projects
+ * The project page shows a list of projects based on a SCHEDULE or a REVISION
+ * In reality a project and a schedule mean the same thing but they just have many revisions.
+ *
+ * This page allows us to select a scheudle/project and also upload new files to mange other projects if needed.
+ *
+ * @returns nothing
+ */
 const Projects: NextPage = () => {
   /**
    * useSession
@@ -54,33 +86,49 @@ const Projects: NextPage = () => {
   const { data } = useSession();
   const router = useRouter();
 
+  //Onboarding data, which is a multidimensional array of strings
   interface IOnboarding {
     tuid: string;
     table: Array<Array<string>>;
   }
 
+  //The data being uploaded
   const [uploadedData, setData] = useState<IOnboarding>();
+
+  //ConfirmationCancel Modal State
   const [confirmationCancel, setComfirmation] = useState<boolean>(false);
-  const [visible, setVisible] = useState<boolean>(false);
+
+  //Visibility of the modal
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+
+  //The current page for the pagination
   const [currentPage, setCurrentPage] = useState(1);
+
+  //The reset flag for the onboarding
   const [setReset, setResetFlag] = useState(false);
+
+  //The current stage for the onboarding
   const [stage, setStage] = useState<number>(1);
+
+  //The current list of errors from zod
   const [error, setError] = useState<
+    //TODO: Can this type be improved to remove anys?
     typeToFlattenedError<any, any> | never[] | undefined
   >(undefined);
 
+  //Get the mutation
   const verifyOrganizedColumnsMutation =
     api.projects.verifyOrganizedColumns.useMutation();
 
   const toggleVisible = () => {
     //set visibility of the modal
     if (stage == 1) {
-      setVisible(!visible);
-    } else if (visible) {
+      setModalVisible(!modalVisible);
+    } else if (modalVisible) {
       //show confirmation box if starting to close
       setComfirmation(true);
     } else {
-      setVisible(!visible);
+      setModalVisible(!modalVisible);
     }
   };
 
@@ -93,27 +141,27 @@ const Projects: NextPage = () => {
     if (stage == 1.5) {
       setStage(stage + 0.5);
     } else if (stage == 2) {
-      if (uploadedData?.tuid != undefined) {
-        const result = await verifyOrganizedColumnsMutation.mutateAsync({
-          tuid: uploadedData.tuid,
-          columns: { ...organizedColumns },
-        });
-        if (result.success == true) {
-          toast.success("Successfully organized the columns!.", {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-          setStage(stage + 1);
-        } else {
-          toast.error("Internal Error had occured...", {
-            position: toast.POSITION.TOP_RIGHT,
-          });
-          alert(JSON.stringify(result.errors));
-        }
-      } else {
-        toast.error("Could not organize columns. Please try again.", {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      }
+      // if (uploadedData?.tuid != undefined) {
+      //   const result = await verifyOrganizedColumnsMutation.mutateAsync({
+      //     tuid: uploadedData.tuid,
+      //     columns: { ...organizedColumns },
+      //   });
+      //   if (result.success == true) {
+      //     toast.success("Successfully organized the columns!.", {
+      //       position: toast.POSITION.BOTTOM_LEFT,
+      //     });
+      //     setStage(stage + 1);
+      //   } else {
+      //     toast.error("Internal Error had occured...", {
+      //       position: toast.POSITION.BOTTOM_LEFT,
+      //     });
+      //     alert(JSON.stringify(result.errors));
+      //   }
+      // } else {
+      //   toast.error("Could not organize columns. Please try again.", {
+      //     position: toast.POSITION.BOTTOM_LEFT,
+      //   });
+      // }
     } else {
       setStage(stage + 1);
     }
@@ -214,10 +262,28 @@ const Projects: NextPage = () => {
       notePrintedComments: -1,
     });
 
+  /**
+   * Add localstorage for organizing columns
+   * This will occur on the mount process of the application
+   */
+  useEffect(() => {
+    const localStorageColumns = localStorage.getItem("columns");
+    console.log({ localStorageColumns });
+    if (localStorageColumns != null) {
+      const organizeColumnsArray = JSON.parse(localStorageColumns);
+      setOrganizeColumns(organizeColumnsArray);
+    }
+  }, []);
+
+  //Get the columns that have no been organized
   function getMissingColumns() {
+    //The columns missing
     const missingColumns = [];
+    //The temp list of columns
     const tempOrganizedColumns = organizedColumns as Record<string, number>;
+    //Loop all columns
     for (const i in tempOrganizedColumns) {
+      //If said column is -1 then its not organized
       if (tempOrganizedColumns[i] == -1) {
         missingColumns.push(
           columnLookupTable.find((item) => {
@@ -226,6 +292,7 @@ const Projects: NextPage = () => {
         );
       }
     }
+    //Return said columns back so they can be rendered
     return missingColumns;
   }
 
@@ -261,9 +328,20 @@ const Projects: NextPage = () => {
         name: value.name,
       });
       if (result.success) {
-        router.push(`/dashboard/${uploadedData.tuid}/home`);
+        //Alert the user it as created sucessfully
+        toast.success("Created Sucessfully, redirecting...", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        //Then after two seconds redirect the user via the router
+        setTimeout(() => {
+          router.push(`/dashboard/${uploadedData.tuid}/home`);
+        }, 2000);
       } else {
-        console.log(JSON.stringify(result.errors));
+        //Show an notification that an error had occured the user
+        toast.error("An error had occured...", {
+          position: toast.POSITION.BOTTOM_LEFT,
+        });
+        //Add the errors to the state to be shown on screen
         setError(result.errors);
       }
     }
@@ -300,7 +378,10 @@ const Projects: NextPage = () => {
             Log Out
           </button>
         </div>
-        <Modal open={visible} className=" max-h-[250rem] min-w-[90%] max-w-5xl">
+        <Modal
+          open={modalVisible}
+          className=" max-h-[250rem] min-w-[90%] max-w-5xl"
+        >
           <Modal.Header className="flex justify-center font-bold">
             <Steps>
               <Steps.Step
@@ -369,9 +450,18 @@ const Projects: NextPage = () => {
                   <div className="flex h-full w-full">
                     {getMissingColumns().length > 0 && (
                       <div className="mr-5 max-h-96 min-w-[200px] overflow-y-auto">
-                        <strong className="sticky top-0 bg-white">
-                          Missing Columns
-                        </strong>
+                        <div className="sticky top-0 flex justify-between bg-white">
+                          <strong className="">Columns</strong>
+                          <Button
+                            size="sm"
+                            color="error"
+                            onClick={() => {
+                              setOrganizeColumns(DEFAULT_ORGANIZED_COLUMNS);
+                            }}
+                          >
+                            Reset
+                          </Button>
+                        </div>
                         <ul>
                           {getMissingColumns().map((value, i) => {
                             return (
@@ -410,6 +500,7 @@ const Projects: NextPage = () => {
                         setOrganizeColumns(
                           value as IProjectOrganizedColumnRowNumerical
                         );
+                        localStorage.setItem("columns", JSON.stringify(value));
                       }}
                     />
                   </div>
@@ -442,6 +533,7 @@ const Projects: NextPage = () => {
                     >
                       Cancel
                     </Button>
+
                     <Button
                       color="success"
                       type="submit"
@@ -452,13 +544,15 @@ const Projects: NextPage = () => {
                     </Button>
                   </div>
 
-                  <ErrorMessage
-                    errors={onboardingForm.formState.errors}
-                    name="name"
-                    render={({ message }) => (
-                      <p className="font-semibold text-red-600">{message}</p>
-                    )}
-                  />
+                  <div className="mt-2">
+                    <ErrorMessage
+                      errors={onboardingForm.formState.errors}
+                      name="name"
+                      render={({ message }) => (
+                        <p className="font-semibold text-red-600">{message}</p>
+                      )}
+                    />
+                  </div>
                 </div>
               </form>
             ) : (
@@ -487,7 +581,7 @@ const Projects: NextPage = () => {
             if (stage == 2) setStage(stage - 1);
             if (uploadedData?.tuid) deleteRevision(uploadedData?.tuid);
             setComfirmation(false);
-            setVisible(false);
+            setModalVisible(false);
             setStage(1);
             setResetFlag(true);
             setError(undefined);

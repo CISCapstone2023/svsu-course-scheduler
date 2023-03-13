@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Toggle } from "react-daisyui";
 import Select from "react-select";
 
@@ -105,8 +105,18 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
    * based who is hovering the data
    * @author Brendan Fuller
    */
-  const [courseInformationSidebar, toggleCourseInformationSidebar] =
+  const [courseInformationSidebar, setCourseInformationSidebar] =
     useState<boolean>(false);
+
+  const toggleCourseInformationSidebar = (state: boolean) => {
+    setCourseInformationSidebar(state);
+    localStorage.setItem("schedule/sidebar", state ? "true" : "false");
+  };
+
+  useEffect(() => {
+    const value = localStorage.getItem("schedule/sidebar");
+    setCourseInformationSidebar(value == "true");
+  }, []);
 
   //The revision which is selected for the tabs at the bottom
   const [selectedRevision, setSelectRevision] = useState<IRevisionSelect>();

@@ -742,7 +742,12 @@ const CreateCourseModal = ({
                           id="inPerson+Building"
                         >
                           <div className="flex w-[400px] flex-row">
-                            <Checkbox className="mr-2 " />
+                            <Checkbox
+                              className="mr-2 "
+                              {...courseAddForm.register(
+                                `locations.${index}.is_online`
+                              )}
+                            />
                             <p>Course Online</p>
                           </div>
 
@@ -755,7 +760,6 @@ const CreateCourseModal = ({
                               <Controller
                                 name={`locations.${index}.rooms.building`}
                                 control={courseAddForm.control}
-                                rules={{ required: true }}
                                 render={({ field }) => (
                                   <AsyncSelect
                                     isClearable

@@ -35,3 +35,20 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+.justify {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.paragraph {
+  word-wrap: normal;
+  display: block;
+  font-weight: 600;
+  border-radius: 50%;
+
+  padding: 2px;
+
+  display: flex;
+  align-items: center;
+}

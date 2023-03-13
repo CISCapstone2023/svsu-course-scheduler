@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Toggle } from "react-daisyui";
 import Select from "react-select";
 
@@ -24,6 +24,7 @@ import {
   type ITab,
 } from "src/server/api/routers/calendar";
 import CreateCourseModal from "./CourseModifyModal";
+import CourseInformationSidebar from "./CourseInformation";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -105,8 +106,18 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
    * based who is hovering the data
    * @author Brendan Fuller
    */
-  const [courseInformationSidebar, toggleCourseInformationSidebar] =
+  const [courseInformationSidebar, setCourseInformationSidebar] =
     useState<boolean>(false);
+
+  const toggleCourseInformationSidebar = (state: boolean) => {
+    setCourseInformationSidebar(state);
+    localStorage.setItem("schedule/sidebar", state ? "true" : "false");
+  };
+
+  useEffect(() => {
+    const value = localStorage.getItem("schedule/sidebar");
+    setCourseInformationSidebar(value == "true");
+  }, []);
 
   //The revision which is selected for the tabs at the bottom
   const [selectedRevision, setSelectRevision] = useState<IRevisionSelect>();
@@ -133,7 +144,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               >
                 Add Course
               </Button>
-              <p>Show Course Info?</p>
+              <p>Basic Course Info?</p>
               <Toggle
                 className="ml-2"
                 checked={courseInformationSidebar}
@@ -241,9 +252,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
         )}
       </DashboardContent>
       {courseInformationSidebar && (
-        <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
-          {lastHovered?.title}
-        </div>
+        <CourseInformationSidebar course={lastHovered} />
       )}
     </DashboardLayout>
   );

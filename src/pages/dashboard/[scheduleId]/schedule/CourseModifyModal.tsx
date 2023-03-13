@@ -135,7 +135,7 @@ const CreateCourseModal = ({
     <Modal
       open={open}
       onClickBackdrop={onClose}
-      className="h-full  w-3/4 max-w-5xl "
+      className="h-[1000px]  w-3/4 max-w-5xl "
     >
       {/* Button to close */}
       <Button
@@ -148,19 +148,21 @@ const CreateCourseModal = ({
       </Button>
 
       {/* Header for Modal */}
-      <Modal.Header>Add / Edit Course Placement</Modal.Header>
-      <Modal.Body className="h-[500px] w-full">
+      <Modal.Header>
+        {isCourseEditing ? "Edit" : "Add"} Course Placement
+      </Modal.Header>
+      <Modal.Body className="h-[710px] w-full">
         {/* <DevTool control={courseAddForm.control} /> set up the dev tool */}
         {/* form to handle course additions, modifications, or submission */}
         {/* add conditional check for loading if is editing */}
         {(edit == null || (edit != null && isCourseEditing)) && (
           <form
             onSubmit={courseAddForm.handleSubmit(onCourseAddModifySubmit)}
-            className="w-full"
+            className="h-full w-full"
           >
             {/* Parent Div */}
             {/* Note: id="" will tell you what section is which for the divs */}
-            <div className="flex h-full w-full" id="parent">
+            <div className="mb-10 flex h-full w-full" id="parent">
               {/* Div for mainSection of modal */}
               <div className="flex w-full flex-col pr-2" id="mainSection">
                 {/* Div to align first row */}
@@ -828,21 +830,21 @@ const CreateCourseModal = ({
                 <div className="grow flex-row text-left" id="1">
                   <p>Changes</p>
                   <Textarea
-                    className="h-full w-full"
+                    className="h-full w-full resize-none"
                     {...courseAddForm.register(`notes.CHANGES`)}
                   />
                 </div>
                 <div className="grow flex-row text-left" id="2">
                   <p>Academic Affairs</p>
                   <Textarea
-                    className="h-full w-full"
+                    className="h-full w-full resize-none"
                     {...courseAddForm.register(`notes.ACAMDEMIC_AFFAIRS`)}
                   />
                 </div>
                 <div className="grow flex-row text-left" id="3">
                   <p>Department</p>
                   <Textarea
-                    className="h-full w-full"
+                    className="h-full w-full resize-none"
                     {...courseAddForm.register(`notes.DEPARTMENT`)}
                   />
                 </div>
@@ -857,6 +859,7 @@ const CreateCourseModal = ({
           </form>
         )}
 
+        {/* Show an animated spinner while the edited course is loading */}
         {!isCourseEditing && edit != null && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
             <AnimatedSpinner />

@@ -23,7 +23,7 @@ const revisionWithCourses = Prisma.validator<Prisma.ScheduleRevisionArgs>()({
           include: { faculty: true },
         },
         locations: {
-          include: { rooms: true },
+          include: { rooms: { include: { building: true } } },
         },
       },
     },
@@ -101,7 +101,7 @@ const courseType = Prisma.validator<Prisma.CourseArgs>()({
       include: { faculty: true },
     },
     locations: {
-      include: { rooms: true },
+      include: { rooms: { include: { building: true } } },
     },
   },
 });
@@ -308,14 +308,6 @@ export const calendarRouter = createTRPCRouter({
 
         return out;
       };
-
-      console.log({
-        m: monday_courses,
-        t: tuesday_courses,
-        w: monday_courses,
-        th: monday_courses,
-        f: monday_courses,
-      });
 
       // const within = {
       //   monday_courses: await coursesWithinAGuideline(monday_courses),
@@ -1039,7 +1031,11 @@ async function queryCoursesByDay(
                 },
               },
               include: {
-                rooms: true,
+                rooms: {
+                  include: {
+                    building: true,
+                  },
+                },
               },
             },
           },

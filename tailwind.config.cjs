@@ -15,6 +15,9 @@ module.exports = {
         // Simple 8 row grid
         72: "repeat(72, minmax(0, 1fr))",
       },
+      colors: {
+        brand: "#CCCCCC",
+      },
     },
   },
   daisyui: {

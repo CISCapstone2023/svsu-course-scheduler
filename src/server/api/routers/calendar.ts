@@ -40,7 +40,15 @@ const courseWithRelationships = Prisma.validator<Prisma.CourseArgs>()({
     notes: true,
     locations: {
       include: {
-        rooms: true,
+        rooms: {
+          include: {
+            building: {
+              include: {
+                campus: true,
+              },
+            },
+          },
+        },
       },
     },
   },
@@ -53,6 +61,21 @@ export type CourseWithLocationsFacultyAndNotes = Prisma.CourseGetPayload<
 export type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
   typeof revisionWithCourses
 >;
+
+type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
+  faculty: {
+    value: string;
+    label: string;
+  };
+  locations: Array<{
+    rooms: {
+      building: {
+        label: string;
+        value: string;
+      };
+    };
+  }>;
+};
 
 const courseType = Prisma.validator<Prisma.CourseArgs>()({
   include: {
@@ -320,7 +343,15 @@ export const calendarRouter = createTRPCRouter({
             notes: true,
             locations: {
               include: {
-                rooms: true,
+                rooms: {
+                  include: {
+                    building: {
+                      include: {
+                        campus: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -339,10 +370,15 @@ export const calendarRouter = createTRPCRouter({
           end_date: course.end_date,
           start_date: course.start_date,
           faculty: {
-            faculty_tuid:
-              course.faculty.map((faculty) => {
-                return faculty.faculty_tuid;
-              })[0] ?? null,
+            ...(course.faculty.map((faculty) => {
+              return {
+                faculty_tuid: faculty.faculty_tuid,
+
+                //Add the attribute for the react select as they use the provided value by default
+                label: faculty.faculty.name,
+                value: faculty.faculty_tuid,
+              };
+            })[0] ?? {}),
           },
 
           notes: {
@@ -372,8 +408,15 @@ export const calendarRouter = createTRPCRouter({
                 rooms: {
                   ...location.rooms.map((room) => {
                     return {
+                      // building: {
+                      //   label: `${room.room} - ${room.room} (${room.room})`,
+                      //   building_tuid: room.room,
+                      //   value: room.room,
+                      // },
                       building: {
                         buiding_tuid: room.building_tuid,
+                        label: `${room.building.campus.name} - ${room.building.name} (${room.building.prefix})`,
+                        value: room.building_tuid,
                       },
                       room: room.room,
                     };
@@ -395,7 +438,7 @@ export const calendarRouter = createTRPCRouter({
           subject: course.subject,
           term: course.term,
           title: course.title,
-        } as ICalendarCourseSchema;
+        } as ICourseSchemaWithMetadata;
       }
     }),
 

@@ -460,7 +460,7 @@ const CreateCourseModal = ({
                         name="faculty"
                         control={courseAddForm.control}
                         rules={{ required: true }}
-                        render={({ field }) => (
+                        render={({ field: { value, onChange, ref } }) => (
                           <AsyncSelect
                             isClearable
                             defaultOptions
@@ -469,6 +469,7 @@ const CreateCourseModal = ({
                             blurInputOnSelect={true}
                             loadOptions={(search, callback) => {
                               new Promise<any>(async (resolve) => {
+                                console.log({ value: value });
                                 const data = await facultyMutation.mutateAsync({
                                   search: search.toLowerCase(),
                                 });
@@ -482,7 +483,11 @@ const CreateCourseModal = ({
                                 }
                               });
                             }}
-                            {...field}
+                            value={value}
+                            ref={ref}
+                            onChange={(event) => {
+                              onChange(event);
+                            }}
                             // styles={customStyles}
                           />
                         )}

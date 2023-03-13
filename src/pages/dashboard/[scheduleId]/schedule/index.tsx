@@ -24,6 +24,7 @@ import {
   type ITab,
 } from "src/server/api/routers/calendar";
 import CreateCourseModal from "./CourseModifyModal";
+import CourseInformationSidebar from "./CourseInformation";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -143,7 +144,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               >
                 Add Course
               </Button>
-              <p>Show Course Info?</p>
+              <p>Basic Course Info?</p>
               <Toggle
                 className="ml-2"
                 checked={courseInformationSidebar}
@@ -251,9 +252,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
         )}
       </DashboardContent>
       {courseInformationSidebar && (
-        <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
-          {lastHovered?.title}
-        </div>
+        <CourseInformationSidebar course={lastHovered} />
       )}
     </DashboardLayout>
   );

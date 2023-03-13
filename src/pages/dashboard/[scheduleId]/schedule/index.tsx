@@ -271,9 +271,12 @@ export default Scheduler;
 
 export const getServerSideProps = routeNeedsAuthSession(
   async ({ query }, session) => {
+    //Grab schedule id from query parameter
     const scheduleId = query.scheduleId || "";
-    console.log({ scheduleId });
+
+    //Check to make sure its a string
     if (typeof scheduleId === "string") {
+      //Make sure we have owenrship of said revision
       const hasRevision =
         (await prisma.scheduleRevision.count({
           where: {
@@ -282,6 +285,7 @@ export const getServerSideProps = routeNeedsAuthSession(
           },
         })) == 1;
 
+      //And if we DO NOT, redirect them back to the main page
       if (!hasRevision) {
         return {
           redirect: {

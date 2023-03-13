@@ -454,8 +454,7 @@ const CreateCourseModal = ({
                       <p>Faculty Member</p>
                     </div>
                     <div>
-                      {/* Synchronous selection, allows to grab data from database and wait for it to come in */}
-
+                      {/* Asynchronous selection, allows to grab data from database and wait for it to come in */}
                       <Controller
                         name="faculty"
                         control={courseAddForm.control}
@@ -468,40 +467,40 @@ const CreateCourseModal = ({
                             placeholder={"Enter Faculty"}
                             blurInputOnSelect={true}
                             loadOptions={(search, callback) => {
+                              //Create promise for the current options being loadded
                               new Promise<any>(async (resolve) => {
-                                console.log({ value: value });
+                                //Now call the mutation to find any faculty by the search value
                                 const data = await facultyMutation.mutateAsync({
                                   search: search.toLowerCase(),
                                 });
-                                console.log({ facultyMutationOptions: data });
+
+                                //If we do have data, set it to the callback,
+                                //which is basaically an update function
                                 if (data != undefined) {
                                   callback(data);
                                   resolve(true);
                                 } else {
+                                  //Else instead just set it to nothing
                                   callback([]);
                                   resolve(true);
                                 }
                               });
                             }}
+                            //Manually pass in the props with values
                             value={value}
                             ref={ref}
                             onChange={(event) => {
                               onChange(event);
                             }}
-                            // styles={customStyles}
+                            //styles={customStyles}
                           />
                         )}
                       />
-
-                      {/* <AsyncSelect
-                      cacheOptions
-                      loadOptions={facultyLoadOptions}
-                      defaultOptions
-                    /> */}
                     </div>
                   </div>
                 </div>
 
+                {/** List of checkboxes for seemsters */}
                 <div
                   className="mt-2 flex w-full flex-row space-x-4"
                   id="firstRow"
@@ -845,20 +844,7 @@ const CreateCourseModal = ({
                 </div>
               </div>
             </div>
-            {/* {Object.keys(courseAddForm.formState.errors).length}
-          {Object.keys(courseAddForm.formState.errors)
-            .reverse()
-            .reduce(
-              (a, field) =>
-                courseAddForm.formState.errors[field] ? (
-                  <span className="bg-yellow-400">
-                    {courseAddForm.formState.errors[field].message}
-                  </span>
-                ) : (
-                  a
-                ),
-              null
-            )} */}
+            {/* Submit button */}
             <div className="flex justify-end">
               <Button color="success" type="submit" className="mt-2">
                 {isCourseEditing != undefined ? "Save" : "Add"}

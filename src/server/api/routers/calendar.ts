@@ -30,6 +30,11 @@ const revisionWithCourses = Prisma.validator<Prisma.ScheduleRevisionArgs>()({
   },
 });
 
+/**
+ * courseWithRelationships
+ * Get a course schema types which includes the relationships
+ * that it has on the tables.
+ */
 const courseWithRelationships = Prisma.validator<Prisma.CourseArgs>()({
   include: {
     faculty: {
@@ -54,14 +59,23 @@ const courseWithRelationships = Prisma.validator<Prisma.CourseArgs>()({
   },
 });
 
+//Export type from Prisma
 export type CourseWithLocationsFacultyAndNotes = Prisma.CourseGetPayload<
   typeof courseWithRelationships
 >;
 
+//Export type from Prisma
 export type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
   typeof revisionWithCourses
 >;
 
+/**
+ * ICourseSchemaWithMetadata
+ *
+ * Type that joins the course schema with partial data for the select boxes.
+ * This is to provide the information about the current faculty and buildings,
+ * although we store all the information by the TUID value of faculty and building to courses
+ */
 type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
   faculty: {
     value: string;
@@ -77,6 +91,10 @@ type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
   }>;
 };
 
+/**
+ * courseType
+ * Gets a course type from prisma
+ */
 const courseType = Prisma.validator<Prisma.CourseArgs>()({
   include: {
     faculty: {
@@ -87,6 +105,8 @@ const courseType = Prisma.validator<Prisma.CourseArgs>()({
     },
   },
 });
+
+//Export the TS type from inference
 export type IScheduleCourse = Prisma.CourseGetPayload<typeof courseType>;
 
 // Routers --------------------------------------------------------------------------------------------------------
@@ -297,15 +317,15 @@ export const calendarRouter = createTRPCRouter({
         f: monday_courses,
       });
 
-      const within = {
-        monday_courses: await coursesWithinAGuideline(monday_courses),
-        tuesday_courses: await coursesWithinAGuideline(tuesday_courses),
-        wednesday_courses: await coursesWithinAGuideline(wednesday_courses),
-        thursday_courses: await coursesWithinAGuideline(thursday_courses),
-        friday_courses: await coursesWithinAGuideline(friday_courses),
-        saturday_courses: await coursesWithinAGuideline(saturday_courses),
-        sunday_courses: await coursesWithinAGuideline(sunday_courses),
-      };
+      // const within = {
+      //   monday_courses: await coursesWithinAGuideline(monday_courses),
+      //   tuesday_courses: await coursesWithinAGuideline(tuesday_courses),
+      //   wednesday_courses: await coursesWithinAGuideline(wednesday_courses),
+      //   thursday_courses: await coursesWithinAGuideline(thursday_courses),
+      //   friday_courses: await coursesWithinAGuideline(friday_courses),
+      //   saturday_courses: await coursesWithinAGuideline(saturday_courses),
+      //   sunday_courses: await coursesWithinAGuideline(sunday_courses),
+      // };
 
       // Send the client back the ame of the revision, the semester, and the results of each of the course-by-day queries
       const out = {
@@ -333,14 +353,20 @@ export const calendarRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const course: CourseWithLocationsFacultyAndNotes | null =
+        //Query a course where the tuid is at the current tuid
         await ctx.prisma.course.findUnique({
+          //Include the faculty many-to-many relationship
           include: {
+            //This is the table in the middle
             faculty: {
               include: {
+                //This is the actual faculty table
                 faculty: true,
               },
             },
+            //Include nodes
             notes: true,
+            //Include locations, with rooms, buildings, and campus
             locations: {
               include: {
                 rooms: {
@@ -359,8 +385,9 @@ export const calendarRouter = createTRPCRouter({
             tuid: input.tuid,
           },
         });
-
+      //Do we have a course?
       if (course != null) {
+        //If so set the data
         return {
           capacity: course.capacity,
           course_number: course.course_number,
@@ -370,6 +397,7 @@ export const calendarRouter = createTRPCRouter({
           end_date: course.end_date,
           start_date: course.start_date,
           faculty: {
+            //Spread the map of courses but only the first one (which is still an array)
             ...(course.faculty.map((faculty) => {
               return {
                 faculty_tuid: faculty.faculty_tuid,
@@ -381,6 +409,7 @@ export const calendarRouter = createTRPCRouter({
             })[0] ?? {}),
           },
 
+          //Set the proper notes using a filter
           notes: {
             ACAMDEMIC_AFFAIRS:
               course.notes.filter((note) => note.type == "ACAMDEMIC_AFFAIRS")[0]
@@ -392,6 +421,7 @@ export const calendarRouter = createTRPCRouter({
               course.notes.filter((note) => note.type == "DEPARTMENT")[0]
                 ?.note ?? "",
           },
+          //Add the locations, with all information about the location and rooms
           locations: [
             ...course.locations.map((location) => {
               return {

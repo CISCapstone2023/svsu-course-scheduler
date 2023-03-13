@@ -42,6 +42,7 @@ import { toast } from "react-toastify";
 import { ErrorMessage } from "@hookform/error-message";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { never, typeToFlattenedError } from "zod";
 
 const Projects: NextPage = () => {
   /**
@@ -64,17 +65,19 @@ const Projects: NextPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [setReset, setResetFlag] = useState(false);
   const [stage, setStage] = useState<number>(1);
-  const [error, setError] = useState<{ _errors: string[] } | undefined>(
-    undefined
-  );
+  const [error, setError] = useState<
+    typeToFlattenedError<any, any> | never[] | undefined
+  >(undefined);
 
   const verifyOrganizedColumnsMutation =
     api.projects.verifyOrganizedColumns.useMutation();
 
   const toggleVisible = () => {
+    //set visibility of the modal
     if (stage == 1) {
       setVisible(!visible);
     } else if (visible) {
+      //show confirmation box if starting to close
       setComfirmation(true);
     } else {
       setVisible(!visible);
@@ -386,14 +389,17 @@ const Projects: NextPage = () => {
                           Errors Found!
                         </strong>
                         <ul>
-                          {error._errors.map((value, i) => {
-                            alert(value);
-                            return (
-                              <li className="" key={i}>
-                                •{value}
-                              </li>
-                            );
-                          })}
+                          {error &&
+                            "fieldErrors" in error &&
+                            error.fieldErrors &&
+                            Object.entries(error.fieldErrors).map(
+                              ([field, messages]) => (
+                                <li key={field}>
+                                  <strong>{field}: </strong> <br />
+                                  {messages}
+                                </li>
+                              )
+                            )}
                         </ul>
                       </div>
                     )}
@@ -484,6 +490,7 @@ const Projects: NextPage = () => {
             setVisible(false);
             setStage(1);
             setResetFlag(true);
+            setError(undefined);
           }}
         />
         <div className="container mx-auto  flex justify-between p-4">
@@ -499,7 +506,7 @@ const Projects: NextPage = () => {
               function calculateTime(
                 updatedAt: Date | undefined
               ): string | undefined {
-                if (updatedAt === undefined) return "error loading time";
+                if (updatedAt === undefined) return "Error Loading Time";
                 else {
                   const current = new Date();
                   let offSetTime =
@@ -509,19 +516,28 @@ const Projects: NextPage = () => {
                   else if (offSetTime < 60)
                     return Math.trunc(offSetTime) + " seconds ago";
                   else if (offSetTime >= 60 && offSetTime < 3600) {
-                    //if more than 60 minutes
+                    //if more than 60 seconds
                     offSetTime = offSetTime / 60;
                     return Math.trunc(offSetTime) + " minute(s) ago";
                   } else if (offSetTime >= 3600 && offSetTime < 86400) {
+                    //if more than 60 minutes
                     offSetTime = offSetTime / 60 / 60;
                     return Math.trunc(offSetTime) + " hour(s) ago";
                   } else if (
                     offSetTime >= 86400 &&
                     offSetTime < 5 * 24 * 60 * 60
                   ) {
+                    //if more than one day
                     offSetTime = offSetTime / 60 / 60 / 24;
                     return Math.trunc(offSetTime) + " day(s) ago";
-                  } else return updatedAt.toString();
+                  } else
+                    return (
+                      updatedAt.getMonth() +
+                      "/" +
+                      updatedAt.getDate() +
+                      "/" +
+                      updatedAt.getFullYear()
+                    );
                 }
               }
               return (

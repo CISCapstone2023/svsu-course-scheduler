@@ -1,5 +1,11 @@
 import { ScheduleRevision } from "@prisma/client";
-import React, { useState } from "react";
+import React, {
+  MutableRefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Button, FileInput, Progress } from "react-daisyui";
 
 import useRestUpload from "src/hooks/upload/useUpload";
@@ -7,6 +13,9 @@ import useRestUpload from "src/hooks/upload/useUpload";
 interface ProjectsUploadProps {
   children?: React.ReactNode;
   onFinish?: (data: IOnboarding | undefined) => void;
+  resetFlag: boolean;
+  resetForm?: React.Dispatch<React.SetStateAction<boolean>>;
+  setStage: (stage: number) => void;
 }
 
 interface IOnboarding {
@@ -14,9 +23,15 @@ interface IOnboarding {
   table: Array<Array<string>>;
 }
 
-const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {
+const ProjectsUpload = ({
+  onFinish,
+  resetForm,
+  resetFlag,
+  setStage,
+}: ProjectsUploadProps) => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
+  const formInput = useRef<HTMLInputElement>(null);
 
   const { upload, progress, uploading, reset } = useRestUpload<IOnboarding>(
     `/api/revision/uploadExcel`
@@ -25,7 +40,10 @@ const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {
   const ResetUploading = () => {
     setMessage("");
     setError(false);
+    setStage(1);
     reset();
+
+    if (formInput.current != null) formInput.current.value = "";
   };
 
   const onFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +69,14 @@ const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {
       return;
     }
   };
+  useEffect(() => {
+    if (resetFlag) {
+      ResetUploading();
+
+      if (resetForm !== undefined) resetForm(false);
+      resetFlag = false;
+    }
+  }, [resetFlag]);
 
   return (
     <div className="flex flex-col justify-between justify-items-center">
@@ -60,6 +86,7 @@ const ProjectsUpload = ({ onFinish }: ProjectsUploadProps) => {
         max-size="1024"
         disabled={progress === 100 ? true : false}
         onChange={onFileChange}
+        ref={formInput}
         type="file"
       />
       <br />

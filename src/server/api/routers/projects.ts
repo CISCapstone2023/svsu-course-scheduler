@@ -135,7 +135,7 @@ export const projectsRouter = createTRPCRouter({
 
       //Return the data
       return {
-        result: scheduleResult.map((s) => {
+        result: scheduleResult.reverse().map((s) => {
           const [main, ...revisions] = s.revisions;
           return {
             main: {
@@ -564,8 +564,6 @@ const invertedNestedOrganizedColumns = async (
 
         //Split the time
         const splittedTime = value.split(":");
-
-        console.log("Did we split here?");
 
         //make sure the splitted time isn't undefined or the length has two parts
         if (splittedTime != undefined && splittedTime.length == 2) {

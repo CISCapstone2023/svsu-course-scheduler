@@ -1,5 +1,5 @@
 import { CourseNoteType, CourseState } from "@prisma/client";
-import { z } from "zod";
+import { object, z } from "zod";
 
 export const courseDefined = z.object({
   type: z.string(),
@@ -96,6 +96,7 @@ export const finalizeProjectOnBoarding = z.object({
 export type IProjectFinalizeOnboarding = z.infer<
   typeof finalizeProjectOnBoarding
 >;
+
 export type IProjectCreateRevision = z.infer<typeof createRevisionOnboarding>;
 
 export type IProjectOrganizedColumnFromClient = z.infer<

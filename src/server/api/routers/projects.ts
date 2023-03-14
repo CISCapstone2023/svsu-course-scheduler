@@ -133,6 +133,14 @@ export const projectsRouter = createTRPCRouter({
         });
       }
 
+      /**
+       *Project
+       *
+       * Count the total projects
+       */
+      const facultyCount = await ctx.prisma.scheduleRevision.count();
+      const totalPages = Math.ceil(facultyCount / 10);
+
       //Return the data
       return {
         result: scheduleResult.reverse().map((s) => {
@@ -153,6 +161,7 @@ export const projectsRouter = createTRPCRouter({
           };
         }),
         page: input.page,
+        totalPages: totalPages,
       };
     }),
 

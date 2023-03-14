@@ -1,3 +1,4 @@
+//Next and NextAuth
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";

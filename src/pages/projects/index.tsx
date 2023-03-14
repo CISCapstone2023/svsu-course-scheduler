@@ -3,10 +3,18 @@ import type { NextPage } from "next";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import Select from "react-select";
 
 //React Component Libraries and Icons
 import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
-import { Button, Input, Modal, Steps, Tooltip } from "react-daisyui";
+import {
+  Button,
+  Input,
+  Modal,
+  Pagination,
+  Steps,
+  Tooltip,
+} from "react-daisyui";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { ErrorMessage } from "@hookform/error-message";
@@ -39,6 +47,7 @@ import {
   type IProjectFinalizeOnboarding,
   type IProjectOrganizedColumnRowNumerical,
 } from "src/validation/projects";
+import { IRevisionSelect } from "src/server/api/routers/calendar";
 
 //THE DEFAULT SCHEMA FOR THE ORGANIZED COLUMNS
 const DEFAULT_ORGANIZED_COLUMNS = {
@@ -180,6 +189,11 @@ const Projects: NextPage = () => {
     page: 0,
   });
   const removeRevision = api.projects.deleteScheduleRevision.useMutation();
+
+  //The list of revisions for the selection on the bottom calendar poration
+  const revisionList = api.calendar.getSemesters.useQuery();
+  //The revision which is selected for the tabs at the bottom
+  const [selectedRevision, setSelectRevision] = useState<IRevisionSelect>();
 
   //delete revision
   const deleteRevision = async (DeletedTuid: string) => {
@@ -508,7 +522,7 @@ const Projects: NextPage = () => {
               )}
             </div>
           </Modal.Body>
-          <div className=" relative mt-3 flex w-full justify-between justify-self-end align-middle">
+          <div className=" relative mt-5 flex w-full justify-between justify-self-end align-middle">
             {" "}
             {stage > 1.5 ? (
               <form
@@ -516,32 +530,57 @@ const Projects: NextPage = () => {
                 className=" flex w-full items-end space-x-2 font-sans"
               >
                 <div className="form-control w-full justify-start">
-                  <label className="label">
-                    <span className="label-text">Name</span>
-                  </label>
                   <div className="flex w-full justify-between space-x-2">
-                    <Input
-                      type="text"
-                      placeholder="eg. Fall Draft"
-                      className="grow"
-                      {...onboardingForm.register("name")}
-                    />
-                    <Button
-                      className="  bg-error"
-                      type="button"
-                      onClick={backStage}
-                    >
-                      Cancel
-                    </Button>
-
-                    <Button
-                      color="success"
-                      type="submit"
-                      className=""
-                      disabled={getMissingColumns().length > 0}
-                    >
-                      Finalize
-                    </Button>
+                    <div className="w-full flex-col">
+                      {" "}
+                      <label className="label ">
+                        <span className="label-text">Name</span>
+                      </label>{" "}
+                      <Input
+                        type="text"
+                        placeholder="eg. Fall Draft"
+                        className=" w-full"
+                        {...onboardingForm.register("name")}
+                      />
+                    </div>
+                    <div className="w-full flex-col">
+                      <label className="label">
+                        <span className="label-text">Select Revision</span>
+                      </label>
+                      <Select
+                        menuPlacement="top"
+                        options={revisionList.data as IRevisionSelect[]}
+                        defaultInputValue="N/A"
+                        value={selectedRevision}
+                        classNamePrefix="selection"
+                        className="h-10"
+                        onChange={(selectedRevision) => {
+                          //Check to make sure the reivison won't be undefined
+                          if (selectedRevision != undefined) {
+                            setSelectRevision(selectedRevision);
+                          }
+                        }}
+                      />
+                    </div>
+                    <div className="flex-col space-y-2">
+                      <Button
+                        color="success"
+                        type="submit"
+                        className="w-full"
+                        disabled={getMissingColumns().length > 0}
+                      >
+                        Finalize
+                      </Button>
+                      <Button
+                        color="error"
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={backStage}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-2">
@@ -559,11 +598,7 @@ const Projects: NextPage = () => {
               <div className="grow"></div>
             )}
             {stage != 2 && (
-              <Button
-                className=""
-                disabled={stage < 1.5}
-                onClick={stage == 3 ? goToMain : toggleStage}
-              >
+              <Button className="" disabled={stage < 1.5} onClick={toggleStage}>
                 {stage == 2 ? "Finalize" : "Next"}
               </Button>
             )}
@@ -585,6 +620,7 @@ const Projects: NextPage = () => {
             setStage(1);
             setResetFlag(true);
             setError(undefined);
+            setSelectRevision(undefined);
           }}
         />
         <div className="container mx-auto  flex justify-between p-4">
@@ -664,15 +700,19 @@ const Projects: NextPage = () => {
           )}
         </ProjectsLayout>
 
-        <div className="mt-3 flex justify-center">
-          {result.data != undefined && result.data?.result.length / 5 > 1 && (
-            <PaginationBar
-              totalPageCount={result.data?.result.length / 5}
-              currentPage={result.data?.page}
-              onClick={(page) => {
-                setCurrentPage(page);
-              }}
-            />
+        <div className="mt-3 flex w-full justify-center bg-blue-700 p-2">
+          {result.data != undefined && result.data?.totalPages > 1 && (
+            <>
+              <PaginationBar
+                totalPageCount={result.data?.totalPages}
+                currentPage={result.data?.page}
+                onClick={(page) => {
+                  setCurrentPage(page);
+                }}
+              />
+
+              <p>{result.data?.totalPages}</p>
+            </>
           )}
         </div>
       </div>

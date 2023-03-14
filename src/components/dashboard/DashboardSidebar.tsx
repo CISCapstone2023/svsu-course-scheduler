@@ -5,12 +5,10 @@ import { Divider, Menu } from "react-daisyui";
 import { api } from "src/utils/api";
 import {
   Assembly,
-  Book,
-  Building,
   Calendar,
+  CaretLeft,
   ChartBar,
   Home,
-  User,
 } from "tabler-icons-react";
 import DashboardSidebarItem from "./DashboardSidebarItem";
 
@@ -29,6 +27,16 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
   return (
     <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
       <Menu>
+        <Link href={`/projects`}>
+          <DashboardSidebarItem title="Projects">
+            <CaretLeft width={40} height={40} />
+          </DashboardSidebarItem>
+        </Link>
+        <Divider />
+
+        <div className="flex w-full pl-4">
+          <p className="font-bold">Current Project</p>
+        </div>
         <Link href={`/dashboard/${scheduleId}/home`}>
           <DashboardSidebarItem
             title={name.data != undefined ? name.data.name : "Loading..."}
@@ -58,28 +66,6 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
         <Link href={`/dashboard/${scheduleId}/report`}>
           <DashboardSidebarItem title="Report">
             <ChartBar width={40} height={40} />
-          </DashboardSidebarItem>
-        </Link>
-
-        <Divider />
-
-        <div className="flex w-full pl-4">
-          <p className="font-bold">Admin</p>
-        </div>
-        <Link href={`/dashboard/${scheduleId}/courses`}>
-          <DashboardSidebarItem title="Courses">
-            <Book width={40} height={40} />
-          </DashboardSidebarItem>
-        </Link>
-
-        <Link href={`/dashboard/${scheduleId}/faculty`}>
-          <DashboardSidebarItem title="Faculty">
-            <User width={40} height={40} />
-          </DashboardSidebarItem>
-        </Link>
-        <Link href={`/dashboard/${scheduleId}/buildings`}>
-          <DashboardSidebarItem title="Buildings">
-            <Building width={40} height={40} />
           </DashboardSidebarItem>
         </Link>
       </Menu>

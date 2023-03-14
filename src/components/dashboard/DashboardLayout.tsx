@@ -4,7 +4,12 @@ interface DashboardProps {
   children?: React.ReactNode;
 }
 
-// Ensures all children have flex
+/**
+ * DashboardLayout
+ * Ensures all Children have flex
+ * @Author Saturn
+ * @returns
+ */
 const DashboardLayout = ({ children }: DashboardProps) => {
   return (
     <div className="flex h-full w-full bg-primary-content">{children}</div>

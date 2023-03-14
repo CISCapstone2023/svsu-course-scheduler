@@ -1,87 +1,144 @@
-// import { z } from "zod";
+import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { CourseState, Prisma } from "@prisma/client";
 
-const coursesWithLocationAndFaculty = Prisma.validator<Prisma.CourseArgs>()({
+// Essentially creates a new data type built to store comprehensive queries
+const courseType = Prisma.validator<Prisma.CourseArgs>()({
   include: {
-    faculty: { include: { faculty: true } },
-    locations: true,
+    faculty: {
+      include: { faculty: true },
+    },
+    locations: {
+      include: { rooms: true },
+    },
   },
 });
-export type CoursesWithLocationAndFaculty = Prisma.CourseGetPayload<
-  typeof coursesWithLocationAndFaculty
->;
+export type IScheduleCourse = Prisma.CourseGetPayload<typeof courseType>;
 
 export const homeRouter = createTRPCRouter({
   getTotalFaculty: protectedProcedure.query(async ({ ctx }) => {
-    const facultyCount = ctx.prisma.guidelinesFaculty.count();
-    return { result: facultyCount };
+    // Count total faculty members in the database
+    const facultyCount = await ctx.prisma.guidelinesFaculty.count();
+    return { result: { totalFaculty: facultyCount } };
   }),
 
-  getTotalCourses: protectedProcedure.query(async ({ ctx }) => {
-    const coursesCount = ctx.prisma.course.count();
-    return { result: coursesCount };
-  }),
+  getTotalCourses: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Count total courses on a specific revision
+      const coursesCount = await ctx.prisma.course.count({
+        where: {
+          revision_tuid: input.tuid,
+        },
+      });
+      return { result: { totalCourses: coursesCount } };
+    }),
 
-  getCoursesByState: protectedProcedure.query(async ({ ctx }) => {
-    const addedCourses: CoursesWithLocationAndFaculty[] =
-      await ctx.prisma.course.findMany({
+  getCoursesByState: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Search for all courses with the ADDED state on a specific revision
+      const addedCourses: IScheduleCourse[] = await ctx.prisma.course.findMany({
         where: {
           state: CourseState.ADDED,
+          revision_tuid: input.tuid,
         },
         include: {
           faculty: { include: { faculty: true } },
-          locations: true,
+          locations: { include: { rooms: true } },
         },
       });
 
-    const modifiedCourses: CoursesWithLocationAndFaculty[] =
-      await ctx.prisma.course.findMany({
-        where: {
-          state: CourseState.MODIFIED,
-        },
-        include: {
-          faculty: { include: { faculty: true } },
-          locations: true,
-        },
-      });
+      // Search for all courses with the MODIFIED state on a specific revision
+      const modifiedCourses: IScheduleCourse[] =
+        await ctx.prisma.course.findMany({
+          where: {
+            state: CourseState.MODIFIED,
+            revision_tuid: input.tuid,
+          },
+          include: {
+            faculty: { include: { faculty: true } },
+            locations: { include: { rooms: true } },
+          },
+        });
 
-    const removedCourses: CoursesWithLocationAndFaculty[] =
-      await ctx.prisma.course.findMany({
-        where: {
-          state: CourseState.REMOVED,
-        },
-        include: {
-          faculty: { include: { faculty: true } },
-          locations: true,
-        },
-      });
+      // Search for all courses with the REMOVED state on a specific revision
+      const removedCourses: IScheduleCourse[] =
+        await ctx.prisma.course.findMany({
+          where: {
+            state: CourseState.REMOVED,
+            revision_tuid: input.tuid,
+          },
+          include: {
+            faculty: { include: { faculty: true } },
+            locations: { include: { rooms: true } },
+          },
+        });
 
-    const result = {
-      addedCourses: formatCourseData(addedCourses),
-      modifiedCourses: formatCourseData(modifiedCourses),
-      removedCourses: formatCourseData(removedCourses),
-    };
+      // Build a result object by calling functions to format course data
+      const result = {
+        addedCourses: formatCourseData(addedCourses),
+        modifiedCourses: formatCourseData(modifiedCourses),
+        removedCourses: formatCourseData(removedCourses),
+      };
 
-    return { result: result };
-  }),
+      return { result: result };
+    }),
 });
 
-function formatCourseData(courses: CoursesWithLocationAndFaculty[]) {
+function formatCourseData(courses: IScheduleCourse[]) {
   const coursesData = [];
 
+  // For each course...
   for (const course of courses) {
+    const facultyNames = [];
+    const courseRooms = [];
+    const courseTimes = [];
+
+    // For each faculty member on a course, add their name to a list of faculty names
+    for (const fac of course.faculty) {
+      facultyNames.push((fac.faculty.name + " " + fac.faculty.suffix).trim());
+    }
+
+    // For each location on a course...
+    for (const loc of course.locations) {
+      // For each room on a location, add its name to a list of room names
+      for (const room of loc.rooms) {
+        courseRooms.push(room.room);
+      }
+
+      // For each day of the week, check if the course is scheduled on that day
+      let courseDays = "";
+      if (loc.day_monday) courseDays += "/M";
+      if (loc.day_tuesday) courseDays += "/T";
+      if (loc.day_wednesday) courseDays += "/W";
+      if (loc.day_thursday) courseDays += "/TH";
+      if (loc.day_friday) courseDays += "/F";
+      if (loc.day_saturday) courseDays += "/SA";
+      if (loc.day_sunday) courseDays += "/SU";
+      courseDays = courseDays.substring(1);
+
+      // Add the days and times the course is being taught to a list of days and times
+      courseTimes.push(courseDays + " " + loc.start_time + "-" + loc.end_time);
+    }
+
+    // Add the course's faculty name(s), full course ID, title, room(s), and days and times
     coursesData.push({
-      facultyName: course.faculty,
+      facultyNames: facultyNames,
       courseID:
-        course.department +
-        " " +
-        course.course_number +
-        " " +
-        course.section_id,
+        course.subject + "*" + course.course_number + "*" + course.section,
       courseTitle: course.title,
-      courseLocation: course.locations,
+      courseLocation: courseRooms,
+      courseTimes: courseTimes,
     });
   }
 

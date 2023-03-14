@@ -37,7 +37,8 @@ interface CreateCourseModalProps {
   onSuccess: () => void;
 }
 
-const seen: any[] = [];
+//Used for debugging
+//const seen: any[] = [];
 
 //Component
 const CreateCourseModal = ({
@@ -116,7 +117,8 @@ const CreateCourseModal = ({
   };
 
   //asks if you are in edit mode, keeps what you want to edit
-  const [isCourseEditing, setCourseEditing] = useState<ICalendarCourseSchema>();
+  const [isCourseEditing, setCourseEditing] =
+    useState<ICalendarCourseSchema | null>();
 
   // console.log(
   //   JSON.stringify(courseAddForm.formState.errors, function (key, val) {
@@ -134,7 +136,10 @@ const CreateCourseModal = ({
     //Main modal for body
     <Modal
       open={open}
-      onClickBackdrop={onClose}
+      onClickBackdrop={() => {
+        onClose();
+        setCourseEditing(null);
+      }}
       className="h-[1000px]  w-3/4 max-w-5xl "
     >
       {/* Button to close */}

@@ -42,10 +42,12 @@ const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
   const [isPM, setIsPM] = useState(false);
 
   useEffect(() => {
-    const time = militaryToSplit(value);
-    setHour(time.anteMeridiemHour);
-    setMinutes(time.minute);
-    setIsPM(time.anteMeridiem == "PM");
+    try {
+      const time = militaryToSplit(value);
+      setHour(time.anteMeridiemHour);
+      setMinutes(time.minute);
+      setIsPM(time.anteMeridiem == "PM");
+    } catch (e) {}
   }, []);
 
   useEffect(() => {

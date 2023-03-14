@@ -337,18 +337,23 @@ const CourseListing = ({
   );
 };
 
+/**
+ * CalendarComponentProps
+ *
+ * Properties for the calendar
+ *
+ */
 interface CalendarComponentProps {
   children?: React.ReactNode;
-  semester: "FA" | "WI" | "SP" | "SU";
-  revision: string;
-  update?: boolean;
-  weekends: boolean;
-  onSelect: (course: string) => void;
-  onCourseHover: (course: IScheduleCourseWithTimes) => void;
+  semester: "FA" | "WI" | "SP" | "SU"; //What semsester is this calendar?
+  revision: string; //What revision tuid is this calendar?
+  update?: boolean; //Do we want to refetch this calendar? (true or false both update when toggled)
+  weekends: boolean; //List of possible weekends to show
+  onSelect: (course: string) => void; //Event when an course is selected
+  onCourseHover: (course: IScheduleCourseWithTimes) => void; //Eent when the mouse hovers over a course
 }
 
 const ScheduleCalendar = ({
-  children,
   semester,
   weekends = false,
   update,
@@ -356,14 +361,18 @@ const ScheduleCalendar = ({
   onSelect,
   onCourseHover,
 }: CalendarComponentProps) => {
+  //Hover state of the current scheduler
   const [hover, setCourseHover] = useState<IScheduleCourseWithTimes | null>(
     null
   );
 
+  //Update check, but passing in depdency to update on the prop change,
+  //this will call refetch on the query bekow
   useEffect(() => {
     result.refetch();
   }, [update]);
 
+  //The query if data based on the semester passed in
   const result = api.calendar.getRevision.useQuery({
     tuid: revision,
     maxRoomNum: "4",
@@ -374,6 +383,7 @@ const ScheduleCalendar = ({
     semester_spring: semester == "SP",
   });
 
+  //List of possible times
   const times = [
     "8:00 AM",
     "9:00 AM",
@@ -392,6 +402,7 @@ const ScheduleCalendar = ({
     "10:00 PM",
   ];
 
+  //HTML/JSX Rendering
   return (
     <div className="h-full overflow-hidden">
       <div className="flex h-7 flex-row justify-evenly">
@@ -549,6 +560,7 @@ const ScheduleCalendar = ({
                 }}
                 hover={hover}
               />
+              {/*Do we want to show the weekends? */}
               {weekends && (
                 <>
                   <CourseListing
@@ -573,6 +585,7 @@ const ScheduleCalendar = ({
               )}
             </div>
           )}
+          {/* Make a spinner show if we have no calendar data loaded */}
           {result.data == undefined && (
             <div className="flex h-[200px] w-full flex-col items-center justify-center">
               <AnimatedSpinner />

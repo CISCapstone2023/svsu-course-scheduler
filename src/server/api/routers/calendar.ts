@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { type Course, Prisma, type ScheduleRevision } from "@prisma/client";
+import {
+  type Course,
+  Prisma,
+  type ScheduleRevision,
+  CourseState,
+} from "@prisma/client";
 import { flatten } from "lodash";
 
 //Get instance of prisma
@@ -335,6 +340,37 @@ export const calendarRouter = createTRPCRouter({
 
       console.log(out);
       return out;
+    }),
+
+  /**
+   * Procedure that will update a course's state to either REMOVED or original_state
+   * depending on the current state of the course
+   */
+  removeCourse: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const course = await ctx.prisma.course.findUnique({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+      if (course !== null) {
+        await ctx.prisma.course.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            state:
+              course.state == CourseState.REMOVED
+                ? course.original_state
+                : CourseState.REMOVED,
+          },
+        });
+      }
     }),
 
   // This just grabs one course by its tuid

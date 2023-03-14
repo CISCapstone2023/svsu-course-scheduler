@@ -13,6 +13,7 @@ export const reportRouter = createTRPCRouter({
         semester_spring: z.boolean(),
         semester_summer: z.boolean(),
         search: z.string(),
+        tuid: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -23,6 +24,9 @@ export const reportRouter = createTRPCRouter({
           to_courses: {
             every: {
               course: {
+                revision: {
+                  tuid: input.tuid,
+                },
                 OR: [
                   input.semester_fall ? { semester_fall: true } : {},
                   input.semester_winter ? { semester_winter: true } : {},

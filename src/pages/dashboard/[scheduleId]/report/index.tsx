@@ -11,12 +11,13 @@ import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import { routeNeedsAuthSession } from "src/server/auth";
 import { prisma } from "src/server/db";
+import { api } from "src/utils/api";
 
 interface DashboardProps {
   scheduleId: string;
 }
 
-const Dashboard: NextPage<DashboardProps> = ({ scheduleId }) => {
+const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
   /**
    * useSession
    *
@@ -24,19 +25,27 @@ const Dashboard: NextPage<DashboardProps> = ({ scheduleId }) => {
    * assuming they are successfully signed-in. If they are it will be null.
    */
   const {} = useSession();
-
+  const faculty = api.report.getAllReports.useQuery({
+    semester_fall: true,
+    semester_spring: true,
+    semester_summer: true,
+    semester_winter: true,
+    search: "",
+    tuid: scheduleId,
+  });
+  console.log(faculty);
   return (
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
-        <DashboardContentHeader title="Home"></DashboardContentHeader>
-        <DashboardHomeTabs tuid={scheduleId} />
+        <DashboardContentHeader title="Report" />
+        <div className="container mx-auto px-4">REPORT WILL BE HERE!</div>
       </DashboardContent>
     </DashboardLayout>
   );
 };
 
-export default Dashboard;
+export default Report;
 
 /**
  * Get Server Side Properties

@@ -106,14 +106,18 @@ export const projectsRouter = createTRPCRouter({
           //We want 10
           take: 10,
           //We start at 0
-          skip: input.page * 10,
+          skip: (input.page - 1) * 10,
           where: {
             revisions: {
               every: { name: { contains: input.search } },
             },
           },
           include: {
-            revisions: true,
+            revisions: {
+              orderBy: {
+                updatedAt: "desc",
+              },
+            },
           },
         });
       } else {
@@ -122,7 +126,8 @@ export const projectsRouter = createTRPCRouter({
           //We want 10
           take: 10,
           //We start at 0
-          skip: input.page * 10,
+          skip: (input.page - 1) * 10,
+
           include: {
             revisions: {
               orderBy: {
@@ -138,8 +143,8 @@ export const projectsRouter = createTRPCRouter({
        *
        * Count the total projects
        */
-      const facultyCount = await ctx.prisma.scheduleRevision.count();
-      const totalPages = Math.ceil(facultyCount / 10);
+      const projectCount = await ctx.prisma.scheduleRevision.count();
+      const totalPages = Math.ceil(projectCount / 10);
 
       //Return the data
       return {

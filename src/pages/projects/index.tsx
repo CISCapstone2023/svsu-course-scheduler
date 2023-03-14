@@ -7,14 +7,7 @@ import Select from "react-select";
 
 //React Component Libraries and Icons
 import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
-import {
-  Button,
-  Input,
-  Modal,
-  Pagination,
-  Steps,
-  Tooltip,
-} from "react-daisyui";
+import { Button, Input, Modal, Steps, Tooltip } from "react-daisyui";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { ErrorMessage } from "@hookform/error-message";
@@ -186,7 +179,7 @@ const Projects: NextPage = () => {
 
   const result = api.projects.getAllScheduleRevisions.useQuery({
     search: "",
-    page: 0,
+    page: currentPage,
   });
   const removeRevision = api.projects.deleteScheduleRevision.useMutation();
 
@@ -219,11 +212,6 @@ const Projects: NextPage = () => {
         position: toast.POSITION.TOP_RIGHT,
       });
     }
-  };
-
-  const goToMain = () => {
-    const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
-    router.push(urlMain);
   };
 
   const [organizedColumns, setOrganizeColumns] =
@@ -700,18 +688,16 @@ const Projects: NextPage = () => {
           )}
         </ProjectsLayout>
 
-        <div className="mt-3 flex w-full justify-center bg-blue-700 p-2">
-          {result.data != undefined && result.data?.totalPages > 1 && (
+        <div className="mt-3 flex w-full justify-center  p-2">
+          {result.data != undefined && result.data.totalPages > 1 && (
             <>
               <PaginationBar
                 totalPageCount={result.data?.totalPages}
-                currentPage={result.data?.page}
+                currentPage={currentPage}
                 onClick={(page) => {
                   setCurrentPage(page);
                 }}
               />
-
-              <p>{result.data?.totalPages}</p>
             </>
           )}
         </div>

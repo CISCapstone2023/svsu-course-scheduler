@@ -8,6 +8,7 @@ import {
   Checkbox,
   Input,
   Modal,
+  Radio,
   Select,
   Textarea,
 } from "react-daisyui";
@@ -19,6 +20,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 //Local imports
 import {
   calendarCourseSchema,
+  Semesters,
   type ICalendarCourseSchema,
 } from "src/validation/calendar";
 import TimeInput from "./TimeInput";
@@ -38,7 +40,7 @@ interface CreateCourseModalProps {
 }
 
 //Used for debugging
-//const seen: any[] = [];
+const seen: any[] = [];
 
 //Component
 const CreateCourseModal = ({
@@ -68,6 +70,8 @@ const CreateCourseModal = ({
   //API to add course to database for revision
   const addCourseMutation = api.calendar.addCourseToRevision.useMutation();
 
+  const updateCourseMutation = api.calendar.updateRevisionCourse.useMutation();
+
   const getEditCourseMutation = api.calendar.getCourse.useMutation();
   useEffect(() => {
     const getEditedCourse = async () => {
@@ -89,16 +93,18 @@ const CreateCourseModal = ({
   //Logs our submitted course (Will be changed)
   const onCourseAddModifySubmit = async (course: ICalendarCourseSchema) => {
     console.log("Hey we got here!");
+    console.log({ isCourseEditing });
     if (isCourseEditing != undefined && isCourseEditing!.tuid) {
-      // const result = await courseUpdateMutation.mutateAsync({
-      //   tuid: isCourseEditing!.tuid,
-      //   ...data,
-      // });
-      // if (result) {
-      //   toast.info(`Updated Course Guideline`);
-      // } else {
-      //   toast.error(`Failed to add Course Guideline`);
-      // }
+      const result = await updateCourseMutation.mutateAsync({
+        tuid: isCourseEditing!.tuid,
+        ...course,
+      });
+      if (result) {
+        toast.info(`Updated Course Guideline`);
+        onSuccess();
+      } else {
+        toast.error(`Failed to add Course Guideline`);
+      }
     } else {
       const result = await addCourseMutation.mutateAsync({
         course,
@@ -120,17 +126,17 @@ const CreateCourseModal = ({
   const [isCourseEditing, setCourseEditing] =
     useState<ICalendarCourseSchema | null>();
 
-  // console.log(
-  //   JSON.stringify(courseAddForm.formState.errors, function (key, val) {
-  //     if (val != null && typeof val == "object") {
-  //       if (seen.indexOf(val) >= 0) {
-  //         return;
-  //       }
-  //       seen.push(val);
-  //     }
-  //     return val;
-  //   })
-  // );
+  console.log(
+    JSON.stringify(courseAddForm.formState.errors, function (key, val) {
+      if (val != null && typeof val == "object") {
+        if (seen.indexOf(val) >= 0) {
+          return;
+        }
+        seen.push(val);
+      }
+      return val;
+    })
+  );
 
   return (
     //Main modal for body
@@ -512,33 +518,51 @@ const CreateCourseModal = ({
                   className="mt-2 flex w-full flex-row space-x-4"
                   id="firstRow"
                 >
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_fall")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.FALL}
                   />
                   <p className="mt-2">Fall Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_winter")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.WINTER}
                   />
                   <p className="mt-2">Winter Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_spring")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.SPRING}
                   />
                   <p className="mt-2">Spring Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_summer")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.SUMMER}
                   />
                   <p className="mt-2">Summer Semester</p>
+                </div>
+
+                <div>
+                  <ErrorMessage
+                    errors={courseAddForm.formState.errors}
+                    name="semester"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />
                 </div>
 
                 {/* header for label and add location button */}

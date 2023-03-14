@@ -49,69 +49,85 @@ const twoDigitYear = parseInt(
   10
 );
 
+export enum Semesters {
+  FALL = "Fall",
+  WINTER = "Winter",
+  SPRING = "Spring",
+  SUMMER = "Summer",
+}
+
 /**
  * Calendar Add Course Schema & Validation
  */
-export const calendarCourseSchema = z
-  .object({
-    section_id: z.number().optional(),
-    tuid: z.string().optional(),
-    type: z.string().optional().default("?"),
-    term: z
-      .number()
-      .min(0)
-      .max(twoDigitYear + 2),
-    semester_summer: z.boolean().default(false),
-    semester_fall: z.boolean().default(false),
-    semester_winter: z.boolean().default(false),
-    semester_spring: z.boolean().default(false),
-    div: z.string().optional().default("SC"),
-    department: z
-      .string()
-      .min(2)
-      .max(6, { message: "Department type is larger than expected." }),
-    subject: z
-      .string()
-      .min(2)
-      .max(6, { message: "Subject type is larger than expected." }),
-    course_number: z.string(),
-    section: z.string(),
-    start_date: z.date(),
-    end_date: z.date(),
-    credits: z.number(),
-    title: z.string().max(100).optional().default(""),
-    status: z.string().default("Active"),
-    instruction_method: z.string().default("LEC"),
-    capacity: z
-      .number()
-      .min(1)
-      .max(500, {
-        message: "Capacity has a limit of 500 students on a course.",
-      })
-      .default(30),
-    original_state: z.nativeEnum(CourseState).default("UNMODIFIED"),
-    state: z.nativeEnum(CourseState).default("UNMODIFIED"),
+export const calendarCourseSchema = z.object({
+  section_id: z.number().optional(),
+  tuid: z.string().optional(),
+  type: z.string().optional().default("?"),
+  term: z
+    .number()
+    .min(0)
+    .max(twoDigitYear + 2),
+  semester: z
+    .nativeEnum(Semesters, {
+      errorMap: (issue, ctx) => {
+        return { message: "Select a semester" };
+      },
+    })
+    .default(Semesters.WINTER),
+  // semester_fall: z.boolean().default(false),
+  // semester_winter: z.boolean().default(false),
+  // semester_spring: z.boolean().default(false),
+  div: z.string().optional().default("SC"),
+  department: z
+    .string()
+    .min(2)
+    .max(6, { message: "Department type is larger than expected." }),
+  subject: z
+    .string()
+    .min(2)
+    .max(6, { message: "Subject type is larger than expected." }),
+  course_number: z.string(),
+  section: z.string(),
+  start_date: z.date(),
+  end_date: z.date(),
+  credits: z.number(),
+  title: z.string().max(100).optional().default(""),
+  status: z.string().default("Active"),
+  instruction_method: z.string().default("LEC"),
+  capacity: z
+    .number()
+    .min(1)
+    .max(500, {
+      message: "Capacity has a limit of 500 students on a course.",
+    })
+    .default(30),
+  original_state: z.nativeEnum(CourseState).default("UNMODIFIED"),
+  state: z.nativeEnum(CourseState).default("UNMODIFIED"),
 
-    //Get a single faculty member on a course
-    faculty: facultyToCourseSchema,
-    //Force set the notes type here
-    notes: z.object({
-      ACAMDEMIC_AFFAIRS: z.string(),
-      DEPARTMENT: z.string(),
-      CHANGES: z.string(),
-    }),
-    locations: z.array(locationsSchema),
-  })
-  .refine(
-    ({ semester_fall, semester_winter, semester_spring, semester_summer }) =>
-      !(
-        semester_fall == false &&
-        semester_winter == false &&
-        semester_spring == false &&
-        semester_summer == false
-      ),
-    { message: "A course must have a selected semester." }
-  );
+  //Get a single faculty member on a course
+  faculty: facultyToCourseSchema,
+  //Force set the notes type here
+  notes: z.object({
+    ACAMDEMIC_AFFAIRS: z.string(),
+    DEPARTMENT: z.string(),
+    CHANGES: z.string(),
+  }),
+  locations: z.array(locationsSchema),
+});
+// .superRefine((val, ctx) => {
+//   const hasSemester =
+//     val.semester_fall ||
+//     val.semester_summer ||
+//     val.semester_spring ||
+//     val.semester_winter;
+//   if (hasSemester == false) {
+//     ctx.addIssue({
+//       code: z.ZodIssueCode.custom,
+//       path: ["tuid"],
+//       message: "Select one semester.",
+//     });
+//   }
+// });
 
 export const calendarAddNewCourseToRevisionSchema = z.object({
   tuid: z.string().optional(),

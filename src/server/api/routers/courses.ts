@@ -253,15 +253,24 @@ export const coursesRouter = createTRPCRouter({
 
       //Returns the guideline result, page number, and the number of pages in the result
       const values = courseGuidelinesResult.map((item) => {
+        item.times.map((time) => {
+          console.log({ time });
+        });
         return {
           ...item,
           times: item.times.map((time) => ({
             tuid: time.tuid,
+            //Get the diference in the time
             difference: differenceInTime(time.start_time, time.end_time),
-
             guideline_id: time.guideline_id,
-            start_time: militaryToSplit(time.start_time),
-            end_time: militaryToSplit(time.end_time),
+
+            //Provide meta data to the client about the time
+            start_time_meta: militaryToSplit(time.start_time),
+            end_time_meta: militaryToSplit(time.end_time),
+
+            //Also provide the militrary time too
+            start_time: time.start_time,
+            end_time: time.end_time,
           })),
         };
       });
@@ -299,16 +308,8 @@ export const coursesRouter = createTRPCRouter({
               ...input.times.map((time) => ({
                 tuid: time.tuid,
                 guideline_id: time.guideline_id,
-                start_time: parseInt(
-                  `${time.start_time.hour}${
-                    time.start_time.minute == 0 ? "00" : time.start_time.minute
-                  }`
-                ),
-                end_time: parseInt(
-                  `${time.end_time.hour}${
-                    time.end_time.minute == 0 ? "00" : time.end_time.minute
-                  }`
-                ),
+                start_time: time.start_time,
+                end_time: time.end_time,
               })),
             ],
           },
@@ -451,16 +452,8 @@ export const coursesRouter = createTRPCRouter({
           },
           create: {
             tuid: time.tuid,
-            start_time: parseInt(
-              `${time.start_time.hour}${
-                time.start_time.minute == 0 ? "00" : time.start_time.minute
-              }`
-            ),
-            end_time: parseInt(
-              `${time.end_time.hour}${
-                time.end_time.minute == 0 ? "00" : time.end_time.minute
-              } `
-            ),
+            start_time: time.start_time,
+            end_time: time.end_time,
           },
         }));
 

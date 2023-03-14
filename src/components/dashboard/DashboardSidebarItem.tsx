@@ -11,6 +11,12 @@ interface DashboardSidebarItemProps {
   large?: boolean;
 }
 
+/**
+ * DashboardSidebarItem
+ * Container which holds a menu item (this item contains a name and picture)
+ * @Author Saturn
+ * @returns
+ */
 const DashboardSidebarItem = ({
   children,
   title,

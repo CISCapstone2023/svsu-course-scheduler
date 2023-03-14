@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 import { Divider, Menu } from "react-daisyui";
+import { api } from "src/utils/api";
 import {
   Assembly,
   Book,
@@ -20,17 +21,28 @@ interface DashboardSidebarProps {
 const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
   const router = useRouter();
   const { scheduleId } = router.query;
+
+  const name = api.dashboard.getRevisionName.useQuery({
+    revision_tuid: scheduleId as string,
+  });
+
   return (
     <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
       <Menu>
         <Link href={`/dashboard/${scheduleId}/home`}>
-          <DashboardSidebarItem title="Project" bold={true}>
+          <DashboardSidebarItem
+            title={name.data != undefined ? name.data.name : "Loading..."}
+            bold={true}
+          >
             <Assembly width={40} height={40} />
           </DashboardSidebarItem>
         </Link>
 
         <Divider />
 
+        <div className="flex w-full pl-4">
+          <p className="font-bold">General</p>
+        </div>
         <Link href={`/dashboard/${scheduleId}/home`}>
           <DashboardSidebarItem title="Home">
             <Home width={40} height={40} />
@@ -51,6 +63,9 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
 
         <Divider />
 
+        <div className="flex w-full pl-4">
+          <p className="font-bold">Admin</p>
+        </div>
         <Link href={`/dashboard/${scheduleId}/courses`}>
           <DashboardSidebarItem title="Courses">
             <Book width={40} height={40} />

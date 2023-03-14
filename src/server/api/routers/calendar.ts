@@ -1,7 +1,16 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import { Prisma } from "@prisma/client";
+import { type Course, Prisma, type ScheduleRevision } from "@prisma/client";
+import { flatten } from "lodash";
+
+//Get instance of prisma
 import { prisma } from "src/server/db";
+
+import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
+import { createCourseSchema } from "src/server/api/routers/projects";
+import {
+  calendarCourseSchema,
+  type ICalendarCourseSchema,
+} from "src/validation/calendar";
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -14,26 +23,90 @@ const revisionWithCourses = Prisma.validator<Prisma.ScheduleRevisionArgs>()({
           include: { faculty: true },
         },
         locations: {
-          include: { rooms: true },
+          include: { rooms: { include: { building: true } } },
         },
       },
     },
   },
 });
+
+/**
+ * courseWithRelationships
+ * Get a course schema types which includes the relationships
+ * that it has on the tables.
+ */
+const courseWithRelationships = Prisma.validator<Prisma.CourseArgs>()({
+  include: {
+    faculty: {
+      include: {
+        faculty: true,
+      },
+    },
+    notes: true,
+    locations: {
+      include: {
+        rooms: {
+          include: {
+            building: {
+              include: {
+                campus: true,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+});
+
+//Export type from Prisma
+export type CourseWithLocationsFacultyAndNotes = Prisma.CourseGetPayload<
+  typeof courseWithRelationships
+>;
+
+//Export type from Prisma
 export type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
   typeof revisionWithCourses
 >;
 
+/**
+ * ICourseSchemaWithMetadata
+ *
+ * Type that joins the course schema with partial data for the select boxes.
+ * This is to provide the information about the current faculty and buildings,
+ * although we store all the information by the TUID value of faculty and building to courses
+ */
+type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
+  faculty: {
+    value: string;
+    label: string;
+  };
+  locations: Array<{
+    rooms: {
+      building: {
+        label: string;
+        value: string;
+      };
+    };
+  }>;
+};
+
+/**
+ * courseType
+ * Gets a course type from prisma
+ */
 const courseType = Prisma.validator<Prisma.CourseArgs>()({
   include: {
     faculty: {
       include: { faculty: true },
     },
     locations: {
-      include: { rooms: true },
+      include: { rooms: { include: { building: true } } },
     },
   },
 });
+
+//Export the TS type from inference
 export type IScheduleCourse = Prisma.CourseGetPayload<typeof courseType>;
 
 // Routers --------------------------------------------------------------------------------------------------------
@@ -163,7 +236,7 @@ export const calendarRouter = createTRPCRouter({
               .reduce((sum, value) => {
                 return sum + value;
               }, 0);
-
+            console.log({ totalMeetings });
             //Query each course to the guidelines course model
             const result = await ctx.prisma.guidelinesCourses.count({
               where: {
@@ -205,15 +278,16 @@ export const calendarRouter = createTRPCRouter({
                       every: {
                         //Grabs the times from each location associated with the course
                         //Uncomment once merged and database CourseLocation has times as Ints
-                        // AND:[
-                        //   ...course.locations.map((location) =>{
-                        //     return {
-                        //       start_time: location.start_time,
-                        //       end_time: location.end_time,}
-                        //   })
-                        // ],
-                        start_time: course.start_time,
-                        end_time: course.end_time,
+                        AND: [
+                          ...course.locations.map((location) => {
+                            return {
+                              start_time: location.start_time,
+                              end_time: location.end_time,
+                            };
+                          }),
+                        ],
+                        // start_time: course.start_time,
+                        // end_time: course.end_time,
                       },
                     },
                   },
@@ -235,23 +309,15 @@ export const calendarRouter = createTRPCRouter({
         return out;
       };
 
-      console.log({
-        m: monday_courses,
-        t: tuesday_courses,
-        w: monday_courses,
-        th: monday_courses,
-        f: monday_courses,
-      });
-
-      const within = {
-        monday_courses: await coursesWithinAGuideline(monday_courses),
-        tuesday_courses: await coursesWithinAGuideline(tuesday_courses),
-        wednesday_courses: await coursesWithinAGuideline(wednesday_courses),
-        thursday_courses: await coursesWithinAGuideline(thursday_courses),
-        friday_courses: await coursesWithinAGuideline(friday_courses),
-        saturday_courses: await coursesWithinAGuideline(saturday_courses),
-        sunday_courses: await coursesWithinAGuideline(sunday_courses),
-      };
+      // const within = {
+      //   monday_courses: await coursesWithinAGuideline(monday_courses),
+      //   tuesday_courses: await coursesWithinAGuideline(tuesday_courses),
+      //   wednesday_courses: await coursesWithinAGuideline(wednesday_courses),
+      //   thursday_courses: await coursesWithinAGuideline(thursday_courses),
+      //   friday_courses: await coursesWithinAGuideline(friday_courses),
+      //   saturday_courses: await coursesWithinAGuideline(saturday_courses),
+      //   sunday_courses: await coursesWithinAGuideline(sunday_courses),
+      // };
 
       // Send the client back the ame of the revision, the semester, and the results of each of the course-by-day queries
       const out = {
@@ -277,16 +343,125 @@ export const calendarRouter = createTRPCRouter({
         tuid: z.string(),
       })
     )
-    .query(async ({ ctx, input }) => {
-      const course = await ctx.prisma.course.findUnique({
-        where: {
-          tuid: input.tuid,
-        },
-      });
+    .mutation(async ({ ctx, input }) => {
+      const course: CourseWithLocationsFacultyAndNotes | null =
+        //Query a course where the tuid is at the current tuid
+        await ctx.prisma.course.findUnique({
+          //Include the faculty many-to-many relationship
+          include: {
+            //This is the table in the middle
+            faculty: {
+              include: {
+                //This is the actual faculty table
+                faculty: true,
+              },
+            },
+            //Include nodes
+            notes: true,
+            //Include locations, with rooms, buildings, and campus
+            locations: {
+              include: {
+                rooms: {
+                  include: {
+                    building: {
+                      include: {
+                        campus: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          where: {
+            tuid: input.tuid,
+          },
+        });
+      //Do we have a course?
+      if (course != null) {
+        //If so set the data
+        return {
+          capacity: course.capacity,
+          course_number: course.course_number,
+          credits: course.credits,
+          department: course.department,
+          div: course.div,
+          end_date: course.end_date,
+          start_date: course.start_date,
+          faculty: {
+            //Spread the map of courses but only the first one (which is still an array)
+            ...(course.faculty.map((faculty) => {
+              return {
+                faculty_tuid: faculty.faculty_tuid,
 
-      return {
-        course,
-      };
+                //Add the attribute for the react select as they use the provided value by default
+                label: faculty.faculty.name,
+                value: faculty.faculty_tuid,
+              };
+            })[0] ?? {}),
+          },
+
+          //Set the proper notes using a filter
+          notes: {
+            ACAMDEMIC_AFFAIRS:
+              course.notes.filter((note) => note.type == "ACAMDEMIC_AFFAIRS")[0]
+                ?.note ?? "",
+            CHANGES:
+              course.notes.filter((note) => note.type == "CHANGES")[0]?.note ??
+              "",
+            DEPARTMENT:
+              course.notes.filter((note) => note.type == "DEPARTMENT")[0]
+                ?.note ?? "",
+          },
+          //Add the locations, with all information about the location and rooms
+          locations: [
+            ...course.locations.map((location) => {
+              return {
+                day_friday: location.day_friday,
+                day_monday: location.day_monday,
+                day_saturday: location.day_saturday,
+                day_sunday: location.day_sunday,
+                day_thursday: location.day_thursday,
+                day_tuesday: location.day_tuesday,
+                day_wednesday: location.day_wednesday,
+                end_time: location.end_time,
+                is_online: location.is_online,
+                start_time: location.start_time,
+                rooms: {
+                  ...location.rooms.map((room) => {
+                    return {
+                      // building: {
+                      //   label: `${room.room} - ${room.room} (${room.room})`,
+                      //   building_tuid: room.room,
+                      //   value: room.room,
+                      // },
+                      building: {
+                        buiding_tuid: room.building_tuid,
+                        label: `${room.building.campus.name} - ${room.building.name} (${room.building.prefix})`,
+                        value: room.building_tuid,
+                      },
+                      room: room.room,
+                    };
+                  })[0],
+                },
+              };
+            }),
+          ],
+          instruction_method: course.instruction_method,
+          original_state: course.original_state,
+          section: course.section,
+          semester_fall: course.semester_fall,
+          semester_winter: course.semester_winter,
+          semester_spring: course.semester_spring,
+          semester_summer: course.semester_summer,
+          state: course.state,
+          status: course.status,
+          type: course.type,
+          subject: course.subject,
+          term: course.term,
+          title: course.title,
+        } as ICourseSchemaWithMetadata;
+      }
     }),
 
   //This will grab one revision by tuid and return all courses attached to it
@@ -317,6 +492,433 @@ export const calendarRouter = createTRPCRouter({
       });
 
       return allCourses;
+    }),
+
+  /**
+   * getSemesters
+   * Get the semester based on the revision
+   * @author Brendan Fuller
+   */
+  getSemestersByRevision: protectedProcedure
+    .input(
+      z.object({
+        revision: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      //Get each semester count
+      const [sp, fa, wi, su] = await ctx.prisma.$transaction([
+        //Spring
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_spring: true,
+          },
+        }),
+        //Fall
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_fall: true,
+          },
+        }),
+        //Winter
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_winter: true,
+          },
+        }),
+        //Summer
+        ctx.prisma.course.count({
+          where: {
+            revision: {
+              tuid: input.revision,
+            },
+            semester_summer: true,
+          },
+        }),
+      ]);
+      //Temp list of possible semesters for this current revision
+      const semesters: ITab[] = [];
+
+      if (fa > 0) {
+        //Add fall to this list for the current revision
+        semesters.push({
+          title: "Fall",
+          semester: "FA",
+          revision: input.revision,
+        });
+      }
+      if (wi > 0) {
+        //Add winter to this list for the current revision
+        semesters.push({
+          title: "Winter",
+          semester: "WI",
+          revision: input.revision,
+        });
+      }
+      if (sp > 0) {
+        //Add spring to this list for the current revision
+        semesters.push({
+          title: "Spring",
+          semester: "SP",
+          revision: input.revision,
+        });
+      }
+      if (su > 0) {
+        //Add summer to the list for the current revision
+        semesters.push({
+          title: "Summer",
+          semester: "SU",
+          revision: input.revision,
+        });
+      }
+      return semesters;
+    }),
+  /**
+   * Get Semesters
+   *
+   * Get a list of revision and every semeseter possible for said, for
+   * fall, winter, spring, and summer
+   * @author Brendan Fuller
+   */
+  getSemesters: protectedProcedure.query(async ({ ctx, input }) => {
+    //Get the list of revision by the current user
+    const schedules = await ctx.prisma.scheduleRevision.findMany({
+      where: {
+        creator_tuid: ctx.session.user.id,
+      },
+      //Make sure to include the courses
+      include: {
+        courses: true,
+      },
+    });
+
+    /**
+     * Geneates the information regarding a revision
+     * for use with the select input on the frontend
+     * @param valid
+     * @param revision
+     * @param semester
+     * @returns
+     */
+    const generateSelectRevisionInformation = (
+      valid: boolean,
+      revision: ScheduleRevision & {
+        courses: Course[];
+      },
+      semester: string
+    ) => {
+      //Are we valid? If so created the object, if not make it empty
+      return valid
+        ? ({
+            label: revision.name + " " + semester,
+            value: {
+              semester,
+              revision: revision.tuid,
+              title: revision.name + " " + semester,
+            },
+          } as IRevisionSelect)
+        : {};
+    };
+
+    //Loop all of the revisions
+    const data = schedules.map((revision) => {
+      //State if we have a semesters
+      const semesters = {
+        fall: false,
+        winter: false,
+        spring: false,
+        summer: false,
+      };
+
+      //Loop all courses and set that state to true depending on if a
+      //semester does occur
+      for (const index in revision.courses) {
+        const course = revision.courses[index];
+        if (course?.semester_fall) semesters.fall = true;
+        if (course?.semester_winter) semesters.winter = true;
+        if (course?.semester_spring) semesters.spring = true;
+        if (course?.semester_summer) semesters.summer = true;
+      }
+
+      //Create the list of possible ones
+      const listOfPossbileSemesters = [
+        generateSelectRevisionInformation(semesters.fall, revision, "FA"),
+        generateSelectRevisionInformation(semesters.winter, revision, "WI"),
+        generateSelectRevisionInformation(semesters.spring, revision, "SP"),
+        generateSelectRevisionInformation(semesters.summer, revision, "SU"),
+      ];
+
+      //Remove the empty semesters and force the type to be an array of Revisions
+      const revisionWithSemesters = listOfPossbileSemesters.filter((ele) => {
+        return ele.constructor === Object && Object.keys(ele).length > 0;
+      }) as IRevisionSelect[];
+
+      //Return that
+      return revisionWithSemesters;
+    });
+
+    //Now we flatten that so we don't have a 2D array but now a 1D array
+    return flatten(data);
+  }),
+
+  /**
+   * addCourseToRevision
+   * Adds a newly created course to a revision
+   */
+  addCourseToRevision: protectedProcedure
+    .input(
+      z.object({
+        //Input comes in as a revision tuid and a courseSchema variable
+        tuid: z.string(),
+        course: calendarCourseSchema,
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      //
+
+      const locations = input.course.locations.map((location) => {
+        return {
+          day_friday: location.day_friday,
+          day_monday: location.day_monday,
+          day_saturday: location.day_saturday,
+          day_sunday: location.day_sunday,
+          day_thursday: location.day_thursday,
+          day_tuesday: location.day_tuesday,
+          day_wednesday: location.day_wednesday,
+          end_time: location.end_time,
+          is_online: location.is_online,
+          start_time: location.start_time,
+          ...(location.rooms.room && location.rooms?.building?.buiding_tuid
+            ? {
+                rooms: {
+                  create: [
+                    {
+                      room: location.rooms.room.toString(),
+                      building: {
+                        connect: {
+                          tuid: location.rooms?.building?.buiding_tuid,
+                        },
+                      },
+                    },
+                  ],
+                },
+              }
+            : {}),
+        };
+      });
+      const course = input.course;
+      //If parse was successful then...
+      await ctx.prisma.course.create({
+        data: {
+          revision: {
+            connect: {
+              tuid: input.tuid,
+            },
+          },
+          capacity: course.capacity,
+          course_number: course.course_number,
+          credits: course.credits,
+          instruction_method: course.instruction_method,
+          department: course.department,
+          div: course.department,
+          end_date: course.end_date,
+          start_date: course.start_date,
+          end_time: 0,
+          start_time: 0,
+          original_state: "ADDED",
+          section: course.section.toString(),
+          section_id: null,
+          state: "ADDED",
+          subject: course.subject,
+          term: course.term,
+          title: course.title,
+          type: course.type,
+          status: course.status,
+          semester_fall: course.semester_fall,
+          semester_spring: course.semester_spring,
+          semester_summer: course.semester_summer,
+          semester_winter: course.semester_winter,
+
+          //Add the locations to the course from the mapping above the trasnsacton
+          locations: {
+            create: [...locations],
+          },
+
+          //Add all of the faculty to the course by creating and connecting the many to many
+          faculty: {
+            create: {
+              faculty: {
+                connect: {
+                  tuid: course.faculty.faculty_tuid,
+                },
+              },
+            },
+          },
+
+          //Add the notes, but because are validation supports 3 notes, we manually
+          //need to specify them because of issues with dynamic notes on the front end.
+          notes: {
+            create: [
+              {
+                note: course.notes.ACAMDEMIC_AFFAIRS,
+                type: "ACAMDEMIC_AFFAIRS",
+              },
+              {
+                note: course.notes.CHANGES,
+                type: "CHANGES",
+              },
+              {
+                note: course.notes.DEPARTMENT,
+                type: "DEPARTMENT",
+              },
+            ],
+          },
+        },
+      });
+      return true;
+    }),
+
+  /**
+   * updateRevisionCourse
+   * Updates a course on a revision
+   */
+  updateRevisionCourse: protectedProcedure
+    .input(calendarCourseSchema)
+    .mutation(async ({ ctx, input }) => {
+      //Generate the list of locations with the building connections
+      const locations = input.locations.map((location) => {
+        return {
+          day_friday: location.day_friday,
+          day_monday: location.day_monday,
+          day_saturday: location.day_saturday,
+          day_sunday: location.day_sunday,
+          day_thursday: location.day_thursday,
+          day_tuesday: location.day_tuesday,
+          day_wednesday: location.day_wednesday,
+          end_time: location.end_time,
+          is_online: location.is_online,
+          start_time: location.start_time,
+          ...(location.rooms.room &&
+          location.rooms?.building &&
+          location.rooms?.building?.buiding_tuid
+            ? {
+                rooms: {
+                  create: [
+                    {
+                      room: location.rooms.room.toString(),
+                      building: {
+                        connect: {
+                          tuid: location.rooms?.building?.buiding_tuid,
+                        },
+                      },
+                    },
+                  ],
+                },
+              }
+            : {}),
+        };
+      });
+
+      const course = input;
+
+      await ctx.prisma.$transaction([
+        //First delete all of te faculty relationships to the curse
+        ctx.prisma.guidelinesFacultyToCourse.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        }),
+
+        //Delete any notes assocaited with this course
+        ctx.prisma.courseNote.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        }),
+
+        //Delete any locations with the course, and because its cascade
+        //any rooms will be deleted as well
+        ctx.prisma.courseLocation.deleteMany({
+          where: {
+            course_tuid: input.tuid,
+          },
+        }),
+
+        //Now we update the course
+        ctx.prisma.course.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            capacity: course.capacity,
+            course_number: course.course_number,
+            credits: course.credits,
+            instruction_method: course.instruction_method,
+            department: course.department,
+            div: course.department,
+            end_date: course.end_date,
+            start_date: course.start_date,
+            end_time: 0,
+            start_time: 0,
+            original_state: "ADDED",
+            section: course.section.toString(),
+            section_id: null,
+            state: "ADDED",
+            subject: course.subject,
+            term: course.term,
+            title: course.title,
+            type: course.type,
+            status: course.status,
+            semester_fall: course.semester_fall,
+            semester_spring: course.semester_spring,
+            semester_summer: course.semester_summer,
+            semester_winter: course.semester_winter,
+
+            //Add the locations to the course from the mapping above the trasnsacton
+            locations: {
+              create: [...locations],
+            },
+
+            //Add all of the faculty to the course by creating and connecting the many to many
+            faculty: {
+              create: {
+                faculty: {
+                  connect: {
+                    tuid: course.faculty.faculty_tuid,
+                  },
+                },
+              },
+            },
+            //Add the notes, but because are validation supports 3 notes, we manually
+            //need to specify them because of issues with dynamic notes on the front end.
+            notes: {
+              create: [
+                {
+                  note: course.notes.ACAMDEMIC_AFFAIRS,
+                  type: "ACAMDEMIC_AFFAIRS",
+                },
+                {
+                  note: course.notes.CHANGES,
+                  type: "CHANGES",
+                },
+                {
+                  note: course.notes.DEPARTMENT,
+                  type: "DEPARTMENT",
+                },
+              ],
+            },
+          },
+        }),
+      ]);
     }),
 });
 
@@ -429,7 +1031,11 @@ async function queryCoursesByDay(
                 },
               },
               include: {
-                rooms: true,
+                rooms: {
+                  include: {
+                    building: true,
+                  },
+                },
               },
             },
           },
@@ -438,4 +1044,34 @@ async function queryCoursesByDay(
     });
 
   return coursesByDay;
+}
+
+/**
+ * Tab Interface
+ * The interface
+ */
+export interface ITab {
+  title: string;
+  semester: "FA" | "WI" | "SP" | "SU";
+  revision: string;
+}
+
+export interface IRevisionSelect {
+  value: ITab;
+  label: string;
+}
+
+function parseCourseData(input: ICalendarCourseSchema) {
+  let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
+  if (input != undefined) {
+    //Checks to see if the input course is undefined
+    const isSafe = calendarCourseSchema.safeParse(input); //If it is, conducts a safeParse on the input and stores the object of the parse
+
+    if (!isSafe.success) {
+      //Checks if the provided input is safe based on the return of the parse
+      isSuccess = false; //If not, then isSuccess is set to false
+      console.log(isSafe.error); //And error is printed to console
+    }
+    return isSuccess;
+  }
 }

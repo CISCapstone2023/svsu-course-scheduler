@@ -1,5 +1,5 @@
 //Import component libraries and react
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import {
   Button,
   ButtonGroup,
@@ -8,34 +8,24 @@ import {
   Dropdown,
   Input,
   Modal,
-  Select,
   Table,
 } from "react-daisyui";
 import { toast } from "react-toastify";
 
 //Import icons
-import {
-  CaretDown,
-  Check,
-  Pencil,
-  Plus,
-  TransitionRight,
-  Trash,
-  X,
-} from "tabler-icons-react";
+import { CaretDown, Pencil, Plus, Trash } from "tabler-icons-react";
 
 //Import form information
 import { useFieldArray, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { debounce, min } from "lodash";
+import { debounce } from "lodash";
 
 //Import types
 import {
-  addGuidelineSchema,
-  type IAddGuidelineCourse,
+  guidelineCourseAddSchema,
+  type IGuidelineCourseAdd,
 } from "src/validation/courses";
-import { type GuidelinesFaculty as GuidelinesCourse } from "@prisma/client";
 
 //Import local components
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
@@ -43,7 +33,6 @@ import PaginationBar from "src/components/Pagination";
 
 //Import backend api
 import { api } from "src/utils/api";
-import { CourseGuidelinesTimeAndDays } from "src/server/api/routers/courses";
 
 const Courses = () => {
   /**
@@ -87,7 +76,7 @@ const Courses = () => {
   //Query all of the data based on the search value
 
   const courses = api.courses.getAllCourseGuidelines.useQuery({
-    page: 1,
+    page: currentPage,
     days: {
       monday: filterDaysMonday,
       tuesday: filterDaysTuesday,
@@ -146,14 +135,14 @@ const Courses = () => {
   const [isCourseDeleteModalOpen, openCourseDeleteModal] =
     useState<boolean>(false);
   const [courseDeleteValue, setCourseDeleteValue] =
-    useState<IAddGuidelineCourse>();
+    useState<IGuidelineCourseAdd>();
 
   /**
    * openDeleteModal
    * Open the deletion modal for the current faculty member
    * @param course
    */
-  const openDeleteModal = (course: IAddGuidelineCourse) => {
+  const openDeleteModal = (course: IGuidelineCourseAdd) => {
     setCourseDeleteValue(course);
     openCourseDeleteModal(true);
   };
@@ -164,9 +153,9 @@ const Courses = () => {
    * This form hook will provide all the needed function to validate and parse
    * the data on the form
    */
-  const { reset, ...courseForm } = useForm<IAddGuidelineCourse>({
-    mode: "onBlur",
-    resolver: zodResolver(addGuidelineSchema),
+  const { reset, ...courseForm } = useForm<IGuidelineCourseAdd>({
+    mode: "onChange",
+    resolver: zodResolver(guidelineCourseAddSchema),
   });
 
   const dayFields = useFieldArray({
@@ -180,6 +169,7 @@ const Courses = () => {
 
   const toggleCourseModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
+    reset({});
     setCourseEditing(undefined);
     openCourseCreateModal(!isCourseCreateModalOpen);
     reset({});
@@ -195,11 +185,7 @@ const Courses = () => {
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onCourseModifySubmit = async (data: IAddGuidelineCourse) => {
-    //Do we have to update said faculty
-    console.log("Wooo!");
-    console.log(isCourseEditing);
-
+  const onCourseModifySubmit = async (data: IGuidelineCourseAdd) => {
     if (isCourseEditing != undefined && isCourseEditing!.tuid) {
       const result = await courseUpdateMutation.mutateAsync({
         tuid: isCourseEditing!.tuid,
@@ -261,34 +247,34 @@ const Courses = () => {
    *
    * Are we editing a faculty member? If so its null or the faculty object
    */
-  const [isCourseEditing, setCourseEditing] = useState<IAddGuidelineCourse>();
+  const [isCourseEditing, setCourseEditing] = useState<IGuidelineCourseAdd>();
 
   // function for splitting course times
-  const militaryToTime = (time: number) => {
-    //initializes hour variable to parse integer time numbers
-    let hour =
-      parseInt(
-        time >= 1000
-          ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
-          : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
-      ) % 12; // mods time to convert from military time to standard time
+  // const militaryToTime = (time: number) => {
+  //   //initializes hour variable to parse integer time numbers
+  //   let hour =
+  //     parseInt(
+  //       time >= 1000
+  //         ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
+  //         : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
+  //     ) % 12; // mods time to convert from military time to standard time
 
-    // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
-    if (hour == 0) {
-      hour = 12;
-    }
+  //   // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
+  //   if (hour == 0) {
+  //     hour = 12;
+  //   }
 
-    //initializes constant for getting the minutes of time
-    const minute = time.toString().substring(time.toString().length - 2);
+  //   //initializes constant for getting the minutes of time
+  //   const minute = time.toString().substring(time.toString().length - 2);
 
-    //initializes constant to be used for AM/PM tagging on time
-    const anteMeridiem = time >= 1300 ? "PM" : "AM";
-    return {
-      hour,
-      minute,
-      anteMeridiem,
-    };
-  };
+  //   //initializes constant to be used for AM/PM tagging on time
+  //   const anteMeridiem = time >= 1300 ? "PM" : "AM";
+  //   return {
+  //     hour,
+  //     minute,
+  //     anteMeridiem,
+  //   };
+  // };
   return (
     <>
       <div className="m-2 flex justify-between ">
@@ -469,7 +455,7 @@ const Courses = () => {
             }}
           >
             <Plus />
-            Add Course
+            Add Course Guideline
           </Button>
         </div>
       </div>
@@ -578,7 +564,7 @@ const Courses = () => {
             <div>
               <Button onClick={toggleCourseModifyModal} className="mt-2">
                 <Plus />
-                Add Course
+                Add Course Guideline
               </Button>
             </div>
              
@@ -587,7 +573,7 @@ const Courses = () => {
         <div className="flex w-full justify-center p-2">
           {courses.data != undefined && (
             <PaginationBar
-              totalPageCount={0}
+              totalPageCount={courses.data?.totalPages}
               currentPage={courses.data?.page}
               onClick={(page) => {
                 setCurrentPage(page);
@@ -680,7 +666,7 @@ const Courses = () => {
                   />
                   <ErrorMessage
                     errors={courseForm.formState.errors}
-                    name="is_adjunct"
+                    name="tuid"
                     render={({ message }) => (
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
@@ -717,18 +703,28 @@ const Courses = () => {
                       </Button>
                     </div>
                   </div>
-
+                  <ErrorMessage
+                    errors={courseForm.formState.errors}
+                    name="times"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />
                   {timeFields.fields.map((item, index) => {
                     return (
                       <>
-                        {" "}
-                        <div className="m-2 flex flex-row space-x-2 rounded-md bg-base-200 p-2">
+                        <div
+                          key={index}
+                          className="m-2 flex flex-row space-x-2 rounded-md bg-base-200 p-2"
+                        >
                           <div className="  grow items-center justify-center">
                             <div>
                               <p>Start Time</p>
                               <Input
                                 className="w-20"
                                 type="number"
+                                min={0}
+                                max={23}
                                 placeholder="Hour"
                                 size="sm"
                                 {...courseForm.register(
@@ -742,6 +738,8 @@ const Courses = () => {
                               <Input
                                 className="w-20"
                                 type="number"
+                                min={0}
+                                max={59}
                                 placeholder="Minute"
                                 size="sm"
                                 {...courseForm.register(
@@ -752,15 +750,6 @@ const Courses = () => {
                                   }
                                 )}
                               />
-                              <ErrorMessage
-                                errors={courseForm.formState.errors}
-                                name={`times.${index}.start_time.hour`}
-                                render={({ message }) => (
-                                  <p className="font-semibold text-red-600">
-                                    {message}
-                                  </p>
-                                )}
-                              />
                             </div>
                             <div>
                               <p>End Time</p>
@@ -769,6 +758,8 @@ const Courses = () => {
                                 type="number"
                                 placeholder="Hour"
                                 size="sm"
+                                min={0}
+                                max={23}
                                 {...courseForm.register(
                                   `times.${index}.end_time.hour`,
                                   {
@@ -781,6 +772,8 @@ const Courses = () => {
                                 className="w-20"
                                 type="number"
                                 placeholder="Minute"
+                                min={0}
+                                max={59}
                                 size="sm"
                                 {...courseForm.register(
                                   `times.${index}.end_time.minute`,
@@ -788,6 +781,15 @@ const Courses = () => {
                                     setValueAs: (v) =>
                                       v === "" ? undefined : parseInt(v),
                                   }
+                                )}
+                              />
+                              <ErrorMessage
+                                errors={courseForm.formState.errors}
+                                name={`times.${index}.end_time.hour`}
+                                render={({ message }) => (
+                                  <p className="font-semibold text-red-600">
+                                    {message}
+                                  </p>
                                 )}
                               />
                             </div>
@@ -846,74 +848,94 @@ const Courses = () => {
                       </Button>
                     </div>
                   </div>
+                  <ErrorMessage
+                    errors={courseForm.formState.errors}
+                    name="days"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />
                   {dayFields.fields.map((item, index) => {
                     return (
                       <>
-                        {" "}
-                        <div className="m-2 flex flex-row space-x-2 rounded-md bg-base-200 p-2">
-                          <div className="  flex grow items-center justify-center space-x-2">
-                            <div className="text-center">
-                              <p>M</p>
-                              <Checkbox
-                                {...courseForm.register(
-                                  `days.${index}.day_monday`
-                                )}
-                              />
+                        <div
+                          key={index}
+                          className="m-2 flex flex-col rounded-md bg-base-200 p-2"
+                        >
+                          <div className="space-x- flex">
+                            <div className="flex grow items-center justify-center space-x-2">
+                              <div className="text-center">
+                                <p>M</p>
+                                <Checkbox
+                                  {...courseForm.register(
+                                    `days.${index}.day_monday`
+                                  )}
+                                />
+                              </div>
+                              <div className="text-center">
+                                <p>T</p>
+                                <Checkbox
+                                  {...courseForm.register(
+                                    `days.${index}.day_tuesday`
+                                  )}
+                                />
+                              </div>
+                              <div className="text-center">
+                                <p>W</p>
+                                <Checkbox
+                                  {...courseForm.register(
+                                    `days.${index}.day_wednesday`
+                                  )}
+                                />
+                              </div>
+                              <div className="text-center">
+                                <p>TH</p>
+                                <Checkbox
+                                  {...courseForm.register(
+                                    `days.${index}.day_thursday`
+                                  )}
+                                />
+                              </div>
+                              <div className="text-center">
+                                <p>F</p>
+                                <Checkbox
+                                  {...courseForm.register(
+                                    `days.${index}.day_friday`
+                                  )}
+                                />
+                              </div>
+                              <div className="text-center">
+                                <p>SAT</p>
+                                <Checkbox
+                                  {...courseForm.register(
+                                    `days.${index}.day_saturday`
+                                  )}
+                                />
+                              </div>
+                              <div className="text-center">
+                                <p>SUN</p>
+                                <Checkbox
+                                  {...courseForm.register(
+                                    `days.${index}.day_sunday`
+                                  )}
+                                />
+                              </div>
                             </div>
-                            <div className="text-center">
-                              <p>T</p>
-                              <Checkbox
-                                {...courseForm.register(
-                                  `days.${index}.day_tuesday`
-                                )}
-                              />
-                            </div>
-                            <div className="text-center">
-                              <p>W</p>
-                              <Checkbox
-                                {...courseForm.register(
-                                  `days.${index}.day_wednesday`
-                                )}
-                              />
-                            </div>
-                            <div className="text-center">
-                              <p>TH</p>
-                              <Checkbox
-                                {...courseForm.register(
-                                  `days.${index}.day_thursday`
-                                )}
-                              />
-                            </div>
-                            <div className="text-center">
-                              <p>F</p>
-                              <Checkbox
-                                {...courseForm.register(
-                                  `days.${index}.day_friday`
-                                )}
-                              />
-                            </div>
-                            <div className="text-center">
-                              <p>SAT</p>
-                              <Checkbox
-                                {...courseForm.register(
-                                  `days.${index}.day_saturday`
-                                )}
-                              />
-                            </div>
-                            <div className="text-center">
-                              <p>SUN</p>
-                              <Checkbox
-                                {...courseForm.register(
-                                  `days.${index}.day_sunday`
-                                )}
-                              />
+                            <div>
+                              <Button color="error" size="sm" type="button">
+                                <Trash />
+                              </Button>
                             </div>
                           </div>
-                          <div>
-                            <Button color="error" size="sm" type="button">
-                              <Trash />
-                            </Button>
-                          </div>
+                          <ErrorMessage
+                            errors={courseForm.formState.errors}
+                            name={`days.${index}.tuid`}
+                            render={({ message }) => (
+                              <p className="font-semibold text-red-600">
+                                {message}
+                              </p>
+                            )}
+                          />
                         </div>
                       </>
                     );

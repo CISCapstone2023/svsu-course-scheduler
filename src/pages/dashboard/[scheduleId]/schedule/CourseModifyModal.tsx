@@ -28,6 +28,7 @@ import { api } from "src/utils/api";
 import { toast } from "react-toastify";
 import { Edit, Trash } from "tabler-icons-react";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
+import { CourseState } from "@prisma/client";
 
 //Modal
 interface CreateCourseModalProps {
@@ -71,6 +72,8 @@ const CreateCourseModal = ({
   const addCourseMutation = api.calendar.addCourseToRevision.useMutation();
 
   const updateCourseMutation = api.calendar.updateRevisionCourse.useMutation();
+
+  const removeCourseMutation = api.calendar.removeCourse.useMutation();
 
   const getEditCourseMutation = api.calendar.getCourse.useMutation();
   useEffect(() => {
@@ -885,6 +888,32 @@ const CreateCourseModal = ({
             </div>
             {/* Submit button */}
             <div className="flex justify-end">
+              {isCourseEditing != undefined && (
+                <Button
+                  color={
+                    isCourseEditing.state != CourseState.REMOVED
+                      ? "error"
+                      : "warning"
+                  }
+                  onClick={async () => {
+                    await removeCourseMutation.mutateAsync({
+                      tuid: isCourseEditing.tuid!,
+                    });
+                    toast.info(
+                      isCourseEditing.state != CourseState.REMOVED
+                        ? "Course has been removed"
+                        : "Course has been restored"
+                    );
+                    onClose();
+                  }}
+                  type="button"
+                  className="mt-2 mr-2"
+                >
+                  {isCourseEditing.state != CourseState.REMOVED
+                    ? "Delete"
+                    : "Recover"}
+                </Button>
+              )}
               <Button color="success" type="submit" className="mt-2">
                 {isCourseEditing != undefined ? "Save" : "Add"}
               </Button>

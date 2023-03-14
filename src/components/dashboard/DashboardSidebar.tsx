@@ -18,7 +18,12 @@ interface DashboardSidebarProps {
   children?: React.ReactNode;
 }
 
-// Dashboard prop from DaisyUI
+/**
+ * DashboardSidebar
+ * Generates a full sidebar menu using DashboardSidebarItems
+ * @Author Saturn
+ * @return
+ */
 const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
   const router = useRouter();
   const { scheduleId } = router.query;

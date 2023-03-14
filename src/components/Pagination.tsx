@@ -20,7 +20,6 @@ const range = (start: number, end: number) => {
 };
 
 const PaginationBar = ({
-  children,
   totalPageCount,
   currentPage,
   onClick,

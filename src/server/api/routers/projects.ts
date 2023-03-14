@@ -125,9 +125,9 @@ export const projectsRouter = createTRPCRouter({
         //If we don't have a search query don't worry about the filter
         scheduleResult = await ctx.prisma.schedule.findMany({
           //We want 10
-          take: 10,
-          //We start at 0
-          skip: input.page * 10,
+          // take: 10,
+          // //We start at 0
+          // skip: input.page * 10,
           where: {
             revisions: { some: { creator_tuid: ctx.session.user.id } },
           },

@@ -93,8 +93,8 @@ export const projectsRouter = createTRPCRouter({
     }),
 
   //Get all ScheduleRevisions and display list of schedule revisions sorted by time, desecnding
-  // getAllScheduleRevisions: protectedProcedure
-  getAllScheduleRevisions: publicProcedure
+  getAllScheduleRevisions: protectedProcedure
+    // getAllScheduleRevisions: publicProcedure
     .input(
       z.object({
         search: z.string().optional(),
@@ -128,9 +128,9 @@ export const projectsRouter = createTRPCRouter({
           take: 10,
           //We start at 0
           skip: input.page * 10,
-          // where: {
-          //   revisions: { some: { creator_tuid: ctx.session.user.id } },
-          // },
+          where: {
+            revisions: { some: { creator_tuid: ctx.session.user.id } },
+          },
           include: {
             revisions: {
               orderBy: {

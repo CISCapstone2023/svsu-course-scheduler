@@ -75,6 +75,7 @@ const CourseInformationSidebar = ({
                       {location.day_friday ? "F" : ""}
                       {location.day_saturday ? " SAT" : ""}
                       {location.day_sunday ? " SUN" : ""}
+                      <br />
                     </div>
                   </li>
                 );

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { type Course, Prisma, type ScheduleRevision } from "@prisma/client";
+import {
+  type Course,
+  Prisma,
+  type ScheduleRevision,
+  CourseState,
+} from "@prisma/client";
 import { flatten } from "lodash";
 
 //Get instance of prisma
@@ -9,6 +14,7 @@ import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { createCourseSchema } from "src/server/api/routers/projects";
 import {
   calendarCourseSchema,
+  Semesters,
   type ICalendarCourseSchema,
 } from "src/validation/calendar";
 
@@ -336,6 +342,37 @@ export const calendarRouter = createTRPCRouter({
       return out;
     }),
 
+  /**
+   * Procedure that will update a course's state to either REMOVED or original_state
+   * depending on the current state of the course
+   */
+  removeCourse: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const course = await ctx.prisma.course.findUnique({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+      if (course !== null) {
+        await ctx.prisma.course.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            state:
+              course.state == CourseState.REMOVED
+                ? course.original_state
+                : CourseState.REMOVED,
+          },
+        });
+      }
+    }),
+
   // This just grabs one course by its tuid
   getCourse: protectedProcedure
     .input(
@@ -379,8 +416,26 @@ export const calendarRouter = createTRPCRouter({
         });
       //Do we have a course?
       if (course != null) {
+        /**
+         * Function that will determine which semester the course is in and then
+         * returns the proper enum
+         * @author Chris Bellefeuille
+         */
+        function getSemester(
+          fall: boolean,
+          winter: boolean,
+          spring: boolean,
+          summer: boolean
+        ) {
+          if (fall) return Semesters.FALL;
+          if (winter) return Semesters.WINTER;
+          if (spring) return Semesters.SPRING;
+          if (summer) return Semesters.SUMMER;
+        }
+
         //If so set the data
         return {
+          tuid: course.tuid,
           capacity: course.capacity,
           course_number: course.course_number,
           credits: course.credits,
@@ -450,10 +505,12 @@ export const calendarRouter = createTRPCRouter({
           instruction_method: course.instruction_method,
           original_state: course.original_state,
           section: course.section,
-          semester_fall: course.semester_fall,
-          semester_winter: course.semester_winter,
-          semester_spring: course.semester_spring,
-          semester_summer: course.semester_summer,
+          semester: getSemester(
+            course.semester_fall,
+            course.semester_winter,
+            course.semester_spring,
+            course.semester_summer
+          ),
           state: course.state,
           status: course.status,
           type: course.type,
@@ -743,10 +800,10 @@ export const calendarRouter = createTRPCRouter({
           title: course.title,
           type: course.type,
           status: course.status,
-          semester_fall: course.semester_fall,
-          semester_spring: course.semester_spring,
-          semester_summer: course.semester_summer,
-          semester_winter: course.semester_winter,
+          semester_fall: course.semester == Semesters.FALL,
+          semester_winter: course.semester == Semesters.WINTER,
+          semester_spring: course.semester == Semesters.SPRING,
+          semester_summer: course.semester == Semesters.SUMMER,
 
           //Add the locations to the course from the mapping above the trasnsacton
           locations: {
@@ -869,19 +926,19 @@ export const calendarRouter = createTRPCRouter({
             start_date: course.start_date,
             end_time: 0,
             start_time: 0,
-            original_state: "ADDED",
+            original_state: course.original_state,
             section: course.section.toString(),
             section_id: null,
-            state: "ADDED",
+            state: "MODIFIED",
             subject: course.subject,
             term: course.term,
             title: course.title,
             type: course.type,
             status: course.status,
-            semester_fall: course.semester_fall,
-            semester_spring: course.semester_spring,
-            semester_summer: course.semester_summer,
-            semester_winter: course.semester_winter,
+            semester_fall: course.semester == Semesters.FALL,
+            semester_winter: course.semester == Semesters.WINTER,
+            semester_spring: course.semester == Semesters.SPRING,
+            semester_summer: course.semester == Semesters.SUMMER,
 
             //Add the locations to the course from the mapping above the trasnsacton
             locations: {
@@ -919,6 +976,7 @@ export const calendarRouter = createTRPCRouter({
           },
         }),
       ]);
+      return true;
     }),
 });
 

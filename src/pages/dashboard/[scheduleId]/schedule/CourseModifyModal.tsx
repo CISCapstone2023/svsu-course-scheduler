@@ -8,6 +8,7 @@ import {
   Checkbox,
   Input,
   Modal,
+  Radio,
   Select,
   Textarea,
 } from "react-daisyui";
@@ -19,6 +20,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 //Local imports
 import {
   calendarCourseSchema,
+  Semesters,
   type ICalendarCourseSchema,
 } from "src/validation/calendar";
 import TimeInput from "./TimeInput";
@@ -26,6 +28,7 @@ import { api } from "src/utils/api";
 import { toast } from "react-toastify";
 import { Edit, Trash } from "tabler-icons-react";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
+import { CourseState } from "@prisma/client";
 
 //Modal
 interface CreateCourseModalProps {
@@ -37,7 +40,8 @@ interface CreateCourseModalProps {
   onSuccess: () => void;
 }
 
-const seen: any[] = [];
+//Used for debugging
+// const seen: any[] = [];
 
 //Component
 const CreateCourseModal = ({
@@ -67,6 +71,10 @@ const CreateCourseModal = ({
   //API to add course to database for revision
   const addCourseMutation = api.calendar.addCourseToRevision.useMutation();
 
+  const updateCourseMutation = api.calendar.updateRevisionCourse.useMutation();
+
+  const removeCourseMutation = api.calendar.removeCourse.useMutation();
+
   const getEditCourseMutation = api.calendar.getCourse.useMutation();
   useEffect(() => {
     const getEditedCourse = async () => {
@@ -88,16 +96,18 @@ const CreateCourseModal = ({
   //Logs our submitted course (Will be changed)
   const onCourseAddModifySubmit = async (course: ICalendarCourseSchema) => {
     console.log("Hey we got here!");
+    console.log({ isCourseEditing });
     if (isCourseEditing != undefined && isCourseEditing!.tuid) {
-      // const result = await courseUpdateMutation.mutateAsync({
-      //   tuid: isCourseEditing!.tuid,
-      //   ...data,
-      // });
-      // if (result) {
-      //   toast.info(`Updated Course Guideline`);
-      // } else {
-      //   toast.error(`Failed to add Course Guideline`);
-      // }
+      const result = await updateCourseMutation.mutateAsync({
+        tuid: isCourseEditing!.tuid,
+        ...course,
+      });
+      if (result) {
+        toast.info(`Updated Course Guideline`);
+        onSuccess();
+      } else {
+        toast.error(`Failed to add Course Guideline`);
+      }
     } else {
       const result = await addCourseMutation.mutateAsync({
         course,
@@ -116,7 +126,8 @@ const CreateCourseModal = ({
   };
 
   //asks if you are in edit mode, keeps what you want to edit
-  const [isCourseEditing, setCourseEditing] = useState<ICalendarCourseSchema>();
+  const [isCourseEditing, setCourseEditing] =
+    useState<ICalendarCourseSchema | null>();
 
   // console.log(
   //   JSON.stringify(courseAddForm.formState.errors, function (key, val) {
@@ -134,7 +145,10 @@ const CreateCourseModal = ({
     //Main modal for body
     <Modal
       open={open}
-      onClickBackdrop={onClose}
+      onClickBackdrop={() => {
+        onClose();
+        setCourseEditing(null);
+      }}
       className="h-[1000px]  w-3/4 max-w-5xl "
     >
       {/* Button to close */}
@@ -502,38 +516,60 @@ const CreateCourseModal = ({
                   </div>
                 </div>
 
-                {/** List of checkboxes for seemsters */}
+                {/** List of radio buttons for semsters */}
                 <div
                   className="mt-2 flex w-full flex-row space-x-4"
                   id="firstRow"
                 >
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_fall")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.FALL}
+                    defaultChecked
                   />
                   <p className="mt-2">Fall Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_winter")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.WINTER}
                   />
                   <p className="mt-2">Winter Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_spring")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.SPRING}
                   />
                   <p className="mt-2">Spring Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_summer")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.SUMMER}
                   />
                   <p className="mt-2">Summer Semester</p>
+                </div>
+
+                {/**
+                 * Error Message for when a semester is not selected
+                 */}
+                <div>
+                  <ErrorMessage
+                    errors={courseAddForm.formState.errors}
+                    name="semester"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />
                 </div>
 
                 {/* header for label and add location button */}
@@ -852,6 +888,32 @@ const CreateCourseModal = ({
             </div>
             {/* Submit button */}
             <div className="flex justify-end">
+              {isCourseEditing != undefined && (
+                <Button
+                  color={
+                    isCourseEditing.state != CourseState.REMOVED
+                      ? "error"
+                      : "warning"
+                  }
+                  onClick={async () => {
+                    await removeCourseMutation.mutateAsync({
+                      tuid: isCourseEditing.tuid!,
+                    });
+                    toast.info(
+                      isCourseEditing.state != CourseState.REMOVED
+                        ? "Course has been removed"
+                        : "Course has been restored"
+                    );
+                    onClose();
+                  }}
+                  type="button"
+                  className="mt-2 mr-2"
+                >
+                  {isCourseEditing.state != CourseState.REMOVED
+                    ? "Delete"
+                    : "Recover"}
+                </Button>
+              )}
               <Button color="success" type="submit" className="mt-2">
                 {isCourseEditing != undefined ? "Save" : "Add"}
               </Button>

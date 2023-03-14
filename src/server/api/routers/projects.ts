@@ -7,7 +7,11 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "src/server/db";
 
 //Import all required information for TRPC for making APIs
-import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "src/server/api/trpc";
 
 //Import all validation for creating revision, onboarding, etc
 import {
@@ -128,6 +132,7 @@ export const projectsRouter = createTRPCRouter({
 
   //Get all ScheduleRevisions and display list of schedule revisions sorted by time, desecnding
   getAllScheduleRevisions: protectedProcedure
+    // getAllScheduleRevisions: publicProcedure
     .input(
       z.object({
         search: z.string().optional(),
@@ -161,11 +166,13 @@ export const projectsRouter = createTRPCRouter({
       } else {
         //If we don't have a search query don't worry about the filter
         scheduleResult = await ctx.prisma.schedule.findMany({
-          // //We want 10
+          //We want 10
           // take: 10,
           // //We start at 0
-          // skip: (input.page - 1) * 10,
-
+          // skip: input.page * 10,
+          where: {
+            revisions: { some: { creator_tuid: ctx.session.user.id } },
+          },
           include: {
             revisions: {
               orderBy: {

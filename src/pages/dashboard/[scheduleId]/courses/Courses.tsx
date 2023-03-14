@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { CaretDown, Pencil, Plus, Trash } from "tabler-icons-react";
 
 //Import form information
-import { useFieldArray, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { debounce } from "lodash";
@@ -33,31 +33,38 @@ import PaginationBar from "src/components/Pagination";
 
 //Import backend api
 import { api } from "src/utils/api";
+import TimeInput from "../schedule/TimeInput";
+
+const seen: any[] = [];
 
 const Courses = () => {
   /**
    * Filter values
    * The value which will be searching that is set by the debouncing below
    */
+
+  //Filter the semesters
   const [filterFallSemester, setFilterFallSemester] = useState(true);
   const [filterWinterSemester, setFilterWinterSemester] = useState(true);
   const [filterSpringSemester, setFilterSpringSemester] = useState(true);
   const [filterSummerSemester, setFilterSummerSemester] = useState(true);
 
-  const [filterSemesterDropdown, setFilterSemesterDropdown] = useState(false);
-
+  //Filter the credits
   const [filterCreditsMax, setFilterCreditsMax] = useState(4);
   const [filterCreditsMin, setFilterCreditsMin] = useState(1);
 
+  //Filter the meeting amount
   const [filterMeetingsMax, setFilterMeetingsMax] = useState(4);
   const [filterMeetingsMin, setFilterMeetingsMin] = useState(1);
 
+  //TODO: Possible add the time filters, possibly
   const [filterStartTimeHour, setFilterStartTimeHour] = useState(8);
   const [filterStartTimeMinute, setFilterStartTimeMinute] = useState(30);
 
   const [filterEndTimeHour, setFilterEndTimeHour] = useState(22);
   const [filterEndTimeMinute, setFilterEndTimeMinute] = useState(5);
 
+  //Filter the days
   const [filterDaysMonday, setFilterDaysMonday] = useState(true);
   const [filterDaysTuesday, setFilterDaysTuesday] = useState(true);
   const [filterDaysWednesday, setFilterDaysWednesday] = useState(true);
@@ -158,10 +165,12 @@ const Courses = () => {
     resolver: zodResolver(guidelineCourseAddSchema),
   });
 
+  //Array fields from the form
   const dayFields = useFieldArray({
     name: "days",
     control: courseForm.control,
   });
+
   const timeFields = useFieldArray({
     name: "times",
     control: courseForm.control,
@@ -249,42 +258,25 @@ const Courses = () => {
    */
   const [isCourseEditing, setCourseEditing] = useState<IGuidelineCourseAdd>();
 
+  console.log(
+    JSON.stringify(courseForm.formState.errors, function (key, val) {
+      if (val != null && typeof val == "object") {
+        if (seen.indexOf(val) >= 0) {
+          return;
+        }
+        seen.push(val);
+      }
+      return val;
+    })
+  );
+
   // function for splitting course times
-  // const militaryToTime = (time: number) => {
-  //   //initializes hour variable to parse integer time numbers
-  //   let hour =
-  //     parseInt(
-  //       time >= 1000
-  //         ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
-  //         : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
-  //     ) % 12; // mods time to convert from military time to standard time
-
-  //   // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
-  //   if (hour == 0) {
-  //     hour = 12;
-  //   }
-
-  //   //initializes constant for getting the minutes of time
-  //   const minute = time.toString().substring(time.toString().length - 2);
-
-  //   //initializes constant to be used for AM/PM tagging on time
-  //   const anteMeridiem = time >= 1300 ? "PM" : "AM";
-  //   return {
-  //     hour,
-  //     minute,
-  //     anteMeridiem,
-  //   };
-  // };
   return (
     <>
       <div className="m-2 flex justify-between ">
         <div className="flex space-x-2">
           <Dropdown>
-            <Button
-              onClick={() => {
-                setFilterSemesterDropdown(true);
-              }}
-            >
+            <Button>
               Semester
               <CaretDown />
             </Button>
@@ -497,16 +489,16 @@ const Courses = () => {
                       return (
                         <>
                           <span key={time.tuid}>
-                            {time.start_time.anteMeridiemHour}:
-                            {time.start_time.minute == 0
+                            {time.start_time_meta.anteMeridiemHour}:
+                            {time.start_time_meta.minute == 0
                               ? "00"
-                              : time.start_time.minute}{" "}
-                            {time.start_time.anteMeridiem}
-                            {} to {time.end_time.anteMeridiemHour}:
-                            {time.end_time.minute == 0
+                              : time.start_time_meta.minute}{" "}
+                            {time.start_time_meta.anteMeridiem}
+                            {} to {time.end_time_meta.anteMeridiemHour}:
+                            {time.end_time_meta.minute == 0
                               ? "00"
-                              : time.end_time.minute}{" "}
-                            {time.end_time.anteMeridiem}
+                              : time.end_time_meta.minute}{" "}
+                            {time.end_time_meta.anteMeridiem}
                           </span>
                           <br />
                         </>
@@ -586,7 +578,7 @@ const Courses = () => {
       <Modal
         open={isCourseCreateModalOpen}
         onClickBackdrop={toggleCourseModifyModal}
-        className="h-full  w-11/12 max-w-5xl"
+        className=" w-11/12 max-w-5xl"
       >
         <Button
           size="sm"
@@ -672,7 +664,7 @@ const Courses = () => {
                     )}
                   />
                 </div>
-                <div className="w-1/3">
+                <div className="w-1/3  border-l-2 pl-2">
                   <div className="flex">
                     <div className="grow">
                       <p>Times</p>
@@ -682,18 +674,8 @@ const Courses = () => {
                         size="xs"
                         onClick={() => {
                           timeFields.append({
-                            end_time: {
-                              anteMeridiem: "",
-                              anteMeridiemHour: 0,
-                              hour: 8,
-                              minute: 30,
-                            },
-                            start_time: {
-                              anteMeridiem: "",
-                              anteMeridiemHour: 0,
-                              hour: 8,
-                              minute: 30,
-                            },
+                            end_time: 830,
+                            start_time: 1020,
                           });
                         }}
                         type="button"
@@ -710,108 +692,64 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
-                  {timeFields.fields.map((item, index) => {
-                    return (
-                      <>
-                        <div
-                          key={index}
-                          className="m-2 flex flex-row space-x-2 rounded-md bg-base-200 p-2"
-                        >
-                          <div className="  grow items-center justify-center">
-                            <div>
-                              <p>Start Time</p>
-                              <Input
-                                className="w-20"
-                                type="number"
-                                min={0}
-                                max={23}
-                                placeholder="Hour"
-                                size="sm"
-                                {...courseForm.register(
-                                  `times.${index}.start_time.hour`,
-                                  {
-                                    setValueAs: (v) =>
-                                      v === "" ? undefined : parseInt(v),
-                                  }
-                                )}
-                              />{" "}
-                              <Input
-                                className="w-20"
-                                type="number"
-                                min={0}
-                                max={59}
-                                placeholder="Minute"
-                                size="sm"
-                                {...courseForm.register(
-                                  `times.${index}.start_time.minute`,
-                                  {
-                                    setValueAs: (v) =>
-                                      v === "" ? undefined : parseInt(v),
-                                  }
-                                )}
-                              />
+                  <div className="h-[400px] overflow-scroll">
+                    {timeFields.fields.map((item, index) => {
+                      return (
+                        <>
+                          <div
+                            key={index}
+                            className="m-2 flex flex-row space-x-2 rounded-md bg-base-200 p-2"
+                          >
+                            <div className="  grow items-center justify-center">
+                              <div>
+                                <p>Start Time</p>
+                                <Controller
+                                  control={courseForm.control}
+                                  name={`times.${index}.start_time`}
+                                  render={({ field }) => {
+                                    return <TimeInput {...field} />;
+                                  }}
+                                />
+                              </div>
+                              <div>
+                                <p>End Time</p>
+                                <Controller
+                                  control={courseForm.control}
+                                  name={`times.${index}.end_time`}
+                                  render={({ field }) => {
+                                    return <TimeInput {...field} />;
+                                  }}
+                                />
+                                <ErrorMessage
+                                  errors={courseForm.formState.errors}
+                                  name={`times.${index}.tuid`}
+                                  render={({ message }) => (
+                                    <p className="font-semibold text-red-600">
+                                      {message}
+                                    </p>
+                                  )}
+                                />
+                              </div>
                             </div>
                             <div>
-                              <p>End Time</p>
-                              <Input
-                                className="w-20"
-                                type="number"
-                                placeholder="Hour"
+                              <Button
+                                type="button"
+                                color="error"
                                 size="sm"
-                                min={0}
-                                max={23}
-                                {...courseForm.register(
-                                  `times.${index}.end_time.hour`,
-                                  {
-                                    setValueAs: (v) =>
-                                      v === "" ? undefined : parseInt(v),
-                                  }
-                                )}
-                              />{" "}
-                              <Input
-                                className="w-20"
-                                type="number"
-                                placeholder="Minute"
-                                min={0}
-                                max={59}
-                                size="sm"
-                                {...courseForm.register(
-                                  `times.${index}.end_time.minute`,
-                                  {
-                                    setValueAs: (v) =>
-                                      v === "" ? undefined : parseInt(v),
-                                  }
-                                )}
-                              />
-                              <ErrorMessage
-                                errors={courseForm.formState.errors}
-                                name={`times.${index}.end_time.hour`}
-                                render={({ message }) => (
-                                  <p className="font-semibold text-red-600">
-                                    {message}
-                                  </p>
-                                )}
-                              />
+                                onClick={() => {
+                                  timeFields.remove(index);
+                                }}
+                              >
+                                <Trash />
+                              </Button>
                             </div>
                           </div>
-                          <div>
-                            <Button
-                              type="button"
-                              color="error"
-                              size="sm"
-                              onClick={() => {
-                                timeFields.remove(index);
-                              }}
-                            >
-                              <Trash />
-                            </Button>
-                          </div>
-                        </div>
-                      </>
-                    );
-                  })}
+                        </>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="w-1/3">
+                <div className="w-1/3 border-l-2 pl-2">
                   <div className="flex">
                     <div className="grow">
                       <div className="justify-center">
@@ -855,91 +793,93 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
-                  {dayFields.fields.map((item, index) => {
-                    return (
-                      <>
-                        <div
-                          key={index}
-                          className="m-2 flex flex-col rounded-md bg-base-200 p-2"
-                        >
-                          <div className="space-x- flex">
-                            <div className="flex grow items-center justify-center space-x-2">
-                              <div className="text-center">
-                                <p>M</p>
-                                <Checkbox
-                                  {...courseForm.register(
-                                    `days.${index}.day_monday`
-                                  )}
-                                />
+                  <div className="h-[400px] overflow-scroll">
+                    {dayFields.fields.map((item, index) => {
+                      return (
+                        <>
+                          <div
+                            key={index}
+                            className="m-2 flex flex-col rounded-md bg-base-200 p-2"
+                          >
+                            <div className="space-x- flex">
+                              <div className="flex grow items-center justify-center space-x-2">
+                                <div className="text-center">
+                                  <p>M</p>
+                                  <Checkbox
+                                    {...courseForm.register(
+                                      `days.${index}.day_monday`
+                                    )}
+                                  />
+                                </div>
+                                <div className="text-center">
+                                  <p>T</p>
+                                  <Checkbox
+                                    {...courseForm.register(
+                                      `days.${index}.day_tuesday`
+                                    )}
+                                  />
+                                </div>
+                                <div className="text-center">
+                                  <p>W</p>
+                                  <Checkbox
+                                    {...courseForm.register(
+                                      `days.${index}.day_wednesday`
+                                    )}
+                                  />
+                                </div>
+                                <div className="text-center">
+                                  <p>TH</p>
+                                  <Checkbox
+                                    {...courseForm.register(
+                                      `days.${index}.day_thursday`
+                                    )}
+                                  />
+                                </div>
+                                <div className="text-center">
+                                  <p>F</p>
+                                  <Checkbox
+                                    {...courseForm.register(
+                                      `days.${index}.day_friday`
+                                    )}
+                                  />
+                                </div>
+                                <div className="text-center">
+                                  <p>SAT</p>
+                                  <Checkbox
+                                    {...courseForm.register(
+                                      `days.${index}.day_saturday`
+                                    )}
+                                  />
+                                </div>
+                                <div className="text-center">
+                                  <p>SUN</p>
+                                  <Checkbox
+                                    {...courseForm.register(
+                                      `days.${index}.day_sunday`
+                                    )}
+                                  />
+                                </div>
                               </div>
-                              <div className="text-center">
-                                <p>T</p>
-                                <Checkbox
-                                  {...courseForm.register(
-                                    `days.${index}.day_tuesday`
-                                  )}
-                                />
-                              </div>
-                              <div className="text-center">
-                                <p>W</p>
-                                <Checkbox
-                                  {...courseForm.register(
-                                    `days.${index}.day_wednesday`
-                                  )}
-                                />
-                              </div>
-                              <div className="text-center">
-                                <p>TH</p>
-                                <Checkbox
-                                  {...courseForm.register(
-                                    `days.${index}.day_thursday`
-                                  )}
-                                />
-                              </div>
-                              <div className="text-center">
-                                <p>F</p>
-                                <Checkbox
-                                  {...courseForm.register(
-                                    `days.${index}.day_friday`
-                                  )}
-                                />
-                              </div>
-                              <div className="text-center">
-                                <p>SAT</p>
-                                <Checkbox
-                                  {...courseForm.register(
-                                    `days.${index}.day_saturday`
-                                  )}
-                                />
-                              </div>
-                              <div className="text-center">
-                                <p>SUN</p>
-                                <Checkbox
-                                  {...courseForm.register(
-                                    `days.${index}.day_sunday`
-                                  )}
-                                />
+                              <div>
+                                <Button color="error" size="sm" type="button">
+                                  <Trash />
+                                </Button>
                               </div>
                             </div>
-                            <div>
-                              <Button color="error" size="sm" type="button">
-                                <Trash />
-                              </Button>
-                            </div>
+                            <ErrorMessage
+                              errors={courseForm.formState.errors}
+                              name={`days.${index}.tuid`}
+                              render={({ message }) => (
+                                <p className="font-semibold text-red-600">
+                                  {message}
+                                </p>
+                              )}
+                            />
                           </div>
-                          <ErrorMessage
-                            errors={courseForm.formState.errors}
-                            name={`days.${index}.tuid`}
-                            render={({ message }) => (
-                              <p className="font-semibold text-red-600">
-                                {message}
-                              </p>
-                            )}
-                          />
-                        </div>
-                      </>
-                    );
-                  })}
+                        </>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

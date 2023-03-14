@@ -1,52 +1,24 @@
 import { z } from "zod";
 
-const timesSchema = z.object({
-  start_time: z.number().min(0).max(2200, {
-    message: "The hour a course starts must be between 0 and 24 hours.",
-  }),
-  end_time: z.number().min(0).max(2359, {
-    message: "The minute a course starts must be between 0 and 59 minutes.",
-  }),
-});
-
+/**
+ * Times Schema Extended
+ */
 const timesSchemaExtended = z
   .object({
     guideline_id: z.string().optional(),
     tuid: z.string().optional(),
-    start_time: z.object({
-      hour: z.number().min(0).max(23, {
-        message: "The hour a course starts must be between 0 and 24 hours.",
-      }),
-      minute: z.number().min(0).max(59, {
-        message: "The minute a course starts must be between 0 and 59 minutes.",
-      }),
-      anteMeridiem: z.string(),
-      anteMeridiemHour: z.number().min(0).max(12, {
-        message: "The hour a course starts must be between 0 and 12 hours.",
-      }),
-    }),
-
-    end_time: z.object({
-      hour: z.number().min(0).max(23, {
-        message: "The hour a course starts must be between 0 and 24 hours.",
-      }),
-      minute: z.number().min(0).max(59, {
-        message: "The minute a course starts must be between 0 and 59 minutes.",
-      }),
-      anteMeridiem: z.string(),
-      anteMeridiemHour: z.number().min(0).max(12, {
-        message: "The hour a course starts must be between 0 and 12 hours.",
-      }),
-    }),
+    start_time: z.number(),
+    end_time: z.number(),
   })
+
+  //Refine the time object
   .superRefine(async (val, ctx) => {
-    if (
-      val.start_time.hour * 60 + val.start_time.minute >
-      val.end_time.hour * 60 + val.end_time.minute
-    ) {
+    //Make sure the star time is NOT before the end time
+    if (val.start_time > val.end_time) {
+      //Add the issue
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["end_time", "hour"],
+        path: ["tuid"],
         message: `End time can occur before start time!`,
       });
     }

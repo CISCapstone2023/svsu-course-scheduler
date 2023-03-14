@@ -85,6 +85,7 @@ export const organizeColumnRows = z.object({
 
 export const createRevisionOnboarding = organizeColumnRows.extend({
   name: z.string(),
+  schedule: z.string().nullable(),
 });
 
 export const finalizeProjectOnBoarding = z.object({

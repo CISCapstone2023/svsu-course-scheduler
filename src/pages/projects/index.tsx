@@ -104,7 +104,7 @@ const Projects: NextPage = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   //The current page for the pagination
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
 
   //The reset flag for the onboarding
   const [setReset, setResetFlag] = useState(false);
@@ -169,6 +169,7 @@ const Projects: NextPage = () => {
     }
   };
 
+  //function let user go back one stage
   const backStage = () => {
     if (stage <= 1) {
       setStage(1);
@@ -177,16 +178,22 @@ const Projects: NextPage = () => {
     }
   };
 
+  //api call getting all the revision for the user
   const result = api.projects.getAllScheduleRevisions.useQuery({
     search: "",
-    page: currentPage,
+    // page: currentPage,
   });
+
+  //api call for remove the current revision uploaded
   const removeRevision = api.projects.deleteScheduleRevision.useMutation();
 
-  //The list of revisions for the selection on the bottom calendar poration
-  const revisionList = api.calendar.getSemesters.useQuery();
-  //The revision which is selected for the tabs at the bottom
-  const [selectedRevision, setSelectRevision] = useState<IRevisionSelect>();
+  //api call for getting all the main schedule revision
+  const listOfSchedule = api.projects.getMainSchedule.useQuery();
+  //The schedule which is selected for the tabs at the bottom
+  const [selectedSchedule, setSelectSchedule] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
 
   //delete revision
   const deleteRevision = async (DeletedTuid: string) => {
@@ -328,6 +335,7 @@ const Projects: NextPage = () => {
         columns: organizedColumns,
         tuid: uploadedData.tuid,
         name: value.name,
+        schedule: selectedSchedule ? selectedSchedule!.value! : null, //force schedule id to null if doesn't have
       });
       if (result.success) {
         //Alert the user it as created sucessfully
@@ -427,6 +435,7 @@ const Projects: NextPage = () => {
 
           <Modal.Body className=" h-4/5 w-full flex-col overflow-y-auto  transition-all duration-200 ">
             <div className="flex  w-full justify-center overflow-y-auto align-middle transition-all duration-200">
+              {/* if user uploaded their Excel, let them continue */}
               {stage <= 1.5 && (
                 <ProjectsUpload
                   resetFlag={setReset}
@@ -443,6 +452,7 @@ const Projects: NextPage = () => {
                   }}
                 />
               )}
+              {/* when stage is in the second step show the errors (if haved) else always showed the table edit */}
               {stage === 2 && (
                 <div className="flex h-full w-full  flex-col">
                   {/* <ProjectFinalize
@@ -531,25 +541,32 @@ const Projects: NextPage = () => {
                         {...onboardingForm.register("name")}
                       />
                     </div>
-                    <div className="w-full flex-col">
-                      <label className="label">
-                        <span className="label-text">Select Revision</span>
-                      </label>
-                      <Select
-                        menuPlacement="top"
-                        options={revisionList.data as IRevisionSelect[]}
-                        defaultInputValue="N/A"
-                        value={selectedRevision}
-                        classNamePrefix="selection"
-                        className="h-10"
-                        onChange={(selectedRevision) => {
-                          //Check to make sure the reivison won't be undefined
-                          if (selectedRevision != undefined) {
-                            setSelectRevision(selectedRevision);
+                    {listOfSchedule.data != undefined && (
+                      <div className="w-full flex-col">
+                        <label className="label">
+                          <span className="label-text">Select Revision</span>
+                        </label>
+                        <Select
+                          menuPlacement="top"
+                          options={
+                            listOfSchedule.data as {
+                              value: string;
+                              label: string;
+                            }[]
                           }
-                        }}
-                      />
-                    </div>
+                          classNamePrefix="selection"
+                          onChange={(selected) => {
+                            if (selected != undefined) {
+                              setSelectSchedule(selected);
+                            } else {
+                              setSelectSchedule(null);
+                            }
+                          }}
+                          isClearable={true}
+                          isSearchable={true}
+                        />
+                      </div>
+                    )}
                     <div className="flex-col space-y-2">
                       <Button
                         color="success"
@@ -587,7 +604,7 @@ const Projects: NextPage = () => {
             )}
             {stage != 2 && (
               <Button className="" disabled={stage < 1.5} onClick={toggleStage}>
-                {stage == 2 ? "Finalize" : "Next"}
+                {"Next"}
               </Button>
             )}
           </div>
@@ -608,7 +625,7 @@ const Projects: NextPage = () => {
             setStage(1);
             setResetFlag(true);
             setError(undefined);
-            setSelectRevision(undefined);
+            setSelectSchedule(null);
           }}
         />
         <div className="container mx-auto  flex justify-between p-4">
@@ -688,6 +705,7 @@ const Projects: NextPage = () => {
           )}
         </ProjectsLayout>
 
+        {/* Remove pagination 
         <div className="mt-3 flex w-full justify-center  p-2">
           {result.data != undefined && result.data.totalPages > 1 && (
             <>
@@ -700,7 +718,7 @@ const Projects: NextPage = () => {
               />
             </>
           )}
-        </div>
+        </div>*/}
       </div>
     </DashboardLayout>
   );

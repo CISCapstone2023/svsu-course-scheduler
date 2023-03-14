@@ -22,6 +22,8 @@ import {
 
 //Import Node-XLSX for manupulating excel files (reading, and writing)
 import xlsx from "node-xlsx";
+import async from "react-select/dist/declarations/src/async/index";
+import { orderBy } from "lodash";
 
 /**
  * ExcelDataColumns
@@ -50,6 +52,7 @@ type ScheduleWithRevisions = Prisma.ScheduleGetPayload<
 /**
  *
  */
+
 interface InvertedObject {
   [key: string]: string;
 }
@@ -65,6 +68,41 @@ interface InvertedObject {
  */
 export const projectsRouter = createTRPCRouter({
   // ScheduleRevision -------------------------------------------------------------------------------------
+  getMainSchedule: protectedProcedure.query(async ({ ctx }) => {
+    const scheduleResult = await ctx.prisma.schedule.findMany({
+      where: {
+        revisions: {
+          every: { creator_tuid: ctx.session.user.id },
+        },
+      },
+      include: {
+        revisions: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
+
+    const result = scheduleResult
+      .filter((result) => {
+        const revisions = result.revisions;
+        //make sure we have revision
+        if (revisions.length === 0) {
+          return false;
+        }
+        return true;
+      })
+      .map((result) => {
+        //Grab the top latest revision
+        const latestRev = result.revisions[0]!;
+        //return the obj to front-end select box
+        return { value: result.tuid, label: latestRev.name };
+      });
+
+    return result;
+  }),
+
   //delete schedule revision
   deleteScheduleRevision: protectedProcedure
     .input(createRevisionSchemaTUID)
@@ -93,7 +131,7 @@ export const projectsRouter = createTRPCRouter({
     .input(
       z.object({
         search: z.string().optional(),
-        page: z.number().default(0),
+        // page: z.number().default(0),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -138,14 +176,6 @@ export const projectsRouter = createTRPCRouter({
         });
       }
 
-      /**
-       *Project
-       *
-       * Count the total projects
-       */
-      const projectCount = await ctx.prisma.scheduleRevision.count();
-      const totalPages = Math.ceil(projectCount / 10);
-
       //Return the data
       return {
         result: scheduleResult.reverse().map((s) => {
@@ -165,8 +195,6 @@ export const projectsRouter = createTRPCRouter({
             }),
           };
         }),
-        page: input.page,
-        totalPages: totalPages,
       };
     }),
 
@@ -280,18 +308,8 @@ export const projectsRouter = createTRPCRouter({
           //Don't want to add any extra course
           //Make sure all are valid before we actually enter them all into the database
           if (valid) {
-            const [scheduele, revision, ...courses] = await prisma.$transaction(
-              [
-                //Also add a schedule to the page
-                prisma.schedule.create({
-                  data: {
-                    revisions: {
-                      connect: {
-                        tuid: input.tuid,
-                      },
-                    },
-                  },
-                }),
+            if (input.schedule != null) {
+              const [revision, ...courses] = await prisma.$transaction([
                 //Update the name of the revision and make them
                 //no longer onboaridng
                 prisma.scheduleRevision.update({
@@ -299,6 +317,11 @@ export const projectsRouter = createTRPCRouter({
                     tuid: input.tuid,
                   },
                   data: {
+                    schedule: {
+                      connect: {
+                        tuid: input.schedule,
+                      },
+                    },
                     name: input.name,
                     onboarding: false,
                   },
@@ -309,11 +332,46 @@ export const projectsRouter = createTRPCRouter({
                 ).map((row, index) => {
                   return prisma.course.create(createCourseSchema(row, input));
                 }),
-              ]
-            );
-            //Its a valid course!
-            if (scheduele != undefined && courses != undefined) {
-              return { success: true, errors: [] };
+              ]);
+              //Its a valid course!
+              if (courses != undefined) {
+                return { success: true, errors: [] };
+              }
+            } else {
+              const [scheduele, revision, ...courses] =
+                await prisma.$transaction([
+                  //Also add a schedule to the page
+                  prisma.schedule.create({
+                    data: {
+                      revisions: {
+                        connect: {
+                          tuid: input.tuid,
+                        },
+                      },
+                    },
+                  }),
+                  //Update the name of the revision and make them
+                  //no longer onboaridng
+                  prisma.scheduleRevision.update({
+                    where: {
+                      tuid: input.tuid,
+                    },
+                    data: {
+                      name: input.name,
+                      onboarding: false,
+                    },
+                  }),
+                  //Add all courses in the current transaction
+                  ...(
+                    formattedColumns as Required<IProjectsExcelCourseSchema>[]
+                  ).map((row, index) => {
+                    return prisma.course.create(createCourseSchema(row, input));
+                  }),
+                ]);
+              //Its a valid course!
+              if (scheduele != undefined && courses != undefined) {
+                return { success: true, errors: [] };
+              }
             }
           }
         }

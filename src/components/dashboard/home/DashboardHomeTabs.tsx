@@ -1,12 +1,14 @@
 import React from "react";
 import { Stats, Tabs, Table } from "react-daisyui";
+import { api } from "src/utils/api";
 //import Tab from "react-daisyui/dist/Tabs/Tab";
 
 interface DashboardHomeTabsProps {
   children?: React.ReactNode;
+  tuid: string;
 }
 
-const DashboardHomeTabs = ({ children }: DashboardHomeTabsProps) => {
+const DashboardHomeTabs = ({ tuid }: DashboardHomeTabsProps) => {
   const [tabValue, setTabValue] = React.useState(0);
 
   const setCurrentTab = (value: number | null) => {
@@ -14,29 +16,54 @@ const DashboardHomeTabs = ({ children }: DashboardHomeTabsProps) => {
       setTabValue(value);
     }
   };
+  // const variables to gather the information from the backend api
+  const totalCourses = api.home.getTotalCourses.useQuery({ tuid });
+  const totalFaculty = api.home.getTotalFaculty.useQuery();
+  const courses = api.home.getCoursesByState.useQuery({ tuid });
 
+  // funtion to display courses in the correct tab
+  function getCourses(tab: number) {
+    if (tab == 0) {
+      return courses.data?.result.addedCourses;
+    }
+    if (tab == 1) {
+      return courses.data?.result.modifiedCourses;
+    }
+    if (tab == 2) {
+      return courses.data?.result.removedCourses;
+    }
+  }
+  console.log(courses);
   return (
     <div className="container mx-auto px-4">
       <h1 className="mb-4 pt-10 font-bold">
         Welcome to the Course Scheduler and Visualizer
       </h1>
-
+      {/* info card to display total numbers of courses currently intialized a schedule */}
       <div>
         <Stats className="mb-4 bg-base-200 shadow">
           <Stats.Stat>
             <div className="stat-title">Total Courses</div>
-            <div className="stat-value">40</div>
+            <div className="stat-value">
+              {totalCourses.data != undefined
+                ? totalCourses.data.result.totalCourses
+                : "0"}
+            </div>
           </Stats.Stat>
         </Stats>
-
+        {/* info card to display total numbers of faculty currently in a schedule */}
         <Stats className="ml-5 mb-4 bg-base-200 shadow">
           <Stats.Stat>
             <div className="stat-title">Total Faculty Members</div>
-            <div className="stat-value">672</div>
+            <div className="stat-value">
+              {totalFaculty.data != undefined
+                ? totalFaculty.data.result.totalFaculty
+                : "0"}
+            </div>
           </Stats.Stat>
         </Stats>
       </div>
-
+      {/* implements tabs to seperate added courses, modified courses and removed courses */}
       <div className="w-full">
         <Tabs
           className="w-full"
@@ -50,7 +77,7 @@ const DashboardHomeTabs = ({ children }: DashboardHomeTabsProps) => {
           <Tabs.Tab value={1}>Removed</Tabs.Tab>
           <Tabs.Tab value={null} className="flex-1 cursor-default" />
         </Tabs>
-
+        {/* displays table headers for course and faculty pagination */}
         <div className="overflow-x-auto border-x-[1px] border-b-[1px] border-gray-200 p-2">
           <Table className="w-full">
             <Table.Head>
@@ -63,52 +90,28 @@ const DashboardHomeTabs = ({ children }: DashboardHomeTabsProps) => {
             </Table.Head>
 
             <Table.Body>
-              <Table.Row>
-                <span>1</span>
-                <span>Poonam, Dharam</span>
-                <span>CS*116</span>
-                <span>Computer Programming I</span>
-                <span>SE116</span>
-                <span>M/W 10:30AM-12:20PM</span>
-              </Table.Row>
-
-              <Table.Row>
-                <span>2</span>
-                <span>James, Scott</span>
-                <span>CIS*422</span>
-                <span>System Analysis & Design Concepts</span>
-                <span>SE121</span>
-                <span>T/TH 8:30AM-10:20AM</span>
-              </Table.Row>
-
-              <Table.Row>
-                <span>3</span>
-                <span>Mukherjee, Avishek</span>
-                <span>CIS*355*01</span>
-                <span>Server Side Webb Dev</span>
-                <span>SE145</span>
-                <span>M/W 10:30AM-12:20PM</span>
-              </Table.Row>
-
-              <Table.Row>
-                <span>4</span>
-                <span>Jaksa, Joseph J.</span>
-                <span>CJ*315*90</span>
-                <span>Private Security</span>
-                <span>ONL 1</span>
-                <span>Lecture-Online</span>
-              </Table.Row>
-
-              <Table.Row>
-                <span>5</span>
-                <span>Rahman, Khandaker Abir</span>
-                <span>CS*433*70</span>
-                <span>Cybersecurity</span>
-                <span>ONL1, SE137 (Lecture-Hybrid)</span>
-                <span>T 2:30PM-4:20PM</span>
-              </Table.Row>
+              {/* this loop displays course and faculty data from backend */}
+              {courses.data != undefined &&
+                getCourses(tabValue)?.map((course, index) => {
+                  return (
+                    <Table.Row key={index}>
+                      <span>{index}</span>
+                      <span>{course.facultyNames}</span>
+                      <span>{course.courseID}</span>
+                      <span>{course.courseTitle}</span>
+                      <span>{course.courseLocation}</span>
+                      <span>{course.courseTimes}</span>
+                    </Table.Row>
+                  );
+                })}
             </Table.Body>
-          </Table>
+          </Table>{" "}
+          {/* this shows a message to alert the user that no courses have been added, modified or removed */}
+          {courses.data != undefined && getCourses(tabValue)?.length == 0 && (
+            <div className="flex h-32 items-center justify-center text-center text-lg font-semibold">
+              This schedule currenlty has no courses that meets this criteria
+            </div>
+          )}
         </div>
       </div>
     </div>

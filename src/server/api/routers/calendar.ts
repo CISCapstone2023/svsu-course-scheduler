@@ -380,6 +380,11 @@ export const calendarRouter = createTRPCRouter({
         });
       //Do we have a course?
       if (course != null) {
+        /**
+         * Function that will determine which semester the course is in and then
+         * returns the proper enum
+         * @author Chris Bellefeuille
+         */
         function getSemester(
           fall: boolean,
           winter: boolean,

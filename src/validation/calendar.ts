@@ -49,6 +49,11 @@ const twoDigitYear = parseInt(
   10
 );
 
+/**
+ * Enum for the four semesters used in calendar front end and back end as well
+ * as validation
+ * @author Chris Bellefeuille
+ */
 export enum Semesters {
   FALL = "Fall",
   WINTER = "Winter",
@@ -73,10 +78,7 @@ export const calendarCourseSchema = z.object({
         return { message: "Select a semester" };
       },
     })
-    .default(Semesters.WINTER),
-  // semester_fall: z.boolean().default(false),
-  // semester_winter: z.boolean().default(false),
-  // semester_spring: z.boolean().default(false),
+    .default(Semesters.FALL),
   div: z.string().optional().default("SC"),
   department: z
     .string()
@@ -114,20 +116,6 @@ export const calendarCourseSchema = z.object({
   }),
   locations: z.array(locationsSchema),
 });
-// .superRefine((val, ctx) => {
-//   const hasSemester =
-//     val.semester_fall ||
-//     val.semester_summer ||
-//     val.semester_spring ||
-//     val.semester_winter;
-//   if (hasSemester == false) {
-//     ctx.addIssue({
-//       code: z.ZodIssueCode.custom,
-//       path: ["tuid"],
-//       message: "Select one semester.",
-//     });
-//   }
-// });
 
 export const calendarAddNewCourseToRevisionSchema = z.object({
   tuid: z.string().optional(),

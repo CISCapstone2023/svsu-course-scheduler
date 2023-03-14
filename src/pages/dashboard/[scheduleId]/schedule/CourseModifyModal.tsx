@@ -40,7 +40,7 @@ interface CreateCourseModalProps {
 }
 
 //Used for debugging
-const seen: any[] = [];
+// const seen: any[] = [];
 
 //Component
 const CreateCourseModal = ({
@@ -126,17 +126,17 @@ const CreateCourseModal = ({
   const [isCourseEditing, setCourseEditing] =
     useState<ICalendarCourseSchema | null>();
 
-  console.log(
-    JSON.stringify(courseAddForm.formState.errors, function (key, val) {
-      if (val != null && typeof val == "object") {
-        if (seen.indexOf(val) >= 0) {
-          return;
-        }
-        seen.push(val);
-      }
-      return val;
-    })
-  );
+  // console.log(
+  //   JSON.stringify(courseAddForm.formState.errors, function (key, val) {
+  //     if (val != null && typeof val == "object") {
+  //       if (seen.indexOf(val) >= 0) {
+  //         return;
+  //       }
+  //       seen.push(val);
+  //     }
+  //     return val;
+  //   })
+  // );
 
   return (
     //Main modal for body
@@ -513,7 +513,7 @@ const CreateCourseModal = ({
                   </div>
                 </div>
 
-                {/** List of checkboxes for seemsters */}
+                {/** List of radio buttons for semsters */}
                 <div
                   className="mt-2 flex w-full flex-row space-x-4"
                   id="firstRow"
@@ -524,6 +524,7 @@ const CreateCourseModal = ({
                     {...courseAddForm.register("semester")}
                     name="semester"
                     value={Semesters.FALL}
+                    defaultChecked
                   />
                   <p className="mt-2">Fall Semester</p>
 
@@ -555,6 +556,9 @@ const CreateCourseModal = ({
                   <p className="mt-2">Summer Semester</p>
                 </div>
 
+                {/**
+                 * Error Message for when a semester is not selected
+                 */}
                 <div>
                   <ErrorMessage
                     errors={courseAddForm.formState.errors}

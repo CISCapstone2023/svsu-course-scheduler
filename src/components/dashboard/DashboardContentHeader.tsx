@@ -6,6 +6,12 @@ interface DashboardContentHeader {
   title: string;
 }
 
+/**
+ * DashboardContentHeader
+ * Is a container for the header
+ * @Author Saturn
+ * @returns
+ */
 const DashboardContentHeader = ({
   children,
   title,

@@ -11,6 +11,12 @@ interface DashboardSidebarItemProps {
   large?: boolean;
 }
 
+/**
+ * DashboardSidebarItem
+ * Container which holds a menu item (this item contains a name and picture)
+ * @Author Saturn
+ * @returns
+ */
 const DashboardSidebarItem = ({
   children,
   title,
@@ -19,7 +25,9 @@ const DashboardSidebarItem = ({
 }: DashboardSidebarItemProps) => {
   return (
     <Menu.Item>
+      {/* Layout of menu item */}
       <div className="mx-1 mt-1 flex h-[50px] items-center rounded-md pl-2 hover:bg-accent-focus hover:text-white">
+        {/* divs layout picture for menu item and title of menu item */}
         <div className="h-[40px] w-[40px]">
           {/**Image */} {children}
         </div>

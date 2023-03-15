@@ -118,10 +118,6 @@ const Projects: NextPage = () => {
     typeToFlattenedError<any, any> | never[] | undefined
   >(undefined);
 
-  //Get the mutation
-  const verifyOrganizedColumnsMutation =
-    api.projects.verifyOrganizedColumns.useMutation();
-
   const toggleVisible = () => {
     //set visibility of the modal
     if (stage == 1) {

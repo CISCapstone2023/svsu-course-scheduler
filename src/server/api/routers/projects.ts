@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Prisma, PrismaClient } from "@prisma/client";
 
 //Import Prisma for indirect access that's not by the TRPC context
-
+import { prisma } from "src/server/db";
 //Import all required information for TRPC for making APIs
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
@@ -13,11 +13,12 @@ import {
   organizeColumnRows,
   createRevisionOnboarding,
   createRevisionSchemaTUID,
-  type IProjectOrganizedColumnRowNumerical,
   type IProjectOrganizedColumnRow,
   type IProjectsExcelCourseSchema,
   excelCourseSchema,
 } from "src/validation/projects";
+
+import { type IProjectOrganizedColumnRowNumerical } from "src/validation/projects.frontend";
 
 //Import Node-XLSX for manupulating excel files (reading, and writing)
 import xlsx from "node-xlsx";
@@ -263,7 +264,7 @@ export const projectsRouter = createTRPCRouter({
       //input.organizeColumns.
 
       console.log("IS PRISMA DEFINED?");
-      console.log(ctx.prisma);
+
       const count = await ctx.prisma.scheduleRevision.count({
         where: { tuid: input.tuid },
       });
@@ -514,7 +515,7 @@ export const createCourseSchema = (
 const invertedNestedOrganizedColumns = async (
   columns: ExcelDataColumns,
   organizedColumns: IProjectOrganizedColumnRowNumerical,
-  prisma: PrismaClient
+  prismal: PrismaClient
 ) => {
   //Inverts columns, really handy
   const invertOrganizedColumns = Object.entries(organizedColumns).reduce(

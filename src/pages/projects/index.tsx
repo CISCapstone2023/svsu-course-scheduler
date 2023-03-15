@@ -34,13 +34,11 @@ import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 //Images
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 
-//Validations
 import {
   finalizeProjectOnBoarding,
-  type IProjectFinalizeOnboarding,
   type IProjectOrganizedColumnRowNumerical,
-} from "src/validation/projects";
-import { IRevisionSelect } from "src/server/api/routers/calendar";
+  type IProjectFinalizeOnboarding,
+} from "src/validation/projects.frontend";
 
 //THE DEFAULT SCHEMA FOR THE ORGANIZED COLUMNS
 const DEFAULT_ORGANIZED_COLUMNS = {

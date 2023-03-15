@@ -80,7 +80,6 @@ const notesSchema = z.object({
 const roomsSchema = z.object({
   room: z.string(),
   building_tuid: z.string().superRefine(async (val, ctx) => {
-    console.log("PARSING HERE for BUILDING");
     const amount = await prisma.guidelineBuilding.count({
       where: {
         tuid: val,
@@ -97,8 +96,16 @@ const roomsSchema = z.object({
 });
 
 const locationsSchema = z.object({
-  start_time: z.number(),
-  end_time: z.number(),
+  start_time: z.number({
+    errorMap: (issue, ctx) => {
+      return { message: "A course is missing a valid start time" };
+    },
+  }),
+  end_time: z.number({
+    errorMap: (issue, ctx) => {
+      return { message: "A course is missing a valid end time" };
+    },
+  }),
   day_monday: z.boolean().default(false),
   day_tuesday: z.boolean().default(false),
   day_wednesday: z.boolean().default(false),

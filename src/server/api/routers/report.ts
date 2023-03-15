@@ -13,22 +13,31 @@ export const reportRouter = createTRPCRouter({
         semester_spring: z.boolean(),
         semester_summer: z.boolean(),
         search: z.string(),
+        tuid: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
       //Query to get an array of faculty objects that match the semester given
       //by the user and the search string if it is not empty.
+      console.log(input.tuid);
       const courseResult = await ctx.prisma.guidelinesFaculty.findMany({
         where: {
           to_courses: {
-            every: {
+            some: {
               course: {
-                OR: [
-                  input.semester_fall ? { semester_fall: true } : {},
-                  input.semester_winter ? { semester_winter: true } : {},
-                  input.semester_spring ? { semester_spring: true } : {},
-                  input.semester_summer ? { semester_summer: true } : {},
-                ],
+                is: {
+                  OR: [
+                    input.semester_fall ? { semester_fall: true } : {},
+                    input.semester_winter ? { semester_winter: true } : {},
+                    input.semester_spring ? { semester_spring: true } : {},
+                    input.semester_summer ? { semester_summer: true } : {},
+                  ],
+                  revision: {
+                    is: {
+                      tuid: input.tuid,
+                    },
+                  },
+                },
               },
             },
           },
@@ -36,16 +45,38 @@ export const reportRouter = createTRPCRouter({
           //the user's search, otherwise don't filter by name
           ...(input.search != "" ? { name: { contains: input.search } } : {}),
         },
-        include: {
+        select: {
+          name: true,
           to_courses: {
-            include: {
+            select: {
               course: {
-                include: {
+                select: {
+                  credits: true,
+                  title: true,
                   locations: {
-                    include: {
+                    select: {
+                      day_monday: true,
+                      day_tuesday: true,
+                      day_wednesday: true,
+                      day_thursday: true,
+                      day_friday: true,
+                      day_saturday: true,
+                      day_sunday: true,
+                      start_time: true,
+                      end_time: true,
                       rooms: {
-                        include: {
-                          building: true,
+                        select: {
+                          room: true,
+                          building: {
+                            select: {
+                              name: true,
+                              campus: {
+                                select: {
+                                  name: true,
+                                },
+                              },
+                            },
+                          },
                         },
                       },
                     },
@@ -59,6 +90,7 @@ export const reportRouter = createTRPCRouter({
       //Map each faculty member from the above query to return an array of objects
       //with each faculty member, their courses taught and total number of credits taught
       //and send it to the front end
+      console.log(courseResult);
       const faculties = courseResult.map((faculty) => {
         //Get the total amount of credits that a faculty member is teaching
         const totalCredits = faculty.to_courses
@@ -68,6 +100,7 @@ export const reportRouter = createTRPCRouter({
           .reduce((sum, value) => {
             return sum + value;
           }, 0);
+
         return { totalCredits, ...faculty };
       });
 

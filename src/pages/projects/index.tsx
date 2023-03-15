@@ -3,6 +3,7 @@ import type { NextPage } from "next";
 import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import Select from "react-select";
 
 //React Component Libraries and Icons
 import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
@@ -33,12 +34,11 @@ import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 //Images
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 
-//Validations
 import {
   finalizeProjectOnBoarding,
-  type IProjectFinalizeOnboarding,
   type IProjectOrganizedColumnRowNumerical,
-} from "src/validation/projects";
+  type IProjectFinalizeOnboarding,
+} from "src/validation/projects.frontend";
 
 //THE DEFAULT SCHEMA FOR THE ORGANIZED COLUMNS
 const DEFAULT_ORGANIZED_COLUMNS = {
@@ -102,7 +102,7 @@ const Projects: NextPage = () => {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
 
   //The current page for the pagination
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
 
   //The reset flag for the onboarding
   const [setReset, setResetFlag] = useState(false);
@@ -115,10 +115,6 @@ const Projects: NextPage = () => {
     //TODO: Can this type be improved to remove anys?
     typeToFlattenedError<any, any> | never[] | undefined
   >(undefined);
-
-  //Get the mutation
-  const verifyOrganizedColumnsMutation =
-    api.projects.verifyOrganizedColumns.useMutation();
 
   const toggleVisible = () => {
     //set visibility of the modal
@@ -167,6 +163,7 @@ const Projects: NextPage = () => {
     }
   };
 
+  //function let user go back one stage
   const backStage = () => {
     if (stage <= 1) {
       setStage(1);
@@ -175,11 +172,22 @@ const Projects: NextPage = () => {
     }
   };
 
+  //api call getting all the revision for the user
   const result = api.projects.getAllScheduleRevisions.useQuery({
     search: "",
-    page: 0,
+    // page: currentPage,
   });
+
+  //api call for remove the current revision uploaded
   const removeRevision = api.projects.deleteScheduleRevision.useMutation();
+
+  //api call for getting all the main schedule revision
+  const listOfSchedule = api.projects.getMainSchedule.useQuery();
+  //The schedule which is selected for the tabs at the bottom
+  const [selectedSchedule, setSelectSchedule] = useState<{
+    value: string;
+    label: string;
+  } | null>(null);
 
   //delete revision
   const deleteRevision = async (DeletedTuid: string) => {
@@ -205,11 +213,6 @@ const Projects: NextPage = () => {
         position: toast.POSITION.TOP_RIGHT,
       });
     }
-  };
-
-  const goToMain = () => {
-    const urlMain: string = "/dashboard/" + uploadedData?.tuid + "/home";
-    router.push(urlMain);
   };
 
   const [organizedColumns, setOrganizeColumns] =
@@ -326,6 +329,7 @@ const Projects: NextPage = () => {
         columns: organizedColumns,
         tuid: uploadedData.tuid,
         name: value.name,
+        schedule: selectedSchedule ? selectedSchedule!.value! : null, //force schedule id to null if doesn't have
       });
       if (result.success) {
         //Alert the user it as created sucessfully
@@ -425,6 +429,7 @@ const Projects: NextPage = () => {
 
           <Modal.Body className=" h-4/5 w-full flex-col overflow-y-auto  transition-all duration-200 ">
             <div className="flex  w-full justify-center overflow-y-auto align-middle transition-all duration-200">
+              {/* if user uploaded their Excel, let them continue */}
               {stage <= 1.5 && (
                 <ProjectsUpload
                   resetFlag={setReset}
@@ -441,6 +446,7 @@ const Projects: NextPage = () => {
                   }}
                 />
               )}
+              {/* when stage is in the second step show the errors (if haved) else always showed the table edit */}
               {stage === 2 && (
                 <div className="flex h-full w-full  flex-col">
                   {/* <ProjectFinalize
@@ -508,7 +514,7 @@ const Projects: NextPage = () => {
               )}
             </div>
           </Modal.Body>
-          <div className=" relative mt-3 flex w-full justify-between justify-self-end align-middle">
+          <div className=" relative mt-5 flex w-full justify-between justify-self-end align-middle">
             {" "}
             {stage > 1.5 ? (
               <form
@@ -516,32 +522,64 @@ const Projects: NextPage = () => {
                 className=" flex w-full items-end space-x-2 font-sans"
               >
                 <div className="form-control w-full justify-start">
-                  <label className="label">
-                    <span className="label-text">Name</span>
-                  </label>
                   <div className="flex w-full justify-between space-x-2">
-                    <Input
-                      type="text"
-                      placeholder="eg. Fall Draft"
-                      className="grow"
-                      {...onboardingForm.register("name")}
-                    />
-                    <Button
-                      className="  bg-error"
-                      type="button"
-                      onClick={backStage}
-                    >
-                      Cancel
-                    </Button>
-
-                    <Button
-                      color="success"
-                      type="submit"
-                      className=""
-                      disabled={getMissingColumns().length > 0}
-                    >
-                      Finalize
-                    </Button>
+                    <div className="w-full flex-col">
+                      {" "}
+                      <label className="label ">
+                        <span className="label-text">Name</span>
+                      </label>{" "}
+                      <Input
+                        type="text"
+                        placeholder="eg. Fall Draft"
+                        className=" w-full"
+                        {...onboardingForm.register("name")}
+                      />
+                    </div>
+                    {listOfSchedule.data != undefined && (
+                      <div className="w-full flex-col">
+                        <label className="label">
+                          <span className="label-text">Select Revision</span>
+                        </label>
+                        <Select
+                          menuPlacement="top"
+                          options={
+                            listOfSchedule.data as {
+                              value: string;
+                              label: string;
+                            }[]
+                          }
+                          classNamePrefix="selection"
+                          onChange={(selected) => {
+                            if (selected != undefined) {
+                              setSelectSchedule(selected);
+                            } else {
+                              setSelectSchedule(null);
+                            }
+                          }}
+                          isClearable={true}
+                          isSearchable={true}
+                        />
+                      </div>
+                    )}
+                    <div className="flex-col space-y-2">
+                      <Button
+                        color="success"
+                        type="submit"
+                        className="w-full"
+                        disabled={getMissingColumns().length > 0}
+                      >
+                        Finalize
+                      </Button>
+                      <Button
+                        color="error"
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        onClick={backStage}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-2">
@@ -559,12 +597,8 @@ const Projects: NextPage = () => {
               <div className="grow"></div>
             )}
             {stage != 2 && (
-              <Button
-                className=""
-                disabled={stage < 1.5}
-                onClick={stage == 3 ? goToMain : toggleStage}
-              >
-                {stage == 2 ? "Finalize" : "Next"}
+              <Button className="" disabled={stage < 1.5} onClick={toggleStage}>
+                {"Next"}
               </Button>
             )}
           </div>
@@ -585,6 +619,7 @@ const Projects: NextPage = () => {
             setStage(1);
             setResetFlag(true);
             setError(undefined);
+            setSelectSchedule(null);
           }}
         />
         <div className="container mx-auto  flex justify-between p-4">
@@ -664,17 +699,20 @@ const Projects: NextPage = () => {
           )}
         </ProjectsLayout>
 
-        <div className="mt-3 flex justify-center">
-          {result.data != undefined && result.data?.result.length / 5 > 1 && (
-            <PaginationBar
-              totalPageCount={result.data?.result.length / 5}
-              currentPage={result.data?.page}
-              onClick={(page) => {
-                setCurrentPage(page);
-              }}
-            />
+        {/* Remove pagination 
+        <div className="mt-3 flex w-full justify-center  p-2">
+          {result.data != undefined && result.data.totalPages > 1 && (
+            <>
+              <PaginationBar
+                totalPageCount={result.data?.totalPages}
+                currentPage={currentPage}
+                onClick={(page) => {
+                  setCurrentPage(page);
+                }}
+              />
+            </>
           )}
-        </div>
+        </div>*/}
       </div>
     </DashboardLayout>
   );

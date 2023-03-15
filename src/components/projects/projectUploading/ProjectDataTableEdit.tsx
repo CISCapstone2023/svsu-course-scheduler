@@ -26,7 +26,7 @@ export const columnLookupTable: readonly IColumnLookupTable[] = [
   { value: "title", label: "Title" },
   { value: "instruction_method", label: "Instruction Method" },
   { value: "faculty", label: "Faculty" },
-  { value: "campus", label: "Campus" },
+  { value: "campus", label: "Campus/Location" },
   { value: "credits", label: "Credits" },
   { value: "capacity", label: "Capacity" },
   { value: "start_date", label: "Start Date" },

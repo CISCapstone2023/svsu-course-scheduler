@@ -33,7 +33,7 @@ import PaginationBar from "src/components/Pagination";
 
 //Import backend api
 import { api } from "src/utils/api";
-import TimeInput from "../schedule/TimeInput";
+import TimeInput from "src/pages/dashboard/[scheduleId]/schedule/TimeInput";
 
 const seen: any[] = [];
 

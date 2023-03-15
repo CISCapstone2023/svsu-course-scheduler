@@ -7,11 +7,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "src/server/db";
 
 //Import all required information for TRPC for making APIs
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "src/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 //Import all validation for creating revision, onboarding, etc
 import {
@@ -316,10 +312,10 @@ export const projectsRouter = createTRPCRouter({
           //Make sure all are valid before we actually enter them all into the database
           if (valid) {
             if (input.schedule != null) {
-              const [revision, ...courses] = await prisma.$transaction([
+              const [revision, ...courses] = await ctx.prisma.$transaction([
                 //Update the name of the revision and make them
                 //no longer onboaridng
-                prisma.scheduleRevision.update({
+                ctx.prisma.scheduleRevision.update({
                   where: {
                     tuid: input.tuid,
                   },
@@ -337,7 +333,9 @@ export const projectsRouter = createTRPCRouter({
                 ...(
                   formattedColumns as Required<IProjectsExcelCourseSchema>[]
                 ).map((row, index) => {
-                  return prisma.course.create(createCourseSchema(row, input));
+                  return ctx.prisma.course.create(
+                    createCourseSchema(row, input)
+                  );
                 }),
               ]);
               //Its a valid course!
@@ -346,9 +344,9 @@ export const projectsRouter = createTRPCRouter({
               }
             } else {
               const [scheduele, revision, ...courses] =
-                await prisma.$transaction([
+                await ctx.prisma.$transaction([
                   //Also add a schedule to the page
-                  prisma.schedule.create({
+                  ctx.prisma.schedule.create({
                     data: {
                       revisions: {
                         connect: {
@@ -359,7 +357,7 @@ export const projectsRouter = createTRPCRouter({
                   }),
                   //Update the name of the revision and make them
                   //no longer onboaridng
-                  prisma.scheduleRevision.update({
+                  ctx.prisma.scheduleRevision.update({
                     where: {
                       tuid: input.tuid,
                     },
@@ -372,7 +370,9 @@ export const projectsRouter = createTRPCRouter({
                   ...(
                     formattedColumns as Required<IProjectsExcelCourseSchema>[]
                   ).map((row, index) => {
-                    return prisma.course.create(createCourseSchema(row, input));
+                    return ctx.prisma.course.create(
+                      createCourseSchema(row, input)
+                    );
                   }),
                 ]);
               //Its a valid course!

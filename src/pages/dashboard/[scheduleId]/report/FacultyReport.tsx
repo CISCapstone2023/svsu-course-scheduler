@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Button, ButtonGroup } from "react-daisyui";
+import militaryToTime from "src/utils/time";
 import { CaretDown, CaretUp } from "tabler-icons-react";
 
 interface FacultyReportProps {
@@ -14,6 +15,7 @@ interface FacultyReportProps {
         locations: {
           start_time: number;
           end_time: number;
+          is_online: boolean;
           rooms: {
             room: string;
             building: {
@@ -35,7 +37,9 @@ interface FacultyReportProps {
         semester_fall: boolean;
         semester_winter: boolean;
         semester_spring: boolean;
-        instruction_method: string;
+        subject: string;
+        course_number: string;
+        section: string;
         credits: number;
       };
     }[];
@@ -49,37 +53,53 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
   const [isCaretDown, setCaret] = useState(true);
   return (
     <div className="border-neutral-900 container mx-auto   flex-col  rounded-lg border-2 border-opacity-50 bg-stone-200 p-4">
-      <div className="flex justify-between">
+      <div
+        className="flex cursor-pointer justify-between"
+        onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
+      >
         <strong>{faculty?.name}</strong>
         <div className="flex">
           <span className="mr-3">
             with <strong>{faculty?.totalCredits}</strong> credits teaching in
           </span>
 
-          {isCaretDown ? (
-            <CaretDown
-              onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
-            />
-          ) : (
-            <CaretUp
-              onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
-            />
-          )}
+          {isCaretDown ? <CaretDown /> : <CaretUp />}
         </div>
       </div>
 
       {isCaretDown == false && (
         <div>
           {faculty?.to_courses.map((data, index) => {
+            //Check if we have online courses
+            const hasOnline = data.course.locations.some(
+              (location) => location.is_online
+            );
+
+            //Check if we have in person courses
+            const hasInPerson = data.course.locations.some(
+              (location) => !location.is_online
+            );
+            let lecType = "ONL";
+            //Check if they are hybrid
+            if (hasInPerson && hasOnline) lecType = "HYB";
+            else if (hasInPerson && !hasOnline) lecType = "LEC";
+            else if (!hasInPerson && hasOnline) lecType = "ONL";
             return (
               <div
                 className="border-neutral-900 container mx-auto mt-3 h-3/5 flex-col  rounded-lg border-2 border-opacity-50 bg-stone-50 p-4"
                 key={index}
               >
-                <strong>
-                  {data.course.title} - {data.course.credits} CREDITS -{" "}
-                  {data.course.instruction_method}
-                </strong>
+                <div className="flex-col">
+                  <strong>
+                    {data.course.subject +
+                      data.course.course_number +
+                      "*" +
+                      data.course.section}{" "}
+                    - {data.course.credits} CREDITS - {lecType}{" "}
+                  </strong>{" "}
+                  <br />
+                  <span>{data.course.title}</span>
+                </div>
 
                 <div className="ml-10 mt-3 flex-col">
                   {data.course.locations.map((loc, index) => {
@@ -93,10 +113,18 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
                           {loc.rooms.map((value) => {
                             return value.building.name + " " + value.room;
                           }) +
-                            " @ " +
-                            loc.start_time +
-                            " to " +
-                            loc.end_time}
+                            " FROM " +
+                            militaryToTime(loc.start_time).hour +
+                            ":" +
+                            militaryToTime(loc.start_time).minute +
+                            " " +
+                            militaryToTime(loc.start_time).period +
+                            " TO " +
+                            militaryToTime(loc.end_time).hour +
+                            ":" +
+                            militaryToTime(loc.end_time).minute +
+                            " " +
+                            militaryToTime(loc.end_time).period}
                         </span>
                         <ButtonGroup className="inset-y-0 right-0  ml-5 ">
                           <Button size="xs" active={loc.day_monday}>

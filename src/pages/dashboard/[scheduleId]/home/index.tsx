@@ -25,7 +25,6 @@ const Dashboard: NextPage<DashboardProps> = ({ scheduleId }) => {
    */
   const {} = useSession();
 
-  const [open, setOpen] = useState(false);
   return (
     <DashboardLayout>
       <DashboardSidebar />

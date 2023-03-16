@@ -129,6 +129,17 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   //The course tuid that will be currently edited
   const [courseToEdit, setCourseToEdit] = useState<string | null>(null);
 
+  const exportMutation = api.projects.exportScheduleRevision.useMutation();
+
+  const exportCalendar = async () => {
+    const result = await exportMutation.mutateAsync({
+      tuid: scheduleId,
+    });
+    if (result) {
+      window.open("/api/revision/" + scheduleId + "/downloadReport", "_blank");
+    }
+  };
+
   return (
     <DashboardLayout>
       <DashboardSidebar />
@@ -136,6 +147,9 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
         <div className="flex h-full w-full flex-col">
           <DashboardContentHeader title="Scheduler">
             <div className="flex items-center space-x-2">
+              <Button onClick={exportCalendar} size="sm" color="success">
+                Export
+              </Button>
               <Button
                 size="sm"
                 onClick={() => {

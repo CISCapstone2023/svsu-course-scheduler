@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
@@ -12,6 +12,9 @@ import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { prisma } from "src/server/db";
 import { api } from "src/utils/api";
+import FacultyReport from "./FacultyReport";
+import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
+import { CaretDown } from "tabler-icons-react";
 
 interface DashboardProps {
   scheduleId: string;
@@ -25,21 +28,91 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
    * assuming they are successfully signed-in. If they are it will be null.
    */
   const {} = useSession();
-  const faculty = api.report.getAllReports.useQuery({
-    semester_fall: true,
-    semester_spring: true,
-    semester_summer: true,
-    semester_winter: true,
+
+  /**
+   * Filter values
+   * The value which will be searching that is set by the debouncing below
+   */
+
+  //Filter the semesters
+  const [filterFallSemester, setFilterFallSemester] = useState(false);
+  const [filterWinterSemester, setFilterWinterSemester] = useState(false);
+  const [filterSpringSemester, setFilterSpringSemester] = useState(false);
+  const [filterSummerSemester, setFilterSummerSemester] = useState(false);
+
+  const faculties = api.report.getAllReports.useQuery({
+    semester_fall: filterFallSemester,
+    semester_spring: filterSpringSemester,
+    semester_summer: filterSummerSemester,
+    semester_winter: filterWinterSemester,
     search: "",
     tuid: scheduleId,
   });
-  console.log(faculty);
+  console.log(faculties);
+
   return (
     <DashboardLayout>
       <DashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Report" />
-        <div className="container mx-auto px-4">REPORT WILL BE HERE!</div>
+        <div className="m-2 overflow-auto">
+          <Dropdown>
+            <Button>
+              Semester
+              <CaretDown />
+            </Button>
+            <Dropdown.Menu>
+              <Card.Body>
+                <div className="flex space-x-4">
+                  <p>Fall</p>
+                  <Checkbox
+                    disabled={!faculties.data?.isFall}
+                    checked={filterFallSemester}
+                    onChange={(e) => {
+                      setFilterFallSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+                <div className="flex">
+                  <p>Winter</p>
+                  <Checkbox
+                    disabled={!faculties.data?.isWinter}
+                    checked={filterWinterSemester}
+                    onChange={(e) => {
+                      setFilterWinterSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+                <div className="flex">
+                  <p>Spring</p>
+                  <Checkbox
+                    disabled={!faculties.data?.isSpring}
+                    checked={filterSpringSemester}
+                    onChange={(e) => {
+                      setFilterSpringSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+                <div className="flex space-x-4">
+                  <p>Summer</p>
+                  <Checkbox
+                    disabled={!faculties.data?.isSummer}
+                    checked={filterSummerSemester}
+                    onChange={(e) => {
+                      setFilterSummerSemester(e.currentTarget.checked);
+                    }}
+                  />
+                </div>
+              </Card.Body>
+            </Dropdown.Menu>
+          </Dropdown>
+          <div className="container mx-auto mt-5 space-y-3 px-4">
+            {faculties.data != undefined &&
+              faculties.data.faculties.map((faculty, index) => {
+                return <FacultyReport key={index} faculty={faculty} />;
+              })}
+          </div>
+        </div>
       </DashboardContent>
     </DashboardLayout>
   );

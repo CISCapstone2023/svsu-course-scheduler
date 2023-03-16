@@ -118,6 +118,7 @@ const twoDigitYear = parseInt(
 
 export const excelCourseSchema = z
   .object({
+    excelRow: z.number(),
     tuid: z.string().optional(),
     type: z.string(),
     section_id: z.number().min(1).nullable(),

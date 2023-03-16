@@ -21,8 +21,10 @@ export const organizeColumns = z.object({
   section: z.number().int(),
   start_date: z.number().int(),
   end_date: z.number().int(),
+  //...BELOW 2 NOT USED
   start_time: z.number().int(),
   end_time: z.number().int(),
+  //END
   credits: z.number().int(),
   title: z.number().int(),
   building: z.number().int(),
@@ -34,6 +36,9 @@ export const organizeColumns = z.object({
   noteAcademicAffairs: z.number().int(),
   notePrintedComments: z.number().int(),
   days: z.number().int(),
+  course_method: z.number().int(),
+  course_start_date: z.number().int(),
+  course_end_date: z.number().int(),
 });
 
 const unionStringNumber = z.string();
@@ -62,6 +67,9 @@ export const organizeColumnsString = z.object({
   noteAcademicAffairs: unionStringNumber,
   notePrintedComments: unionStringNumber,
   days: unionStringNumber,
+  course_method: unionStringNumber,
+  course_start_date: unionStringNumber,
+  course_end_date: unionStringNumber,
 });
 export type IProjectOrganizedColumnRowNumerical = z.infer<
   typeof organizeColumns

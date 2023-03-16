@@ -23,6 +23,12 @@ import { type IProjectOrganizedColumnRowNumerical } from "src/validation/project
 //Import Node-XLSX for manupulating excel files (reading, and writing)
 import xlsx from "node-xlsx";
 
+import ExcelJS from "exceljs";
+import { ICalendarCourseSchema } from "src/validation/calendar";
+import { IScheduleCourse, RevisionWithCourses } from "./calendar";
+import militaryToTime from "src/utils/time";
+import { Readable } from "stream";
+
 /**
  * ExcelDataColumns
  * The data provided by excel. As the node-xlsx library
@@ -66,6 +72,17 @@ interface InvertedObject {
  */
 export const projectsRouter = createTRPCRouter({
   // ScheduleRevision -------------------------------------------------------------------------------------
+
+  exportScheduleRevision: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const columns = await exportExcelFileToStorage(input.tuid);
+      return columns;
+    }),
   getMainSchedule: protectedProcedure.query(async ({ ctx }) => {
     const scheduleResult = await ctx.prisma.schedule.findMany({
       where: {
@@ -257,6 +274,7 @@ export const projectsRouter = createTRPCRouter({
 
   //     return { success: verifyColumns, errors: [] };
   //   }),
+
   createScheduleRevision: protectedProcedure
     .input(createRevisionOnboarding)
     .mutation(async ({ ctx, input }) => {
@@ -328,6 +346,7 @@ export const projectsRouter = createTRPCRouter({
                     },
                     name: input.name,
                     onboarding: false,
+                    organizedColumns: input.columns,
                   },
                 }),
                 //Add all courses in the current transaction
@@ -365,6 +384,7 @@ export const projectsRouter = createTRPCRouter({
                     data: {
                       name: input.name,
                       onboarding: false,
+                      organizedColumns: input.columns,
                     },
                   }),
                   //Add all courses in the current transaction
@@ -416,6 +436,7 @@ export const createCourseSchema = (
 ) => {
   return {
     data: {
+      excelRow: row.excelRow,
       capacity: row.capacity,
       course_number: row.course_number,
       credits: row.credits,
@@ -512,10 +533,386 @@ export const createCourseSchema = (
   } as Prisma.CourseCreateArgs;
 };
 
+const exportExcelFileToStorage = async (tuid: string) => {
+  const count = await prisma.scheduleRevision.count({
+    where: { tuid: tuid },
+  });
+
+  //Check if we have some count
+  if (count >= 1) {
+    //Grab the revision from the database
+    const revision = await prisma.scheduleRevision.findUnique({
+      where: { tuid: tuid },
+      select: {
+        file: true,
+        name: true,
+        organizedColumns: true,
+        courses: {
+          include: {
+            faculty: {
+              include: {
+                faculty: true,
+              },
+            },
+            locations: {
+              include: {
+                rooms: {
+                  include: {
+                    building: {
+                      include: {
+                        campus: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            notes: true,
+          },
+          where: {
+            OR: [
+              {
+                state: "MODIFIED",
+              },
+              {
+                state: "ADDED",
+              },
+              {
+                state: "REMOVED",
+              },
+            ],
+          },
+        },
+      },
+    });
+    //Parse the excel file from the database
+    //TODO: Make sure this doesn't error out. NOTE: This should be check in the uploadExcel api ideally.
+    const results = xlsx.parse(revision?.file);
+
+    console.log(results);
+    //Check if we have the sheet from the file
+    if (results[0] != undefined && revision != undefined) {
+      const sheet = results[0];
+      const columns = sheet?.data as ExcelDataColumns;
+      console.log(columns);
+      const addedCourses = revision.courses.filter(
+        (course) => course.state == "ADDED"
+      );
+      const modifiedCourses = revision.courses.filter(
+        (course) => course.state == "MODIFIED"
+      );
+      const removedCourses = revision.courses.filter(
+        (course) => course.state == "REMOVED"
+      );
+
+      const mapCourseToRow = (
+        rows: (string | undefined)[][],
+        course: IScheduleCourse,
+        columns: IProjectOrganizedColumnRowNumerical
+      ) => {
+        const dateToExcel = (date: Date) => {
+          return Math.ceil(
+            25569.0 +
+              (date.getTime() - date.getTimezoneOffset() * 60 * 1000) /
+                (1000 * 60 * 60 * 24)
+          );
+        };
+
+        console.log(rows);
+
+        const [object, maxRow] = Object.entries(
+          revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+        ).reduce((prev, current) => (prev[1] > current[1] ? prev : current));
+
+        console.log({ object, maxRow });
+
+        const outRow = Array(maxRow)
+          .fill(0)
+          .map((_, out) => {
+            const value = rows[out];
+            const index = out - 1;
+
+            if (columns.section_id == index) {
+              return course.section_id;
+            } else if (columns.term == index) {
+              let semester = "";
+              if (course.semester_fall) semester = "FA";
+              if (course.semester_winter) semester = "WI";
+              if (course.semester_spring) semester = "SP";
+              if (course.semester_summer) semester = "SU";
+              return `${course.term}/${semester}`;
+            } else if (columns.div == index) {
+              //TODO: Verify this actually works
+              return "SC";
+            } else if (columns.department == index) {
+              return course.department;
+            } else if (columns.subject == index) {
+              return course.subject;
+            } else if (columns.course_number == index) {
+              try {
+                return parseInt(course.course_number);
+              } catch {
+                return course.course_number;
+              }
+            } else if (columns.section == index) {
+              try {
+                return parseInt(course.section);
+              } catch {
+                return course.section;
+              }
+            } else if (columns.start_date == index) {
+              return dateToExcel(course.start_date);
+            } else if (columns.end_date == index) {
+              return dateToExcel(course.end_date);
+            } else if (columns.credits == index) {
+              return course.credits;
+            } else if (columns.title == index) {
+              return course.title;
+            } else if (columns.faculty == index) {
+              //Get the name of faculty members, seperate by a newline
+              return course.faculty
+                .map((faculty) => {
+                  return faculty.faculty.name;
+                })
+                .join("\n");
+            } else if (columns.building == index) {
+              //Loop all the location which are binded to room, which has a building
+              //Return buildings seperated by newlines
+              return course.locations
+                .map((location) => {
+                  return location.rooms
+                    .map((room) => {
+                      return room.building.prefix;
+                    })
+                    .join("\n");
+                })
+                .join("\n");
+            } else if (columns.instruction_method == index) {
+              return course.instruction_method;
+            } else if (columns.capacity == index) {
+              try {
+                return course.capacity;
+              } catch {
+                return course.capacity + "";
+              }
+            } else if (columns.campus == index) {
+              return course.locations
+                .map((location) => {
+                  return location.rooms
+                    .map((room) => {
+                      return room.building.campus.name;
+                    })
+                    .join("\n");
+                })
+                .join("\n");
+            } else if (columns.start_time == index) {
+              return course.locations
+                .map((location) => {
+                  const time = militaryToTime(location.start_time);
+                  return `${time.hour}:${time.minute} ${time.period}`;
+                })
+                .join("\n");
+            } else if (columns.end_time == index) {
+              return course.locations
+                .map((location) => {
+                  const time = militaryToTime(location.end_time);
+                  return `${time.hour}:${time.minute} ${time.period}`;
+                })
+                .join("\n");
+            } else if (columns.room == index) {
+              return course.locations
+                .map((location) => {
+                  return location.rooms
+                    .map((room) => {
+                      try {
+                        return parseInt(room.room);
+                      } catch {
+                        return room.room;
+                      }
+                    })
+                    .join("\n");
+                })
+                .join("\n");
+            } else if (columns.days == index) {
+              return course.locations
+                .map((location) => {
+                  let days = "";
+                  days += location.day_monday
+                    ? "M" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_tuesday
+                    ? "T" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_wednesday
+                    ? "W" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_thursday
+                    ? "R" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_friday
+                    ? "F" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_saturday
+                    ? "SAT" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_sunday
+                    ? "SUN" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  return days;
+                })
+                .join("\n");
+            } else if (columns.course_method == index) {
+              //Check if we have online courses
+              const hasOnline = course.locations.some(
+                (location) => location.is_online
+              );
+
+              //Check if we have in person courses
+              const hasInPerson = course.locations.some(
+                (location) => !location.is_online
+              );
+
+              //Check if they are hybrid
+              if (hasInPerson && hasOnline) return "HYB";
+              else if (hasInPerson && !hasOnline) return "LEC";
+              else if (!hasInPerson && hasOnline) return "ONL";
+            } else if (columns.course_start_date == index) {
+              //Return the same date for N amount of locations
+              const dates = course.locations.map(() => {
+                //If we only have one date grab the excel one, otherwise grab the other one
+                if (course.locations.length > 1) {
+                  return course.start_date.toLocaleString().split(",")[0];
+                } else {
+                  return dateToExcel(course.start_date);
+                }
+              });
+              //Make sure if we have more than 1 date
+              if (course.locations.length > 1) {
+                return dates.join("\n");
+              } else {
+                //Return said dates (or day)
+                return dates[0];
+              }
+            } else if (columns.course_end_date == index) {
+              //Return the same date for N amount of locations
+              const dates = course.locations.map(() => {
+                //If we only have one date grab the excel one, otherwise grab the other one
+                if (course.locations.length > 1) {
+                  return course.end_date.toLocaleString().split(",")[0];
+                } else {
+                  return dateToExcel(course.end_date);
+                }
+              });
+              //Make sure if we have more than 1 date
+              if (course.locations.length > 1) {
+                return dates.join("\n");
+              } else {
+                //Return said dates (or day)
+                return dates[0];
+              }
+            }
+
+            //Notes
+            else if (columns.noteWhatHasChanged == index) {
+              if (course.state == "ADDED") {
+                return "Added Course";
+              } else if (course.state == "MODIFIED") {
+                return "Updated Course";
+              } else if (course.state == "REMOVED") {
+                return "Removed Course";
+              } else {
+                return (
+                  course.notes.filter((note) => note.type == "CHANGES")[0]
+                    ?.note ?? ""
+                );
+              }
+            } else if (columns.notePrintedComments == index) {
+              return (
+                course.notes.filter((note) => note.type == "DEPARTMENT")[0]
+                  ?.note ?? ""
+              );
+            } else if (columns.noteAcademicAffairs == index) {
+              return (
+                course.notes.filter(
+                  (note) => note.type == "ACAMDEMIC_AFFAIRS"
+                )[0]?.note ?? ""
+              );
+            }
+            console.log(index);
+            return value;
+          });
+
+        outRow.splice(0, 1);
+
+        return [outRow.map((value, index) => `${value}`)] as unknown as (
+          | string
+          | undefined
+        )[];
+      };
+      console.log(revision.organizedColumns);
+
+      for (const course of removedCourses) {
+        //node-xlsx
+        const row = columns.splice(course.excelRow, 1);
+        columns.push(
+          await mapCourseToRow(
+            row,
+            course,
+            revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+          )
+        );
+      }
+
+      for (const course of modifiedCourses) {
+        const row = columns.splice(course.excelRow, 1);
+        columns.push(
+          await mapCourseToRow(
+            row,
+            course,
+            revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+          )
+        );
+      }
+
+      for (const course of addedCourses) {
+        if (course.excelRow != -1) {
+          const row = columns.splice(course.excelRow, 1);
+          if (row.length > 0) {
+            columns[course.excelRow] = await mapCourseToRow(
+              row,
+              course,
+              revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+            );
+          }
+        }
+      }
+
+      console.log(columns);
+      const buffer = xlsx.build([
+        {
+          name: revision.name,
+          data: columns,
+          options: {},
+        },
+      ]);
+      console.log("saved");
+      await prisma.scheduleRevision.update({
+        where: {
+          tuid: tuid,
+        },
+        data: {
+          exported_file: buffer,
+        },
+      });
+    }
+    return {};
+  }
+};
+
 const invertedNestedOrganizedColumns = async (
   columns: ExcelDataColumns,
   organizedColumns: IProjectOrganizedColumnRowNumerical,
-  prismal: PrismaClient
+  ctxPrima: PrismaClient
 ) => {
   //Inverts columns, really handy
   const invertOrganizedColumns = Object.entries(organizedColumns).reduce(
@@ -589,7 +986,7 @@ const invertedNestedOrganizedColumns = async (
 
   //Now query all of the columns with its inverted values and well validate them all!
   const invertedNestedOrganizedColumns = await Promise.all(
-    invertedOrganizedColumns.map(async (c) => {
+    invertedOrganizedColumns.map(async (c, rowIndex) => {
       //Spread all the data we want to split
       const {
         _, //Yes its an underscore. Just removing the key
@@ -791,6 +1188,7 @@ const invertedNestedOrganizedColumns = async (
 
       //The merged ouput of the course
       const mergedCourseOutput = {
+        excelRow: rowIndex + 1,
         section_id:
           data.section_id == undefined ? null : parseInt(data.section_id),
         type: "Unknown", //TODO: Figure out what type was supposed to be again

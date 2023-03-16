@@ -100,6 +100,7 @@ model Permission {
 //Course model
 model Course {
   tuid               String                      @id @default(cuid())
+  excelRow                Int                         @default(-1)
   type               String
   section_id         Int?
   revision_tuid      String
@@ -149,6 +150,10 @@ model ScheduleRevision {
   updatedAt     DateTime @updatedAt
   onboarding    Boolean  @default(true)
   creator_tuid  String   @map("user")
+
+  exported_file Bytes?    @db.Blob
+  exportedAt DateTime? 
+  organizedColumns Json @default("{}")
 
   //Relationships
   schedule Schedule? @relation(fields: [schedule_tuid], references: [tuid])

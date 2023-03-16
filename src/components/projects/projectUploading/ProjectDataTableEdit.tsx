@@ -36,6 +36,9 @@ export const columnLookupTable: readonly IColumnLookupTable[] = [
   { value: "start_time", label: "Start Time" },
   { value: "end_time", label: "End Time" },
   { value: "days", label: "Days" },
+  { value: "course_method", label: "Course Method/Method 2" },
+  { value: "course_start_date", label: "Course/Meeting Start Date" },
+  { value: "course_end_date", label: "Course/Meeting Emd Date" },
   { value: "noteAcademicAffairs", label: "Note For Academic Affairs" },
   { value: "notePrintedComments", label: "Printed Comments" },
 ];

@@ -107,8 +107,11 @@ const courseType = Prisma.validator<Prisma.CourseArgs>()({
       include: { faculty: true },
     },
     locations: {
-      include: { rooms: { include: { building: true } } },
+      include: {
+        rooms: { include: { building: { include: { campus: true } } } },
+      },
     },
+    notes: true,
   },
 });
 

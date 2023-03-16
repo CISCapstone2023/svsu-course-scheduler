@@ -440,6 +440,7 @@ export const calendarRouter = createTRPCRouter({
         return {
           tuid: course.tuid,
           capacity: course.capacity,
+          section_id: course.section_id,
           course_number: course.course_number,
           credits: course.credits,
           department: course.department,

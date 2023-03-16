@@ -8,6 +8,7 @@ import {
   guidelineCourseUpdateSchema,
 } from "src/validation/courses";
 import { cssTransition } from "react-toastify";
+import militaryToTime from "src/utils/time";
 
 //Imports course guidelines schema with days and times
 const courseGuidelinesTD = Prisma.validator<Prisma.GuidelinesCoursesArgs>()({
@@ -211,40 +212,13 @@ export const coursesRouter = createTRPCRouter({
         take: AMOUNT_PER_PAGE,
         skip: (input.page - 1) * AMOUNT_PER_PAGE,
       });
-      const militaryToSplit = (time: number) => {
-        //initializes hour variable to parse integer time numbers
-        const hour = parseInt(
-          time >= 1000
-            ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
-            : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
-        ); // mods time to convert from military time to standard time
-        let anteMeridiemHour = hour % 12;
-        // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
-        if (anteMeridiemHour == 0) {
-          anteMeridiemHour = 12;
-        }
-
-        //initializes constant for getting the minutes of time
-        const minute = parseInt(
-          time.toString().substring(time.toString().length - 2)
-        );
-
-        //initializes constant to be used for AM/PM tagging on time
-        const anteMeridiem = time >= 1300 ? "PM" : "AM";
-        return {
-          hour,
-          minute,
-          anteMeridiemHour,
-          anteMeridiem,
-        };
-      };
 
       const differenceInTime = (start_time: number, end_time: number) => {
         const total =
-          militaryToSplit(end_time).hour * 60 +
-          militaryToSplit(end_time).minute -
-          (militaryToSplit(start_time).hour * 60 +
-            militaryToSplit(start_time).minute);
+          militaryToTime(end_time).hour * 60 +
+          militaryToTime(end_time).minute -
+          (militaryToTime(start_time).hour * 60 +
+            militaryToTime(start_time).minute);
         const hours = total / 60;
         const rhours = Math.floor(hours);
         const minutes = (hours - rhours) * 60;
@@ -265,8 +239,8 @@ export const coursesRouter = createTRPCRouter({
             guideline_id: time.guideline_id,
 
             //Provide meta data to the client about the time
-            start_time_meta: militaryToSplit(time.start_time),
-            end_time_meta: militaryToSplit(time.end_time),
+            start_time_meta: militaryToTime(time.start_time),
+            end_time_meta: militaryToTime(time.end_time),
 
             //Also provide the militrary time too
             start_time: time.start_time,

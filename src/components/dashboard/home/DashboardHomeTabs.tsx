@@ -18,7 +18,7 @@ const DashboardHomeTabs = ({ tuid }: DashboardHomeTabsProps) => {
   };
   // const variables to gather the information from the backend api
   const totalCourses = api.home.getTotalCourses.useQuery({ tuid });
-  const totalFaculty = api.home.getTotalFaculty.useQuery();
+  const totalFaculty = api.home.getTotalFaculty.useQuery({ tuid });
   const courses = api.home.getCoursesByState.useQuery({ tuid });
 
   // funtion to display courses in the correct tab

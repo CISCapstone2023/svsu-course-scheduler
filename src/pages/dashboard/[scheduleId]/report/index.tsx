@@ -35,10 +35,10 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
    */
 
   //Filter the semesters
-  const [filterFallSemester, setFilterFallSemester] = useState(false);
-  const [filterWinterSemester, setFilterWinterSemester] = useState(false);
-  const [filterSpringSemester, setFilterSpringSemester] = useState(false);
-  const [filterSummerSemester, setFilterSummerSemester] = useState(false);
+  const [filterFallSemester, setFilterFallSemester] = useState(true);
+  const [filterWinterSemester, setFilterWinterSemester] = useState(true);
+  const [filterSpringSemester, setFilterSpringSemester] = useState(true);
+  const [filterSummerSemester, setFilterSummerSemester] = useState(true);
 
   const faculties = api.report.getAllReports.useQuery({
     semester_fall: filterFallSemester,
@@ -55,7 +55,7 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
       <DashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Report" />
-        <div className="m-2 overflow-auto">
+        <div className="m-2 h-full overflow-auto">
           <Dropdown>
             <Button>
               Semester
@@ -67,6 +67,7 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
                   <p>Fall</p>
                   <Checkbox
                     disabled={!faculties.data?.isFall}
+                    indeterminate={true}
                     checked={filterFallSemester}
                     onChange={(e) => {
                       setFilterFallSemester(e.currentTarget.checked);
@@ -76,6 +77,7 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
                 <div className="flex">
                   <p>Winter</p>
                   <Checkbox
+                    indeterminate={true}
                     disabled={!faculties.data?.isWinter}
                     checked={filterWinterSemester}
                     onChange={(e) => {
@@ -86,6 +88,7 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
                 <div className="flex">
                   <p>Spring</p>
                   <Checkbox
+                    indeterminate={true}
                     disabled={!faculties.data?.isSpring}
                     checked={filterSpringSemester}
                     onChange={(e) => {
@@ -96,6 +99,7 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
                 <div className="flex space-x-4">
                   <p>Summer</p>
                   <Checkbox
+                    indeterminate={true}
                     disabled={!faculties.data?.isSummer}
                     checked={filterSummerSemester}
                     onChange={(e) => {

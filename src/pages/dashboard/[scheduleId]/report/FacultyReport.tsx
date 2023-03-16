@@ -81,11 +81,14 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
                   {data.course.instruction_method}
                 </strong>
 
-                <div className="ml-10 mt-3 flex">
+                <div className="ml-10 mt-3 flex-col">
                   {data.course.locations.map((loc, index) => {
                     return (
-                      <div key={index}>
-                        <span>
+                      <div
+                        className="jus m-3 w-full justify-center"
+                        key={index}
+                      >
+                        <span className="grow">
                           •{" "}
                           {loc.rooms.map((value) => {
                             return value.building.name + " " + value.room;
@@ -95,7 +98,7 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
                             " to " +
                             loc.end_time}
                         </span>
-                        <ButtonGroup className="ml-5">
+                        <ButtonGroup className="inset-y-0 right-0  ml-5 ">
                           <Button size="xs" active={loc.day_monday}>
                             M
                           </Button>

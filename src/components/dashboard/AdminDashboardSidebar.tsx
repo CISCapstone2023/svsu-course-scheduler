@@ -4,6 +4,8 @@ import React from "react";
 import { Divider, Menu } from "react-daisyui";
 import { Book, Building, CaretLeft, User } from "tabler-icons-react";
 import DashboardSidebarItem from "./DashboardSidebarItem";
+import cardinalLogo from "src/pages/projects/cardinalLogo.png";
+import Image from "next/image";
 
 interface DashboardSidebarProps {
   children?: React.ReactNode;
@@ -20,6 +22,21 @@ const AdminDashboardSidebar = ({ children }: DashboardSidebarProps) => {
   return (
     <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
       <Menu>
+        {/* Adds SVSU logo and course scheduler name to sidebar */}
+        <div className="flex flex-row justify-center pl-4">
+          <Image
+            src={cardinalLogo}
+            alt="SVSU Cardinal Logo"
+            width={40}
+            height={40}
+            priority
+            className="w-[40]"
+          />
+          <div className="flex pl-4">
+            <p className="grow">Course Scheduler </p>
+          </div>
+        </div>
+        <Divider />
         {/* Adds a back button to return to projects page */}
         <Link href={`/projects`}>
           <DashboardSidebarItem title="Projects">

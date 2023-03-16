@@ -717,7 +717,7 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
-                  <div className="h-[400px] overflow-scroll">
+                  <div className="h-[400px] overflow-y-auto">
                     {timeFields.fields.map((item, index) => {
                       return (
                         <>
@@ -819,7 +819,7 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
-                  <div className="h-[400px] overflow-scroll">
+                  <div className="h-[400px] overflow-y-auto">
                     {dayFields.fields.map((item, index) => {
                       return (
                         <>

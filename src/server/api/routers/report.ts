@@ -59,9 +59,13 @@ export const reportRouter = createTRPCRouter({
                   semester_spring: true,
                   semester_summer: true,
                   semester_winter: true,
-                  instruction_method: true,
+
+                  subject: true,
+                  course_number: true,
                   credits: true,
                   title: true,
+                  section: true,
+
                   locations: {
                     select: {
                       day_monday: true,
@@ -73,6 +77,7 @@ export const reportRouter = createTRPCRouter({
                       day_sunday: true,
                       start_time: true,
                       end_time: true,
+                      is_online: true,
                       rooms: {
                         select: {
                           room: true,
@@ -150,6 +155,7 @@ export const reportRouter = createTRPCRouter({
         const to_courses = faculty.to_courses.filter((to_course) => {
           return to_course.course.revision.tuid == input.tuid;
         });
+
         to_courses.forEach((toCourse) => {
           if (toCourse.course.semester_fall == true && isFall == false)
             isFall = true;
@@ -181,6 +187,7 @@ export const reportRouter = createTRPCRouter({
           .reduce((sum, value) => {
             return sum + value;
           }, 0);
+
         return {
           totalCredits,
           ...faculty,

@@ -1,14 +1,11 @@
 import type { NextPage } from "next";
-import { useSession } from "next-auth/react";
-import { Tabs } from "react-daisyui";
 import { routeNeedsAuthSession } from "src/server/auth";
-import { useState } from "react";
 
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 import Faculty from "./Faculty";
+import AdminDashboardSidebar from "src/components/dashboard/AdminDashboardSidebar";
 
 const Buildings: NextPage = () => {
   /**
@@ -20,7 +17,7 @@ const Buildings: NextPage = () => {
    */
   return (
     <DashboardLayout>
-      <DashboardSidebar />
+      <AdminDashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Faculty" />
         <div className="container mx-auto px-4">

@@ -8,6 +8,7 @@ import {
   Checkbox,
   Input,
   Modal,
+  Radio,
   Select,
   Textarea,
 } from "react-daisyui";
@@ -19,6 +20,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 //Local imports
 import {
   calendarCourseSchema,
+  Semesters,
   type ICalendarCourseSchema,
 } from "src/validation/calendar";
 import TimeInput from "./TimeInput";
@@ -26,6 +28,8 @@ import { api } from "src/utils/api";
 import { toast } from "react-toastify";
 import { Edit, Trash } from "tabler-icons-react";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
+import { CourseState } from "@prisma/client";
+import { isDirty } from "zod";
 
 //Modal
 interface CreateCourseModalProps {
@@ -38,7 +42,7 @@ interface CreateCourseModalProps {
 }
 
 //Used for debugging
-//const seen: any[] = [];
+// const seen: any[] = [];
 
 //Component
 const CreateCourseModal = ({
@@ -68,6 +72,10 @@ const CreateCourseModal = ({
   //API to add course to database for revision
   const addCourseMutation = api.calendar.addCourseToRevision.useMutation();
 
+  const updateCourseMutation = api.calendar.updateRevisionCourse.useMutation();
+
+  const removeCourseMutation = api.calendar.removeCourse.useMutation();
+
   const getEditCourseMutation = api.calendar.getCourse.useMutation();
   useEffect(() => {
     const getEditedCourse = async () => {
@@ -89,16 +97,18 @@ const CreateCourseModal = ({
   //Logs our submitted course (Will be changed)
   const onCourseAddModifySubmit = async (course: ICalendarCourseSchema) => {
     console.log("Hey we got here!");
+    console.log({ isCourseEditing });
     if (isCourseEditing != undefined && isCourseEditing!.tuid) {
-      // const result = await courseUpdateMutation.mutateAsync({
-      //   tuid: isCourseEditing!.tuid,
-      //   ...data,
-      // });
-      // if (result) {
-      //   toast.info(`Updated Course Guideline`);
-      // } else {
-      //   toast.error(`Failed to add Course Guideline`);
-      // }
+      const result = await updateCourseMutation.mutateAsync({
+        tuid: isCourseEditing!.tuid,
+        ...course,
+      });
+      if (result) {
+        toast.info(`Updated Course Guideline`);
+        onSuccess();
+      } else {
+        toast.error(`Failed to add Course Guideline`);
+      }
     } else {
       const result = await addCourseMutation.mutateAsync({
         course,
@@ -140,7 +150,7 @@ const CreateCourseModal = ({
         onClose();
         setCourseEditing(null);
       }}
-      className="h-[1000px]  w-3/4 max-w-5xl "
+      className=" max-h-screen max-w-5xl "
     >
       {/* Button to close */}
       <Button
@@ -156,7 +166,7 @@ const CreateCourseModal = ({
       <Modal.Header>
         {isCourseEditing ? "Edit" : "Add"} Course Placement
       </Modal.Header>
-      <Modal.Body className="h-[710px] w-full">
+      <Modal.Body className="max-h-screen  w-full">
         {/* <DevTool control={courseAddForm.control} /> set up the dev tool */}
         {/* form to handle course additions, modifications, or submission */}
         {/* add conditional check for loading if is editing */}
@@ -507,38 +517,59 @@ const CreateCourseModal = ({
                   </div>
                 </div>
 
-                {/** List of checkboxes for seemsters */}
+                {/** List of radio buttons for semsters */}
                 <div
                   className="mt-2 flex w-full flex-row space-x-4"
                   id="firstRow"
                 >
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_fall")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.FALL}
                   />
                   <p className="mt-2">Fall Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_winter")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.WINTER}
                   />
                   <p className="mt-2">Winter Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_spring")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.SPRING}
                   />
                   <p className="mt-2">Spring Semester</p>
 
-                  <Checkbox
+                  <Radio
                     color="primary"
                     className="mt-2"
-                    {...courseAddForm.register("semester_summer")}
+                    {...courseAddForm.register("semester")}
+                    name="semester"
+                    value={Semesters.SUMMER}
                   />
                   <p className="mt-2">Summer Semester</p>
+                </div>
+
+                {/**
+                 * Error Message for when a semester is not selected
+                 */}
+                <div>
+                  <ErrorMessage
+                    errors={courseAddForm.formState.errors}
+                    name="semester"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />
                 </div>
 
                 {/* header for label and add location button */}
@@ -580,7 +611,7 @@ const CreateCourseModal = ({
                   </div>
                 </div>
 
-                <div className="mt-2 flex h-[500px] flex-col space-y-2 overflow-y-scroll ">
+                <div className="mt-2 flex h-[350px] grow flex-col space-y-2 overflow-y-scroll ">
                   {/* field for time input (in 24 hour format) */}
                   {locationFields.fields.map((item, index) => {
                     return (
@@ -589,28 +620,10 @@ const CreateCourseModal = ({
                         id="informationBLock"
                         key={index}
                       >
-                        <div className="flex justify-end">
-                          <Button
-                            type="button"
-                            color="error"
-                            size="sm"
-                            onClick={() => {
-                              locationFields.remove(index);
-                            }}
-                          >
-                            <Trash />
-                          </Button>
-                        </div>
-                        <div
-                          className="flex items-center space-x-10"
-                          id="locationList"
-                        >
+                        <div className="flex  space-x-10" id="locationList">
                           <div className="flex flex-row items-end justify-end space-x-4">
                             <div className="flex w-full flex-col" id="starTime">
-                              <div
-                                className="w-50 m-1 flex h-8 items-center"
-                                id="timeLbl"
-                              >
+                              <div className="w-50 m-1 flex h-8 " id="timeLbl">
                                 <p>Start Time</p>
                               </div>
                               <div className="flex" id="timeInputBoxes">
@@ -639,10 +652,7 @@ const CreateCourseModal = ({
                               <p>to</p>
                             </div>
                             <div className="flex w-full flex-col" id="endTime">
-                              <div
-                                className="w-50 m-1 flex h-8 items-center"
-                                id="timeLbl"
-                              >
+                              <div className="w-50 m-1 flex h-8 " id="timeLbl">
                                 <p>End Time</p>
                               </div>
                               <div className="flex" id="timeInputBoxes">
@@ -680,7 +690,8 @@ const CreateCourseModal = ({
                             </div>
                           </div>
                           {/* Checkboxes for days */}
-                          <div className="items- flex flex-col justify-end">
+                          <div className="flex-col items-center justify-end">
+                            <br />
                             <div className="flex space-x-2 text-center">
                               <div>
                                 <p>M</p>
@@ -741,7 +752,18 @@ const CreateCourseModal = ({
                             </div>
                           </div>
 
-                          {/* Div to hold in person checkbox and building select */}
+                          <div className="flex grow justify-end pr-4">
+                            <Button
+                              type="button"
+                              color="error"
+                              size="sm"
+                              onClick={() => {
+                                locationFields.remove(index);
+                              }}
+                            >
+                              <Trash />
+                            </Button>
+                          </div>
                         </div>
 
                         <div
@@ -829,13 +851,13 @@ const CreateCourseModal = ({
               </div>
 
               <div
-                className="flex h-full w-[250px] grow flex-col justify-between space-y-8 bg-base-200 p-1"
+                className="flex w-[250px] grow flex-col justify-between space-y-8  border-l-2 pl-4"
                 id="sidebar"
               >
                 <div className="grow flex-row text-left" id="1">
                   <p>Changes</p>
                   <Textarea
-                    className="h-full w-full resize-none"
+                    className="h-full w-full grow resize-none"
                     {...courseAddForm.register(`notes.CHANGES`)}
                   />
                 </div>
@@ -857,7 +879,42 @@ const CreateCourseModal = ({
             </div>
             {/* Submit button */}
             <div className="flex justify-end">
-              <Button color="success" type="submit" className="mt-2">
+              {isCourseEditing != undefined && (
+                <Button
+                  color={
+                    isCourseEditing.state != CourseState.REMOVED
+                      ? "error"
+                      : "warning"
+                  }
+                  onClick={async () => {
+                    await removeCourseMutation.mutateAsync({
+                      tuid: isCourseEditing.tuid!,
+                    });
+                    toast.info(
+                      isCourseEditing.state != CourseState.REMOVED
+                        ? "Course has been removed"
+                        : "Course has been restored"
+                    );
+                    onClose();
+                  }}
+                  type="button"
+                  className="mt-2 mr-2"
+                >
+                  {isCourseEditing.state != CourseState.REMOVED
+                    ? "Delete"
+                    : "Recover"}
+                </Button>
+              )}
+              <Button
+                color="success"
+                type="submit"
+                className="mt-2"
+                disabled={
+                  !(
+                    Object.keys(courseAddForm.formState.dirtyFields).length > 0
+                  ) as boolean
+                }
+              >
                 {isCourseEditing != undefined ? "Save" : "Add"}
               </Button>
             </div>

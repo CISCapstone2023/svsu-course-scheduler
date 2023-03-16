@@ -1,4 +1,5 @@
 import React from "react";
+import militaryToTime from "src/utils/time";
 import { IScheduleCourseWithTimes } from "./Calendar";
 
 interface CourseInformationSidebarProps {
@@ -56,6 +57,8 @@ const CourseInformationSidebar = ({
             <p className="font-bold">Locations</p>
             <ul>
               {course.locations.map((location, index) => {
+                const start_time = militaryToTime(location.start_time);
+                const end_time = militaryToTime(location.end_time);
                 return (
                   <li key={index} className="flex ">
                     -
@@ -76,6 +79,11 @@ const CourseInformationSidebar = ({
                       {location.day_saturday ? " SAT" : ""}
                       {location.day_sunday ? " SUN" : ""}
                       <br />
+                      <p>
+                        {start_time.anteMeridiemHour}:{start_time.minute}{" "}
+                        {start_time.period} to {end_time.anteMeridiemHour}:
+                        {end_time.minute} {end_time.period}
+                      </p>
                     </div>
                   </li>
                 );

@@ -1,7 +1,6 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { Button } from "react-daisyui";
-import { useState } from "react";
+
 import { prisma } from "src/server/db";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
@@ -10,9 +9,7 @@ import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
-import useRestUpload from "src/hooks/upload/useUpload";
 import { routeNeedsAuthSession } from "src/server/auth";
-import CreateCourseModal from "../schedule/CourseModifyModal";
 
 interface HomeProps {
   scheduleId: string;
@@ -27,7 +24,6 @@ const Dashboard: NextPage<HomeProps> = ({ scheduleId }) => {
    */
   const {} = useSession();
 
-  const [open, setOpen] = useState(false);
   return (
     <DashboardLayout>
       <DashboardSidebar />

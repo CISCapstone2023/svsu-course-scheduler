@@ -11,6 +11,7 @@ import DashboardContentHeader from "src/components/dashboard/DashboardContentHea
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 import BuildingsTab from "./BuildingsTab";
+import AdminDashboardSidebar from "src/components/dashboard/AdminDashboardSidebar";
 
 const Buildings: NextPage = () => {
   /**
@@ -30,7 +31,7 @@ const Buildings: NextPage = () => {
 
   return (
     <DashboardLayout>
-      <DashboardSidebar />
+      <AdminDashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Buildings" />
         <Tabs

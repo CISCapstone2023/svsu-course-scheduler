@@ -1,7 +1,16 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import { CourseState, Prisma } from "@prisma/client";
+import {
+  GuidelinesFaculty,
+  GuidelinesFacultyToCourse,
+  Course,
+  CourseState,
+  Prisma,
+} from "@prisma/client";
+import { prisma } from "src/server/db";
+
+// Validation -----------------------------------------------------------------------------------------------------
 
 // Essentially creates a new data type built to store comprehensive queries
 const courseType = Prisma.validator<Prisma.CourseArgs>()({
@@ -16,12 +25,58 @@ const courseType = Prisma.validator<Prisma.CourseArgs>()({
 });
 export type IScheduleCourse = Prisma.CourseGetPayload<typeof courseType>;
 
+const facultyType = Prisma.validator<Prisma.GuidelinesFacultyArgs>()({
+  include: {
+    to_courses: {
+      include: {
+        course: { select: { revision_tuid: true } },
+      },
+    },
+  },
+});
+export type IScheduleFaculty = Prisma.GuidelinesFacultyGetPayload<
+  typeof facultyType
+>;
+
+// Routers --------------------------------------------------------------------------------------------------------
+
 export const homeRouter = createTRPCRouter({
-  getTotalFaculty: protectedProcedure.query(async ({ ctx }) => {
-    // Count total faculty members in the database
-    const facultyCount = await ctx.prisma.guidelinesFaculty.count();
-    return { result: { totalFaculty: facultyCount } };
-  }),
+  getTotalFaculty: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Count total faculty members that are teaching courses on a specific revision
+
+      let facultyCount = 0;
+
+      // Grab all faculty, along with the revision ids of the courses they teach
+      const allFaculty: IScheduleFaculty[] =
+        await ctx.prisma.guidelinesFaculty.findMany({
+          include: {
+            to_courses: {
+              include: {
+                course: { select: { revision_tuid: true } },
+              },
+            },
+          },
+        });
+
+      // Count the number of faculty with courses on the given revision
+      for (const faculty of allFaculty) {
+        let isOnRevision = false;
+        for (const course of faculty.to_courses) {
+          if (course.course.revision_tuid === input.tuid) {
+            isOnRevision = true;
+          }
+        }
+        if (isOnRevision) facultyCount += 1;
+      }
+
+      return { result: { totalFaculty: facultyCount } };
+    }),
 
   getTotalCourses: protectedProcedure
     .input(

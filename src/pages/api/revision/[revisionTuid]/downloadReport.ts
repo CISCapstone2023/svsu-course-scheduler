@@ -56,7 +56,14 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
       //Set the header type of the excel file, which is not a normal office
       //docx file but again it still works fine
       try {
-        res.setHeader("Content-Type", "application/vnd.ms-excel");
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename=${revision.name}.xlsx`
+        );
+        res.setHeader(
+          "Content-Type",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
 
         //Generate the file from a buffer and call it a day
         await pipeline(Readable.from(revision.exported_file), res);

@@ -618,23 +618,38 @@ const exportExcelFileToStorage = async (tuid: string) => {
           );
         };
 
-        console.log(rows);
+        //Make a date to a normal date object
+        const dateToNormal = (date: Date) => {
+          return (
+            date.getMonth() +
+            1 +
+            "/" +
+            (date.getDate() > 9 ? date.getDate() : "0" + date.getDate()) +
+            "/" +
+            date.getFullYear()
+          );
+        };
 
+        //Get the max row of data from the list of organized columns
         const [object, maxRow] = Object.entries(
           revision.organizedColumns as IProjectOrganizedColumnRowNumerical
         ).reduce((prev, current) => (prev[1] > current[1] ? prev : current));
 
-        console.log({ object, maxRow });
-
+        //Map the data back to excel
         const outRow = Array(maxRow)
           .fill(0)
-          .map((_, out) => {
-            const value = rows[out];
-            const index = out - 1;
+          .map((_, arrayIndex) => {
+            //Grab the index by 0 not 1
+            const index = arrayIndex - 1;
+
+            //Get the value of the excel rows
+            const value = rows[index];
 
             if (columns.section_id == index) {
+              //Map Section ID
               return course.section_id;
             } else if (columns.term == index) {
+              //Map Semester
               let semester = "";
               if (course.semester_fall) semester = "FA";
               if (course.semester_winter) semester = "WI";
@@ -645,26 +660,33 @@ const exportExcelFileToStorage = async (tuid: string) => {
               //TODO: Verify this actually works
               return "SC";
             } else if (columns.department == index) {
+              //Map Department
               return course.department;
             } else if (columns.subject == index) {
+              //Mape Subject
               return course.subject;
             } else if (columns.course_number == index) {
+              //Map Course Number
               try {
                 return parseInt(course.course_number);
               } catch {
                 return course.course_number;
               }
             } else if (columns.section == index) {
+              //Map Section
               try {
                 return parseInt(course.section);
               } catch {
                 return course.section;
               }
             } else if (columns.start_date == index) {
-              return dateToExcel(course.start_date);
+              //Map Start Date
+              return dateToNormal(course.start_date);
             } else if (columns.end_date == index) {
-              return dateToExcel(course.end_date);
+              //Map End Date
+              return dateToNormal(course.end_date);
             } else if (columns.credits == index) {
+              //Map Credits
               return course.credits;
             } else if (columns.title == index) {
               return course.title;
@@ -688,14 +710,17 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 })
                 .join("\n");
             } else if (columns.instruction_method == index) {
+              //Map instruction method
               return course.instruction_method;
             } else if (columns.capacity == index) {
+              //Map Capacity
               try {
                 return course.capacity;
               } catch {
                 return course.capacity + "";
               }
             } else if (columns.campus == index) {
+              //Map Course Locations
               return course.locations
                 .map((location) => {
                   return location.rooms
@@ -706,6 +731,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 })
                 .join("\n");
             } else if (columns.start_time == index) {
+              //Mape start time to courses
               return course.locations
                 .map((location) => {
                   const time = militaryToTime(location.start_time);
@@ -713,6 +739,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 })
                 .join("\n");
             } else if (columns.end_time == index) {
+              //Map end time to courses
               return course.locations
                 .map((location) => {
                   const time = militaryToTime(location.end_time);
@@ -720,6 +747,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 })
                 .join("\n");
             } else if (columns.room == index) {
+              //Map rooms to courses
               return course.locations
                 .map((location) => {
                   return location.rooms
@@ -734,6 +762,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 })
                 .join("\n");
             } else if (columns.days == index) {
+              //map days to courses
               return course.locations
                 .map((location) => {
                   let days = "";
@@ -762,6 +791,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 })
                 .join("\n");
             } else if (columns.course_method == index) {
+              //Generate course method/method2
               //Check if we have online courses
               const hasOnline = course.locations.some(
                 (location) => location.is_online
@@ -780,11 +810,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
               //Return the same date for N amount of locations
               const dates = course.locations.map(() => {
                 //If we only have one date grab the excel one, otherwise grab the other one
-                if (course.locations.length > 1) {
-                  return course.start_date.toLocaleString().split(",")[0];
-                } else {
-                  return dateToExcel(course.start_date);
-                }
+                return dateToNormal(course.start_date);
               });
               //Make sure if we have more than 1 date
               if (course.locations.length > 1) {
@@ -797,11 +823,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
               //Return the same date for N amount of locations
               const dates = course.locations.map(() => {
                 //If we only have one date grab the excel one, otherwise grab the other one
-                if (course.locations.length > 1) {
-                  return course.end_date.toLocaleString().split(",")[0];
-                } else {
-                  return dateToExcel(course.end_date);
-                }
+                return dateToNormal(course.end_date);
               });
               //Make sure if we have more than 1 date
               if (course.locations.length > 1) {
@@ -810,10 +832,8 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 //Return said dates (or day)
                 return dates[0];
               }
-            }
-
-            //Notes
-            else if (columns.noteWhatHasChanged == index) {
+            } else if (columns.noteWhatHasChanged == index) {
+              //Map notes but also dynmically make notes for adding courses
               if (course.state == "ADDED") {
                 return "Added Course";
               } else if (course.state == "MODIFIED") {
@@ -827,30 +847,33 @@ const exportExcelFileToStorage = async (tuid: string) => {
                 );
               }
             } else if (columns.notePrintedComments == index) {
+              //Map deparment notes
               return (
                 course.notes.filter((note) => note.type == "DEPARTMENT")[0]
                   ?.note ?? ""
               );
             } else if (columns.noteAcademicAffairs == index) {
+              //make provost notes
               return (
                 course.notes.filter(
                   (note) => note.type == "ACAMDEMIC_AFFAIRS"
                 )[0]?.note ?? ""
               );
             }
-            console.log(index);
+
+            //Return the values
             return value;
           });
 
-        outRow.splice(0, 1);
+        //Remove the array from the already array of array?
+        outRow!.splice(0, 1);
 
-        return [outRow.map((value, index) => `${value}`)] as unknown as (
-          | string
-          | undefined
-        )[];
+        return outRow as unknown as (string | undefined)[];
       };
-      console.log(revision.organizedColumns);
 
+      /**
+       * Removed Courses
+       */
       for (const course of removedCourses) {
         //node-xlsx
         const row = columns.splice(course.excelRow, 1);
@@ -863,6 +886,9 @@ const exportExcelFileToStorage = async (tuid: string) => {
         );
       }
 
+      /**
+       * Modified Courses
+       */
       for (const course of modifiedCourses) {
         const row = columns.splice(course.excelRow, 1);
         columns.push(
@@ -874,6 +900,9 @@ const exportExcelFileToStorage = async (tuid: string) => {
         );
       }
 
+      /**
+       * Added Courses
+       */
       for (const course of addedCourses) {
         if (course.excelRow != -1) {
           const row = columns.splice(course.excelRow, 1);
@@ -887,7 +916,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
         }
       }
 
-      console.log(columns);
+      //Build the new file from the data
       const buffer = xlsx.build([
         {
           name: revision.name,
@@ -895,17 +924,20 @@ const exportExcelFileToStorage = async (tuid: string) => {
           options: {},
         },
       ]);
-      console.log("saved");
+
+      //Update the file in prisma so it can be downloaded
       await prisma.scheduleRevision.update({
         where: {
           tuid: tuid,
         },
         data: {
           exported_file: buffer,
+          exportedAt: new Date(),
         },
       });
     }
-    return {};
+    //Let trpc know that it worked
+    return true;
   }
 };
 

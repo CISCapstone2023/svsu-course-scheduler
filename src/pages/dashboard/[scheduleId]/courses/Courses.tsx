@@ -273,6 +273,7 @@ const Courses = () => {
   // function for splitting course times
   return (
     <>
+      {/* Dropdown check box menu for semester selection for displayed courses */}
       <div className="m-2 flex justify-between ">
         <div className="flex space-x-2">
           <Dropdown>
@@ -321,7 +322,9 @@ const Courses = () => {
               </Card.Body>
             </Dropdown.Menu>
           </Dropdown>
+
           <Dropdown>
+            {/* button for toggling credits dropdown filter */}
             <Button>
               Credits
               <CaretDown />
@@ -351,11 +354,13 @@ const Courses = () => {
               </Card.Body>
             </Dropdown.Menu>
           </Dropdown>
+          {/* button for toggling meeting time dropdown filter */}
           <Dropdown>
             <Button>
               Meetings
               <CaretDown />
             </Button>
+
             <Dropdown.Menu>
               <Card.Body>
                 <p>Min Meeting Amount</p>
@@ -381,6 +386,8 @@ const Courses = () => {
               </Card.Body>
             </Dropdown.Menu>
           </Dropdown>
+
+          {/* button filter for displaying courses in schedule that occur on specific selected days */}
           <ButtonGroup>
             <Button
               onClick={() => {
@@ -440,6 +447,8 @@ const Courses = () => {
             </Button>
           </ButtonGroup>
         </div>
+
+        {/* button for toggling add course guidline modal */}
         <div>
           <Button
             onClick={() => {
@@ -451,6 +460,7 @@ const Courses = () => {
           </Button>
         </div>
       </div>
+      {/* table headers for displaying table for courses  */}
       <div className="h-ful m-2 overflow-x-hidden">
         <Table className="w-full shadow-lg" zebra={true}>
           <Table.Head>
@@ -463,7 +473,7 @@ const Courses = () => {
             <div>Edit</div>
             <div>Delete</div>
           </Table.Head>
-
+          {/* course displaying infromation */}
           <Table.Body>
             {courses.data?.result.map((course, i) => {
               return (
@@ -485,6 +495,7 @@ const Courses = () => {
                     })}
                   </span>
                   <span>
+                    {/* displays the scheduled times for a course as well as antemeridiem identifier  */}
                     {course.times.map((time) => {
                       return (
                         <>
@@ -506,6 +517,7 @@ const Courses = () => {
                     })}
                   </span>
                   <span>
+                    {/* displays the days that a course is scheduled to occur on */}
                     {course.days.map((day) => {
                       return (
                         <>
@@ -523,6 +535,8 @@ const Courses = () => {
                       );
                     })}
                   </span>
+
+                  {/* button to toggle the editing of a course modal */}
                   <div className="hover:cursor-pointer">
                     <Button
                       color="warning"
@@ -535,6 +549,7 @@ const Courses = () => {
                       <Pencil />
                     </Button>
                   </div>
+                  {/* button to toggle the deletion of a course modal */}
                   <div className="hover:cursor-pointer">
                     <Button
                       onClick={() => {
@@ -550,9 +565,11 @@ const Courses = () => {
             })}
           </Table.Body>
         </Table>
+        {/* message to display if no course meet the filtered criteria */}
         {courses.data?.result.length == 0 && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
             No Course Found!
+            {/* button for toogling adding a course guidline */}
             <div>
               <Button onClick={toggleCourseModifyModal} className="mt-2">
                 <Plus />
@@ -562,6 +579,8 @@ const Courses = () => {
              
           </div>
         )}
+
+        {/* course pagination for displaying course content correctly per page of courses */}
         <div className="flex w-full justify-center p-2">
           {courses.data != undefined && (
             <PaginationBar
@@ -578,8 +597,9 @@ const Courses = () => {
       <Modal
         open={isCourseCreateModalOpen}
         onClickBackdrop={toggleCourseModifyModal}
-        className="h-full  w-11/12 max-w-5xl"
+        className=" w-11/12 max-w-5xl"
       >
+        {/* button for toogling the course modify modal */}
         <Button
           size="sm"
           shape="circle"
@@ -592,6 +612,7 @@ const Courses = () => {
           {isCourseEditing != undefined ? "Edit" : "Add"} Course
         </Modal.Header>
 
+        {/* toggles modal for for modifying a courses guidlines */}
         <Modal.Body>
           <form
             onSubmit={courseForm.handleSubmit(onCourseModifySubmit)}
@@ -600,6 +621,7 @@ const Courses = () => {
             <div>
               <div className="flex w-full space-x-2">
                 <div className="w-1/3">
+                  {/* course credit guidlines input form  */}
                   <p>Credits</p>
                   <Input
                     type="text"
@@ -616,6 +638,7 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />
+                  {/* course total meetings input  */}
                   <p>Total Meetings</p>
                   <Input
                     type="text"
@@ -632,6 +655,7 @@ const Courses = () => {
                       <p className="font-semibold text-red-600">{message}</p>
                     )}
                   />{" "}
+                  {/* collection of checkboxes for assigning semester in course guidline  */}
                   <p className="mt-2">Fall Semester</p>
                   <Checkbox
                     color="primary"
@@ -664,9 +688,10 @@ const Courses = () => {
                     )}
                   />
                 </div>
-                <div className="w-1/3">
+                <div className="w-1/3 border-l-2 pl-2">
                   <div className="flex">
                     <div className="grow">
+                      {/* form for assigning designated meeting times for a course guidline  */}
                       <p>Times</p>
                     </div>
                     <div>
@@ -747,10 +772,11 @@ const Courses = () => {
                     );
                   })}
                 </div>
-                <div className="w-1/3">
+                <div className="w-1/3 border-l-2 pl-2">
                   <div className="flex">
                     <div className="grow">
                       <div className="justify-center">
+                        {/* collection of checkboxes fro assigning days for meeting in a course guideline */}
                         <p>Days</p>
                       </div>
                     </div>

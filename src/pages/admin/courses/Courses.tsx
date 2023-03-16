@@ -493,12 +493,12 @@ const Courses = () => {
                             {time.start_time_meta.minute == 0
                               ? "00"
                               : time.start_time_meta.minute}{" "}
-                            {time.start_time_meta.anteMeridiem}
+                            {time.start_time_meta.period}
                             {} to {time.end_time_meta.anteMeridiemHour}:
                             {time.end_time_meta.minute == 0
                               ? "00"
                               : time.end_time_meta.minute}{" "}
-                            {time.end_time_meta.anteMeridiem}
+                            {time.end_time_meta.period}
                           </span>
                           <br />
                         </>

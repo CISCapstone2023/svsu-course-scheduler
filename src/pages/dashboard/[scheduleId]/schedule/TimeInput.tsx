@@ -1,40 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Checkbox, Input } from "react-daisyui";
+import militaryToTime from "src/utils/time";
 
 interface TimeInputProps {
   value: number;
   onChange: (time: number) => void;
   ref: any;
 }
-
-const militaryToSplit = (time: number) => {
-  //initializes hour variable to parse integer time numbers
-  const hour = parseInt(
-    time >= 1000
-      ? time.toString().substring(0, 2) //splits numbers of time to get ending numbers of set time
-      : time.toString().substring(0, 1) // splits numbers of time to get begining numbers of set time
-  ); // mods time to convert from military time to standard time
-  let anteMeridiemHour = hour % 12;
-  // conditional statement to reset hours to 12 if initial time is 12 since 12 mod 12 returns zero
-  if (anteMeridiemHour == 0) {
-    anteMeridiemHour = 12;
-  }
-
-  //initializes constant for getting the minutes of time
-  const minute = parseInt(
-    time.toString().substring(time.toString().length - 2)
-  );
-
-  //initializes constant to be used for AM/PM tagging on time
-  const anteMeridiem = time >= 1300 ? "PM" : "AM";
-  return {
-    hour,
-    minute,
-    anteMeridiemHour,
-    anteMeridiem,
-    totalMinutes: hour * 60 + minute,
-  };
-};
 
 const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
   const [hour, setHour] = useState(0);
@@ -43,10 +15,10 @@ const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
 
   useEffect(() => {
     try {
-      const time = militaryToSplit(value);
+      const time = militaryToTime(value);
       setHour(time.anteMeridiemHour);
       setMinutes(time.minute);
-      setIsPM(time.anteMeridiem == "PM");
+      setIsPM(time.period == "PM");
     } catch (e) {}
   }, []);
 
@@ -56,7 +28,7 @@ const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
 
   const onChangeLocally = () => {
     let tempHours = hour;
-    if (isPM == true) {
+    if (isPM == true && hour != 12) {
       tempHours += 12;
     }
 

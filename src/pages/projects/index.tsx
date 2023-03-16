@@ -39,6 +39,7 @@ import {
   type IProjectOrganizedColumnRowNumerical,
   type IProjectFinalizeOnboarding,
 } from "src/validation/projects.frontend";
+import classNames from "classnames";
 
 //THE DEFAULT SCHEMA FOR THE ORGANIZED COLUMNS
 const DEFAULT_ORGANIZED_COLUMNS = {
@@ -63,6 +64,9 @@ const DEFAULT_ORGANIZED_COLUMNS = {
   start_time: -1,
   end_time: -1,
   days: -1,
+  course_method: -1,
+  course_start_date: -1,
+  course_end_date: -1,
   noteAcademicAffairs: -1,
   notePrintedComments: -1,
 };
@@ -261,6 +265,9 @@ const Projects: NextPage = () => {
       start_time: -1,
       end_time: -1,
       days: -1,
+      course_method: -1,
+      course_start_date: -1,
+      course_end_date: -1,
       noteAcademicAffairs: -1,
       notePrintedComments: -1,
     });
@@ -285,6 +292,9 @@ const Projects: NextPage = () => {
     //The temp list of columns
     const tempOrganizedColumns = organizedColumns as Record<string, number>;
     //Loop all columns
+    const allColumns = Object.entries(DEFAULT_ORGANIZED_COLUMNS).map(
+      (e) => e[0]
+    );
     for (const i in tempOrganizedColumns) {
       //If said column is -1 then its not organized
       if (tempOrganizedColumns[i] == -1) {
@@ -294,6 +304,21 @@ const Projects: NextPage = () => {
           })?.label
         );
       }
+      //Check if we don't have that column
+      const index = allColumns.indexOf(i);
+      if (index !== -1) {
+        allColumns.splice(index, 1);
+        console.log({ allColumns });
+      }
+    }
+
+    //Push all the columns not found in the current data structures as errors
+    for (const i in allColumns) {
+      missingColumns.push(
+        columnLookupTable.find((item) => {
+          return item.value == i;
+        })?.label
+      );
     }
     //Return said columns back so they can be rendered
     return missingColumns;
@@ -384,7 +409,9 @@ const Projects: NextPage = () => {
         </div>
         <Modal
           open={modalVisible}
-          className=" max-h-[250rem] min-w-[90%] max-w-5xl"
+          className={classNames("max-h-[250rem] duration-500", {
+            "min-w-[90%]": stage == 2,
+          })}
         >
           <Modal.Header className="flex justify-center font-bold">
             <Steps>

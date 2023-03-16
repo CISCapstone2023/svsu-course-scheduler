@@ -26,6 +26,7 @@ import {
 } from "src/server/api/routers/calendar";
 import CreateCourseModal from "./CourseModifyModal";
 import CourseInformationSidebar from "./CourseInformation";
+import { toast } from "react-toastify";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -129,6 +130,22 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   //The course tuid that will be currently edited
   const [courseToEdit, setCourseToEdit] = useState<string | null>(null);
 
+  const exportMutation = api.projects.exportScheduleRevision.useMutation();
+
+  const exportCalendar = async () => {
+    const result = await exportMutation.mutateAsync({
+      tuid: scheduleId,
+    });
+    if (result) {
+      window.open("/api/revision/" + scheduleId + "/downloadReport", "_blank");
+    } else {
+      toast.error(
+        "Could not export to excel. \n This is likely from an older revision, which is not supported. ",
+        { position: "top-center" }
+      );
+    }
+  };
+
   return (
     <DashboardLayout>
       <DashboardSidebar />
@@ -136,6 +153,9 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
         <div className="flex h-full w-full flex-col">
           <DashboardContentHeader title="Scheduler">
             <div className="flex items-center space-x-2">
+              <Button onClick={exportCalendar} size="sm" color="success">
+                Export
+              </Button>
               <Button
                 size="sm"
                 onClick={() => {

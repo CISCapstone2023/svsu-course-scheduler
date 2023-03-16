@@ -592,6 +592,9 @@ const exportExcelFileToStorage = async (tuid: string) => {
     console.log(results);
     //Check if we have the sheet from the file
     if (results[0] != undefined && revision != undefined) {
+      if (revision.organizedColumns == null) {
+        return false;
+      }
       const sheet = results[0];
       const columns = sheet?.data as ExcelDataColumns;
       console.log(columns);

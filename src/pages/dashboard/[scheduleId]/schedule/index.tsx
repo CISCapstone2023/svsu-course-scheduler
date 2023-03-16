@@ -26,6 +26,7 @@ import {
 } from "src/server/api/routers/calendar";
 import CreateCourseModal from "./CourseModifyModal";
 import CourseInformationSidebar from "./CourseInformation";
+import { toast } from "react-toastify";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -137,6 +138,11 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
     });
     if (result) {
       window.open("/api/revision/" + scheduleId + "/downloadReport", "_blank");
+    } else {
+      toast.error(
+        "Could not export to excel. \n This is likely from an older revision, which is not supported. ",
+        { position: "top-center" }
+      );
     }
   };
 

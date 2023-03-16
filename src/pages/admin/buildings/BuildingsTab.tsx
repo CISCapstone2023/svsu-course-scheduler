@@ -19,6 +19,7 @@ import { GuidelineBuilding } from "@prisma/client";
 import { toast } from "react-toastify";
 import PaginationBar from "src/components/Pagination";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
+import { ca } from "date-fns/locale";
 
 const NOTIFICATION_POSITION = toast.POSITION.BOTTOM_LEFT;
 
@@ -121,7 +122,12 @@ const BuildingsTab = () => {
 
   const toggleBuildingModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
-    reset({});
+    reset({
+      name: "",
+      prefix: "",
+      classrooms: "",
+      campus_tuid: "",
+    });
     setBuildingEditing(undefined);
     setBuildingCreateModal(!buildingCreateModal);
   };

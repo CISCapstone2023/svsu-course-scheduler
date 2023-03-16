@@ -73,8 +73,8 @@ const DashboardHomeTabs = ({ tuid }: DashboardHomeTabsProps) => {
           size="lg"
         >
           <Tabs.Tab value={0}>Added</Tabs.Tab>
-          <Tabs.Tab value={2}>Modified</Tabs.Tab>
-          <Tabs.Tab value={1}>Removed</Tabs.Tab>
+          <Tabs.Tab value={1}>Modified</Tabs.Tab>
+          <Tabs.Tab value={2}>Removed</Tabs.Tab>
           <Tabs.Tab value={null} className="flex-1 cursor-default" />
         </Tabs>
         {/* displays table headers for course and faculty pagination */}

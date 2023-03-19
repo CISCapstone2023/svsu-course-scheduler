@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 
-import { useState } from "react";
+import { prisma } from "src/server/db";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
@@ -10,13 +10,12 @@ import DashboardContentHeader from "src/components/dashboard/DashboardContentHea
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import { routeNeedsAuthSession } from "src/server/auth";
-import { prisma } from "src/server/db";
 
-interface DashboardProps {
+interface HomeProps {
   scheduleId: string;
 }
 
-const Dashboard: NextPage<DashboardProps> = ({ scheduleId }) => {
+const Dashboard: NextPage<HomeProps> = ({ scheduleId }) => {
   /**
    * useSession
    *

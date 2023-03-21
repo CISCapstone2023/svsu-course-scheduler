@@ -11,7 +11,9 @@ import { update } from "lodash";
 
 const TOTAL_RESULTS_PER_PAGE = 10;
 
+//Router to carry out functions on subjects
 export const subjectRouter = createTRPCRouter({
+  //Router to pull all subjects to be autofilled
   getAllSubjectsAutofill: protectedProcedure
     .input(
       z.object({
@@ -36,6 +38,7 @@ export const subjectRouter = createTRPCRouter({
       };
     }),
 
+  //Router to add a subject to the subject table
   addSubject: protectedProcedure
     .input(createSubjectsSchema)
     .mutation(async ({ ctx, input }) => {
@@ -47,6 +50,32 @@ export const subjectRouter = createTRPCRouter({
       return subjectCreate;
     }),
 
+  // Router to delete a subject
+  deleteSubject: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const hasSubject = await ctx.prisma.subject.count({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+
+      if (hasSubject == 1) {
+        await ctx.prisma.subject.delete({
+          where: {
+            tuid: input.tuid,
+          },
+        });
+        return true;
+      }
+      return false;
+    }),
+
+  //Router to update a subject
   updateSubject: protectedProcedure
     .input(updateSubjectsSchema)
     .mutation(async ({ ctx, input }) => {

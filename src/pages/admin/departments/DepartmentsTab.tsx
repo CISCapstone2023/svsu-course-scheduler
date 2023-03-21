@@ -9,17 +9,19 @@ import { debounce } from "lodash";
 
 import { api } from "src/utils/api";
 
-import { createCampusSchema, ICreateCampus } from "src/validation/buildings";
-
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
-import { GuidelineCampus } from "@prisma/client";
+import { type Department } from "@prisma/client";
 import { toast } from "react-toastify";
 import PaginationBar from "src/components/Pagination";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
+import {
+  createDepartmentsSchema,
+  ICreateDepartments,
+} from "src/validation/departments";
 
 const NOTIFICATION_POSITION = toast.POSITION.BOTTOM_LEFT;
 
-const CampusTab = () => {
+const DepartmentTab = () => {
   /**
    * Router
    * Get the context of the current NextJS Router
@@ -37,17 +39,17 @@ const CampusTab = () => {
    */
 
   /**
-   * Campus Page for pagination
+   * Department Page for pagination
    *
    * Set the current page for the pagination with a default page
    * of 1. This is consumed by the pagination component and then updated.
    */
-  const [campusPage, setCampusPage] = useState(1);
+  const [DepartmentPage, setDepartmentPage] = useState(1);
 
   //Query all of the data based on the search value
-  const campuses = api.buildings.getAllCampus.useQuery({
+  const departments = api.department.getAllDepartments.useQuery({
     search: searchValue,
-    page: campusPage,
+    page: DepartmentPage,
   });
 
   /**
@@ -55,15 +57,18 @@ const CampusTab = () => {
    */
   useEffect(() => {
     //Check if we have any building data
-    if (campuses.data) {
+    if (departments.data) {
       //Check if we are past the current total pages and we are not fetching
-      if (campusPage > campuses.data!.totalPages && !campuses.isFetching) {
+      if (
+        DepartmentPage > departments.data!.totalPages &&
+        !departments.isFetching
+      ) {
         const page =
-          campuses.data!.totalPages > 0 ? campuses.data!.totalPages : 1;
-        setCampusPage(page); //Go to the max page
+          departments.data!.totalPages > 0 ? departments.data!.totalPages : 1;
+        setDepartmentPage(page); //Go to the max page
       }
     }
-  }, [campuses.data]);
+  }, [departments.data]);
 
   //The function that gets called when a input event has occured.
   //It passthe the React Change Event which has a input element
@@ -79,7 +84,7 @@ const CampusTab = () => {
     //is an arrow function
     debounce((value: string) => {
       //Now we actually update the search so we don't keep fetching the server
-      setCampusPage(1);
+      setDepartmentPage(1);
       setSearchValue(value);
     }, 500), //This waits 500 ms (half a second) before the function inside (aka above) gets called
     []
@@ -92,54 +97,59 @@ const CampusTab = () => {
    */
 
   //CREATE MODAL
-  const [campusCreateModal, setCampusCreateModal] = useState<boolean>(false);
+  const [departmentCreateModal, setDepartmentCreateModal] =
+    useState<boolean>(false);
 
   //DELETE MODAL
-  const [campusDeleteModal, setCampusDeleteModal] = useState<boolean>(false);
-  const [campusDeleteValue, setCampusDeleteValue] = useState<GuidelineCampus>();
+  const [departmentDeleteModal, setDepartmentDeleteModal] =
+    useState<boolean>(false);
+  const [departmentDeleteValue, setDepartmentDeleteValue] =
+    useState<Department>();
 
   /**
    * openDeleteModal -
-   * Open Modal for the current campus (which is a GuidelineCampus)
-   * @param campus
+   * Open Modal for the current department (which is a GuidelineDepartment)
+   * @param department
    */
-  const openDeleteModal = (campus: GuidelineCampus) => {
-    setCampusDeleteValue(campus);
-    setCampusDeleteModal(true);
+  const openDeleteModal = (department: Department) => {
+    setDepartmentDeleteValue(department);
+    setDepartmentDeleteModal(true);
   };
   /**
    * useForm -
    * This creates a new form using the react-form-hooks.
    */
-  const { reset, ...campusForm } = useForm<ICreateCampus>({
+  const { reset, ...departmentForm } = useForm<ICreateDepartments>({
     mode: "onBlur",
-    resolver: zodResolver(createCampusSchema),
+    resolver: zodResolver(createDepartmentsSchema),
   });
 
-  const toggleCampusModifyModal = () => {
+  const toggleDepartmentModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
     reset({ name: "" });
-    setCampusEditing(undefined);
-    setCampusCreateModal(!campusCreateModal);
+    setDepartmentEditing(undefined);
+    setDepartmentCreateModal(!departmentCreateModal);
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting
-  const campusAddMutation = api.buildings.addCampus.useMutation();
-  const campusUpdateMutation = api.buildings.updateCampus.useMutation();
-  const campusDeleteMutation = api.buildings.deleteCampus.useMutation();
+  const departmentAddMutation = api.department.addDepartment.useMutation();
+  const departmentUpdateMutation =
+    api.department.updateDepartment.useMutation();
+  const departmentDeleteMutation =
+    api.department.deleteDepartment.useMutation();
 
   /**
-   * onCampusModifySubmit
+   * onDepartmentModifySubmit
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onCampusModifySubmit = async (data: ICreateCampus) => {
-    //Do we have to update campus
-    console.log(campusEditing);
+  const onDepartmentModifySubmit = async (data: ICreateDepartments) => {
+    //Do we have to update department
+    console.log(departmentEditing);
 
-    if (campusEditing) {
-      const result = await campusUpdateMutation.mutateAsync({
-        tuid: campusEditing?.tuid,
+    if (departmentEditing) {
+      const result = await departmentUpdateMutation.mutateAsync({
+        tuid: departmentEditing?.tuid,
         ...data,
       });
 
@@ -148,64 +158,64 @@ const CampusTab = () => {
           position: NOTIFICATION_POSITION,
         });
       } else {
-        toast.error(`Failed to add campus '${data.name}'`, {
+        toast.error(`Failed to add department '${data.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       }
 
       //Update the list
-      campuses.refetch();
+      departments.refetch();
     } else {
-      const result = await campusAddMutation.mutateAsync(data);
+      const result = await departmentAddMutation.mutateAsync(data);
       if (result) {
-        toast.success(`Added new campus '${data.name}'`, {
+        toast.success(`Added new department '${data.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       } else {
-        toast.error(`Failed to add campus '${data.name}'`),
+        toast.error(`Failed to add department '${data.name}'`),
           {
             position: NOTIFICATION_POSITION,
           };
       }
     }
 
-    campuses.refetch();
+    departments.refetch();
     //Toggle the modal
-    setCampusCreateModal(false);
+    setDepartmentCreateModal(false);
   };
 
   /**
-   * deleteCampus -
-   * Delete a campus based on tuid that is in the campusDeleteValue
+   * deleteDepartment -
+   * Delete a department based on tuid that is in the departmentDeleteValue
    */
-  const deleteCampus = async () => {
-    //Make sure the value of the campus we want to delete is not undefined
-    if (campusDeleteValue != undefined) {
+  const deleteDepartment = async () => {
+    //Make sure the value of the department we want to delete is not undefined
+    if (departmentDeleteValue != undefined) {
       //Now send the mutation to the server. The server will return
       //A boolean value that either it deleted or it failed to delete
-      const response = await campusDeleteMutation.mutateAsync({
-        tuid: campusDeleteValue?.tuid,
+      const response = await departmentDeleteMutation.mutateAsync({
+        tuid: departmentDeleteValue?.tuid,
       });
 
       //If its true, that's a good!
       if (response) {
-        toast.success(`Succesfully deleted '${campusDeleteValue?.name}'`, {
+        toast.success(`Succesfully deleted '${departmentDeleteValue?.name}'`, {
           position: NOTIFICATION_POSITION,
         });
         //Else its an error
       } else {
-        toast.error(`Failed to deleted '${campusDeleteValue?.name}'`, {
+        toast.error(`Failed to deleted '${departmentDeleteValue?.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       }
     }
-    //Now we just need to reftech the campuses
-    campuses.refetch();
+    //Now we just need to reftech the departments
+    departments.refetch();
     //And close the modal
-    setCampusDeleteModal(false);
+    setDepartmentDeleteModal(false);
   };
 
-  const [campusEditing, setCampusEditing] = useState<GuidelineCampus>();
+  const [departmentEditing, setDepartmentEditing] = useState<Department>();
 
   return (
     <>
@@ -216,11 +226,11 @@ const CampusTab = () => {
         <div>
           <Button
             onClick={() => {
-              toggleCampusModifyModal();
+              toggleDepartmentModifyModal();
             }}
           >
             <Plus />
-            Add Campus
+            Add Department
           </Button>
         </div>
       </div>
@@ -234,18 +244,18 @@ const CampusTab = () => {
           </Table.Head>
 
           <Table.Body>
-            {campuses.data?.result.map((campus, i) => {
+            {departments.data?.result.map((department, i) => {
               return (
                 <Table.Row key={i}>
                   <span>{i + 1}</span>
-                  <span>{campus.name}</span>
+                  <span>{department.name}</span>
                   <div className="hover:cursor-pointer">
                     <Button
                       color="warning"
                       onClick={() => {
-                        toggleCampusModifyModal();
-                        setCampusEditing(campus);
-                        reset(campus);
+                        toggleDepartmentModifyModal();
+                        setDepartmentEditing(department);
+                        reset(department);
                       }}
                     >
                       <Pencil />
@@ -254,7 +264,7 @@ const CampusTab = () => {
                   <div className="hover:cursor-pointer">
                     <Button
                       onClick={() => {
-                        openDeleteModal(campus);
+                        openDeleteModal(department);
                       }}
                       color="error"
                     >
@@ -266,67 +276,67 @@ const CampusTab = () => {
             })}
           </Table.Body>
         </Table>
-        {campuses.data?.result.length == 0 && (
+        {departments.data?.result.length == 0 && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
-            No campuses found!
+            No department found!
             <div>
-              <Button onClick={toggleCampusModifyModal} className="mt-2">
+              <Button onClick={toggleDepartmentModifyModal} className="mt-2">
                 <Plus />
-                Add Campus
+                Add Department
               </Button>
             </div>
           </div>
         )}
-        {campuses.isFetching && (
+        {departments.isFetching && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
             <AnimatedSpinner />
           </div>
         )}
       </div>
       <div className="flex w-full justify-center p-2">
-        {campuses.data != undefined && (
+        {departments.data != undefined && (
           <PaginationBar
-            totalPageCount={campuses.data?.totalPages}
-            currentPage={campuses.data?.page}
+            totalPageCount={departments.data?.totalPages}
+            currentPage={departments.data?.page}
             onClick={(page) => {
-              setCampusPage(page);
+              setDepartmentPage(page);
             }}
           />
         )}
       </div>
       {/* This dialog used for adding a user */}
       <Modal
-        open={campusCreateModal}
-        onClickBackdrop={toggleCampusModifyModal}
+        open={departmentCreateModal}
+        onClickBackdrop={toggleDepartmentModifyModal}
         className="w-[300px]"
       >
         <Button
           size="sm"
           shape="circle"
           className="absolute right-2 top-2"
-          onClick={toggleCampusModifyModal}
+          onClick={toggleDepartmentModifyModal}
         >
           ✕
         </Button>
         <Modal.Header className="font-bold">
-          {campusEditing != undefined ? "Edit" : "Add"} Campus
+          {departmentEditing != undefined ? "Edit" : "Add"} Department
         </Modal.Header>
 
         <Modal.Body>
           <form
-            onSubmit={campusForm.handleSubmit(onCampusModifySubmit)}
+            onSubmit={departmentForm.handleSubmit(onDepartmentModifySubmit)}
             className="flex flex-col"
           >
             <div>
-              <p>Campus</p>
+              <p>Department</p>
               <Input
                 type="text"
                 className="mt-2"
-                placeholder="Campus Name "
-                {...campusForm.register("name")}
+                placeholder="Department Name "
+                {...departmentForm.register("name")}
               />
               <ErrorMessage
-                errors={campusForm.formState.errors}
+                errors={departmentForm.formState.errors}
                 name="name"
                 render={({ message }) => (
                   <p className="font-semibold text-red-600">{message}</p>
@@ -335,28 +345,28 @@ const CampusTab = () => {
             </div>
             <div className="flex justify-end">
               <Button color="success" type="submit" className="mt-2">
-                {campusEditing != undefined ? "Save" : "Add"}
+                {departmentEditing != undefined ? "Save" : "Add"}
               </Button>
             </div>
           </form>
         </Modal.Body>
       </Modal>
-      {/* This dialog for deleting a campus */}
+      {/* This dialog for deleting a department */}
       <ConfirmDeleteModal
-        open={campusDeleteModal}
-        title="Delete Campus?"
+        open={departmentDeleteModal}
+        title="Delete Department?"
         message={
-          campusDeleteValue
-            ? `Are you sure you want delete '${campusDeleteValue?.name}'?`
+          departmentDeleteValue
+            ? `Are you sure you want delete '${departmentDeleteValue?.name}'?`
             : "Error"
         }
         onClose={() => {
-          setCampusDeleteModal(false);
+          setDepartmentDeleteModal(false);
         }}
-        onConfirm={deleteCampus}
+        onConfirm={deleteDepartment}
       />
     </>
   );
 };
 
-export default CampusTab;
+export default DepartmentTab;

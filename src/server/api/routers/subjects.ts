@@ -13,7 +13,7 @@ const TOTAL_RESULTS_PER_PAGE = 10;
 
 //Router to carry out functions on subjects
 export const subjectRouter = createTRPCRouter({
-  //Router to pull all subjects to be autofilled
+  //Router to pull all subjects
   getAllSubjects: protectedProcedure
     .input(
       z.object({

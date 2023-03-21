@@ -4,7 +4,7 @@ import { Tabs } from "react-daisyui";
 import { routeNeedsAuthSession } from "src/server/auth";
 import { useState } from "react";
 
-import CampusTab from "./DepartmentsTab";
+import DepartmentTab from "./DepartmentsTab";
 
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
@@ -13,7 +13,7 @@ import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 
 import AdminDashboardSidebar from "src/components/dashboard/AdminDashboardSidebar";
 
-const Buildings: NextPage = () => {
+const Departments: NextPage = () => {
   /**
    * useSession
    *
@@ -33,27 +33,27 @@ const Buildings: NextPage = () => {
     <DashboardLayout>
       <AdminDashboardSidebar />
       <DashboardContent>
-        <DashboardContentHeader title="Buildings" />
+        <DashboardContentHeader title="Department/Subjects" />
         <Tabs
           variant="lifted"
           value={tabValue}
           onChange={setTabValue}
           className="mt-2"
         >
-          <Tabs.Tab value={0}>Buildings</Tabs.Tab>
-          <Tabs.Tab value={1}>Campus</Tabs.Tab>
+          <Tabs.Tab value={0}>Departments</Tabs.Tab>
+          <Tabs.Tab value={1}>Subjects</Tabs.Tab>
         </Tabs>
         {/* Load the <BuildingTab /> Component */}
-        {tabValue == 0 && <CampusTab />}
+        {tabValue == 0 && <DepartmentTab />}
         {/*Load the <CampusTab /> Component */}
-        {tabValue == 1 && <CampusTab />}
+        {tabValue == 1 && <DepartmentTab />}
         {/* This is the dialog for creating a campus */}
       </DashboardContent>
     </DashboardLayout>
   );
 };
 
-export default Buildings;
+export default Departments;
 
 /**
  * Get Server Side Properties

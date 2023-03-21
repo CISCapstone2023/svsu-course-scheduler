@@ -14,7 +14,7 @@ const TOTAL_RESULTS_PER_PAGE = 10;
 //Router to carry out functions on subjects
 export const subjectRouter = createTRPCRouter({
   //Router to pull all subjects to be autofilled
-  getAllSubjectsAutofill: protectedProcedure
+  getAllSubjects: protectedProcedure
     .input(
       z.object({
         //Takes input in as a zod object with the page attribute
@@ -34,20 +34,30 @@ export const subjectRouter = createTRPCRouter({
       totalPages = Math.ceil(subjectCount / TOTAL_RESULTS_PER_PAGE);
 
       return {
-        //Returns the subject object with label, name, and value.
-        result: subjectResult.map((subject) => {
-          return {
-            label: subject.name,
-            value: subject.name,
-            subject: subject.name,
-            tuid: subject.tuid,
-          };
-        }),
+        result: subjectResult,
         //Returns page that the user is on and total pages
         page: input.page,
         totalPages: totalPages,
       };
     }),
+
+  //Router to pull all subjects to be autofilled
+  getAllSubjectsAutofill: protectedProcedure.query(async ({ ctx, input }) => {
+    //Queries the database to grab all subjects and handles pagination
+    const subjectResult = await ctx.prisma.subject.findMany();
+    //Queries the database for the total number of subjects in the subjects table, then calculates the total number of pagination pages
+
+    return {
+      //Returns the subject object with label, name, and value.
+      result: subjectResult.map((subject) => {
+        return {
+          label: subject.name,
+          value: subject.name,
+          subject: subject.name,
+        };
+      }),
+    };
+  }),
 
   //Router to add a subject to the subject table
   addSubject: protectedProcedure

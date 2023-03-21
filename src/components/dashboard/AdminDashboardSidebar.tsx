@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 import { Divider, Menu } from "react-daisyui";
-import { Book, Building, CaretLeft, User } from "tabler-icons-react";
+import { Apple, Book, Building, CaretLeft, User } from "tabler-icons-react";
 import DashboardSidebarItem from "./DashboardSidebarItem";
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 import Image from "next/image";
@@ -66,6 +66,12 @@ const AdminDashboardSidebar = ({ children }: DashboardSidebarProps) => {
         <Link href={`/admin/buildings`}>
           <DashboardSidebarItem title="Buildings">
             <Building width={40} height={40} />
+          </DashboardSidebarItem>
+        </Link>
+        {/* Redirects to buildings page when clicked */}
+        <Link href={`/admin/departments`}>
+          <DashboardSidebarItem title="Departments">
+            <Apple width={40} height={40} />
           </DashboardSidebarItem>
         </Link>
       </Menu>

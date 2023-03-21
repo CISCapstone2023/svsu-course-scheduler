@@ -17,22 +17,33 @@ export const subjectRouter = createTRPCRouter({
   getAllSubjectsAutofill: protectedProcedure
     .input(
       z.object({
+        //Takes input in as a zod object with the page attribute
         page: z.number().default(1),
       })
     )
     .query(async ({ ctx, input }) => {
-      let subjectResult: Subject[] = [];
       let totalPages = 1;
 
-      subjectResult = await ctx.prisma.subject.findMany({
+      //Queries the database to grab all subjects and handles pagination
+      const subjectResult = await ctx.prisma.subject.findMany({
         take: TOTAL_RESULTS_PER_PAGE,
         skip: (input.page - 1) * TOTAL_RESULTS_PER_PAGE,
       });
+      //Queries the database for the total number of subjects in the subjects table, then calculates the total number of pagination pages
       const subjectCount = await ctx.prisma.subject.count();
       totalPages = Math.ceil(subjectCount / TOTAL_RESULTS_PER_PAGE);
 
       return {
-        result: subjectResult,
+        //Returns the subject object with label, name, and value.
+        result: subjectResult.map((subject) => {
+          return {
+            label: subject.name,
+            value: subject.name,
+            subject: subject.name,
+            tuid: subject.tuid,
+          };
+        }),
+        //Returns page that the user is on and total pages
         page: input.page,
         totalPages: totalPages,
       };
@@ -42,34 +53,39 @@ export const subjectRouter = createTRPCRouter({
   addSubject: protectedProcedure
     .input(createSubjectsSchema)
     .mutation(async ({ ctx, input }) => {
+      //Runs a mutation on the database to add a new subject with the subject name that is passed in from client
       const subjectCreate = await ctx.prisma.subject.create({
         data: {
           name: input.name,
         },
       });
-      return subjectCreate;
+      return subjectCreate; //Returns the created subject
     }),
 
   // Router to delete a subject
   deleteSubject: protectedProcedure
     .input(
       z.object({
+        //Takes in tuid from client on which subject to delete
         tuid: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      //Runs a query to count how many subjects there are with the provided tuid
       const hasSubject = await ctx.prisma.subject.count({
         where: {
           tuid: input.tuid,
         },
       });
 
+      //If the subject is found, it deletes the subject based on tuid
       if (hasSubject == 1) {
         await ctx.prisma.subject.delete({
           where: {
             tuid: input.tuid,
           },
         });
+        //Returns true of delete was successful
         return true;
       }
       return false;
@@ -79,11 +95,13 @@ export const subjectRouter = createTRPCRouter({
   updateSubject: protectedProcedure
     .input(updateSubjectsSchema)
     .mutation(async ({ ctx, input }) => {
+      //Runs a query to count how many subjects there are with the provided tuid
       const hasSubject = await ctx.prisma.subject.count({
         where: {
           tuid: input.tuid,
         },
       });
+      //If at least one subject exists it will update the subject with the data passed in from the client
       if (hasSubject == 1) {
         await ctx.prisma.subject.update({
           where: {
@@ -93,6 +111,7 @@ export const subjectRouter = createTRPCRouter({
             name: input.name,
           },
         });
+        //Returns true if update was successful
         return true;
       }
       return false;

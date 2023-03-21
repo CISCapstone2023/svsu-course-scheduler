@@ -7,6 +7,7 @@ import {
   updateSubjectsSchema,
 } from "src/validation/subjects";
 import { Prisma } from "@prisma/client";
+import { update } from "lodash";
 
 const TOTAL_RESULTS_PER_PAGE = 10;
 
@@ -33,5 +34,38 @@ export const subjectRouter = createTRPCRouter({
         page: input.page,
         totalPages: totalPages,
       };
+    }),
+
+  addSubject: protectedProcedure
+    .input(createSubjectsSchema)
+    .mutation(async ({ ctx, input }) => {
+      const subjectCreate = await ctx.prisma.subject.create({
+        data: {
+          name: input.name,
+        },
+      });
+      return subjectCreate;
+    }),
+
+  updateSubject: protectedProcedure
+    .input(updateSubjectsSchema)
+    .mutation(async ({ ctx, input }) => {
+      const hasSubject = await ctx.prisma.subject.count({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+      if (hasSubject == 1) {
+        await ctx.prisma.subject.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            name: input.name,
+          },
+        });
+        return true;
+      }
+      return false;
     }),
 });

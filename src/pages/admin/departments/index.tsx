@@ -12,6 +12,7 @@ import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 
 import AdminDashboardSidebar from "src/components/dashboard/AdminDashboardSidebar";
+import SubjectTab from "./SubjectTab";
 
 const Departments: NextPage = () => {
   /**
@@ -46,7 +47,7 @@ const Departments: NextPage = () => {
         {/* Load the <BuildingTab /> Component */}
         {tabValue == 0 && <DepartmentTab />}
         {/*Load the <CampusTab /> Component */}
-        {tabValue == 1 && <DepartmentTab />}
+        {tabValue == 1 && <SubjectTab />}
         {/* This is the dialog for creating a campus */}
       </DashboardContent>
     </DashboardLayout>

@@ -12,14 +12,15 @@ import { api } from "src/utils/api";
 import { createCampusSchema, ICreateCampus } from "src/validation/buildings";
 
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
-import { GuidelineCampus } from "@prisma/client";
+import { Subject } from "@prisma/client";
 import { toast } from "react-toastify";
 import PaginationBar from "src/components/Pagination";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
+import { createSubjectsSchema, ICreateSubject } from "src/validation/subjects";
 
 const NOTIFICATION_POSITION = toast.POSITION.BOTTOM_LEFT;
 
-const CampusTab = () => {
+const SubjectTab = () => {
   /**
    * Router
    * Get the context of the current NextJS Router
@@ -42,12 +43,12 @@ const CampusTab = () => {
    * Set the current page for the pagination with a default page
    * of 1. This is consumed by the pagination component and then updated.
    */
-  const [campusPage, setCampusPage] = useState(1);
+  const [subjectPage, setSubjectPage] = useState(1);
 
   //Query all of the data based on the search value
-  const campuses = api.buildings.getAllCampus.useQuery({
+  const subjects = api.subjects.getAllSubjects.useQuery({
     search: searchValue,
-    page: campusPage,
+    page: subjectPage,
   });
 
   /**
@@ -55,15 +56,15 @@ const CampusTab = () => {
    */
   useEffect(() => {
     //Check if we have any building data
-    if (campuses.data) {
+    if (subjects.data) {
       //Check if we are past the current total pages and we are not fetching
-      if (campusPage > campuses.data!.totalPages && !campuses.isFetching) {
+      if (subjectPage > subjects.data!.totalPages && !subjects.isFetching) {
         const page =
-          campuses.data!.totalPages > 0 ? campuses.data!.totalPages : 1;
-        setCampusPage(page); //Go to the max page
+          subjects.data!.totalPages > 0 ? subjects.data!.totalPages : 1;
+        setSubjectPage(page); //Go to the max page
       }
     }
-  }, [campuses.data]);
+  }, [subjects.data]);
 
   //The function that gets called when a input event has occured.
   //It passthe the React Change Event which has a input element
@@ -79,7 +80,7 @@ const CampusTab = () => {
     //is an arrow function
     debounce((value: string) => {
       //Now we actually update the search so we don't keep fetching the server
-      setCampusPage(1);
+      setSubjectPage(1);
       setSearchValue(value);
     }, 500), //This waits 500 ms (half a second) before the function inside (aka above) gets called
     []
@@ -92,54 +93,54 @@ const CampusTab = () => {
    */
 
   //CREATE MODAL
-  const [campusCreateModal, setCampusCreateModal] = useState<boolean>(false);
+  const [subjectCreateModal, setSubjectCreateModal] = useState<boolean>(false);
 
   //DELETE MODAL
-  const [campusDeleteModal, setCampusDeleteModal] = useState<boolean>(false);
-  const [campusDeleteValue, setCampusDeleteValue] = useState<GuidelineCampus>();
+  const [subjectDeleteModal, setSubjectDeleteModal] = useState<boolean>(false);
+  const [subjectDeleteValue, setSubjectDeleteValue] = useState<Subject>();
 
   /**
    * openDeleteModal -
-   * Open Modal for the current campus (which is a GuidelineCampus)
-   * @param campus
+   * Open Modal for the current subject (which is a Subject)
+   * @param subject
    */
-  const openDeleteModal = (campus: GuidelineCampus) => {
-    setCampusDeleteValue(campus);
-    setCampusDeleteModal(true);
+  const openDeleteModal = (subject: Subject) => {
+    setSubjectDeleteValue(subject);
+    setSubjectDeleteModal(true);
   };
   /**
    * useForm -
    * This creates a new form using the react-form-hooks.
    */
-  const { reset, ...campusForm } = useForm<ICreateCampus>({
+  const { reset, ...subjectForm } = useForm<ICreateSubject>({
     mode: "onBlur",
-    resolver: zodResolver(createCampusSchema),
+    resolver: zodResolver(createSubjectsSchema),
   });
 
-  const toggleCampusModifyModal = () => {
+  const toggleSubjectModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
     reset({ name: "" });
-    setCampusEditing(undefined);
-    setCampusCreateModal(!campusCreateModal);
+    setSubjectEditing(undefined);
+    setSubjectCreateModal(!subjectCreateModal);
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting
-  const campusAddMutation = api.buildings.addCampus.useMutation();
-  const campusUpdateMutation = api.buildings.updateCampus.useMutation();
-  const campusDeleteMutation = api.buildings.deleteCampus.useMutation();
+  const subjectAddMutation = api.subjects.addSubject.useMutation();
+  const subjectUpdateMutation = api.subjects.updateSubject.useMutation();
+  const subjectDeleteMutation = api.subjects.deleteSubject.useMutation();
 
   /**
    * onCampusModifySubmit
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onCampusModifySubmit = async (data: ICreateCampus) => {
+  const onSubjectModifySubmit = async (data: ICreateSubject) => {
     //Do we have to update campus
-    console.log(campusEditing);
+    console.log(subjectEditing);
 
-    if (campusEditing) {
-      const result = await campusUpdateMutation.mutateAsync({
-        tuid: campusEditing?.tuid,
+    if (subjectEditing) {
+      const result = await subjectUpdateMutation.mutateAsync({
+        tuid: subjectEditing?.tuid,
         ...data,
       });
 
@@ -148,64 +149,65 @@ const CampusTab = () => {
           position: NOTIFICATION_POSITION,
         });
       } else {
-        toast.error(`Failed to add campus '${data.name}'`, {
+        toast.error(`Failed to add subject '${data.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       }
 
       //Update the list
-      campuses.refetch();
+      subjects.refetch();
     } else {
-      const result = await campusAddMutation.mutateAsync(data);
+      console.log(data);
+      const result = await subjectAddMutation.mutateAsync(data);
       if (result) {
-        toast.success(`Added new campus '${data.name}'`, {
+        toast.success(`Added new subject '${data.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       } else {
-        toast.error(`Failed to add campus '${data.name}'`),
+        toast.error(`Failed to add subject '${data.name}'`),
           {
             position: NOTIFICATION_POSITION,
           };
       }
     }
 
-    campuses.refetch();
+    subjects.refetch();
     //Toggle the modal
-    setCampusCreateModal(false);
+    setSubjectCreateModal(false);
   };
 
   /**
-   * deleteCampus -
-   * Delete a campus based on tuid that is in the campusDeleteValue
+   * deleteSubject -
+   * Delete a subject based on tuid that is in the subjectDeleteValue
    */
-  const deleteCampus = async () => {
+  const deleteSubject = async () => {
     //Make sure the value of the campus we want to delete is not undefined
-    if (campusDeleteValue != undefined) {
+    if (subjectDeleteValue != undefined) {
       //Now send the mutation to the server. The server will return
       //A boolean value that either it deleted or it failed to delete
-      const response = await campusDeleteMutation.mutateAsync({
-        tuid: campusDeleteValue?.tuid,
+      const response = await subjectDeleteMutation.mutateAsync({
+        tuid: subjectDeleteValue?.tuid,
       });
 
       //If its true, that's a good!
       if (response) {
-        toast.success(`Succesfully deleted '${campusDeleteValue?.name}'`, {
+        toast.success(`Succesfully deleted '${subjectDeleteValue?.name}'`, {
           position: NOTIFICATION_POSITION,
         });
         //Else its an error
       } else {
-        toast.error(`Failed to deleted '${campusDeleteValue?.name}'`, {
+        toast.error(`Failed to deleted '${subjectDeleteValue?.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       }
     }
     //Now we just need to reftech the campuses
-    campuses.refetch();
+    subjects.refetch();
     //And close the modal
-    setCampusDeleteModal(false);
+    setSubjectDeleteModal(false);
   };
 
-  const [campusEditing, setCampusEditing] = useState<GuidelineCampus>();
+  const [subjectEditing, setSubjectEditing] = useState<Subject>();
 
   return (
     <>
@@ -216,11 +218,11 @@ const CampusTab = () => {
         <div>
           <Button
             onClick={() => {
-              toggleCampusModifyModal();
+              toggleSubjectModifyModal();
             }}
           >
             <Plus />
-            Add Campus
+            Add Subject
           </Button>
         </div>
       </div>
@@ -234,18 +236,18 @@ const CampusTab = () => {
           </Table.Head>
 
           <Table.Body>
-            {campuses.data?.result.map((campus, i) => {
+            {subjects.data?.result.map((subject, i) => {
               return (
                 <Table.Row key={i}>
                   <span>{i + 1}</span>
-                  <span>{campus.name}</span>
+                  <span>{subject.name}</span>
                   <div className="hover:cursor-pointer">
                     <Button
                       color="warning"
                       onClick={() => {
-                        toggleCampusModifyModal();
-                        setCampusEditing(campus);
-                        reset(campus);
+                        toggleSubjectModifyModal();
+                        setSubjectEditing(subject);
+                        reset(subject);
                       }}
                     >
                       <Pencil />
@@ -254,7 +256,7 @@ const CampusTab = () => {
                   <div className="hover:cursor-pointer">
                     <Button
                       onClick={() => {
-                        openDeleteModal(campus);
+                        openDeleteModal(subject);
                       }}
                       color="error"
                     >
@@ -266,67 +268,67 @@ const CampusTab = () => {
             })}
           </Table.Body>
         </Table>
-        {campuses.data?.result.length == 0 && (
+        {subjects.data?.result.length == 0 && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
-            No campuses found!
+            No subjects found!
             <div>
-              <Button onClick={toggleCampusModifyModal} className="mt-2">
+              <Button onClick={toggleSubjectModifyModal} className="mt-2">
                 <Plus />
-                Add Campus
+                Add Subject
               </Button>
             </div>
           </div>
         )}
-        {campuses.isFetching && (
+        {subjects.isFetching && (
           <div className="flex h-[200px] w-full flex-col items-center justify-center">
             <AnimatedSpinner />
           </div>
         )}
       </div>
       <div className="flex w-full justify-center p-2">
-        {campuses.data != undefined && (
+        {subjects.data != undefined && (
           <PaginationBar
-            totalPageCount={campuses.data?.totalPages}
-            currentPage={campuses.data?.page}
+            totalPageCount={subjects.data?.totalPages}
+            currentPage={subjects.data?.page}
             onClick={(page) => {
-              setCampusPage(page);
+              setSubjectPage(page);
             }}
           />
         )}
       </div>
-      {/* This dialog used for adding a user */}
+      {/* This dialog used for adding a subject */}
       <Modal
-        open={campusCreateModal}
-        onClickBackdrop={toggleCampusModifyModal}
+        open={subjectCreateModal}
+        onClickBackdrop={toggleSubjectModifyModal}
         className="w-[300px]"
       >
         <Button
           size="sm"
           shape="circle"
           className="absolute right-2 top-2"
-          onClick={toggleCampusModifyModal}
+          onClick={toggleSubjectModifyModal}
         >
           ✕
         </Button>
         <Modal.Header className="font-bold">
-          {campusEditing != undefined ? "Edit" : "Add"} Campus
+          {subjectEditing != undefined ? "Edit" : "Add"} Subject
         </Modal.Header>
 
         <Modal.Body>
           <form
-            onSubmit={campusForm.handleSubmit(onCampusModifySubmit)}
+            onSubmit={subjectForm.handleSubmit(onSubjectModifySubmit)}
             className="flex flex-col"
           >
             <div>
-              <p>Campus</p>
+              <p>Subject</p>
               <Input
                 type="text"
                 className="mt-2"
-                placeholder="Campus Name "
-                {...campusForm.register("name")}
+                placeholder="Subject Name "
+                {...subjectForm.register("name")}
               />
               <ErrorMessage
-                errors={campusForm.formState.errors}
+                errors={subjectForm.formState.errors}
                 name="name"
                 render={({ message }) => (
                   <p className="font-semibold text-red-600">{message}</p>
@@ -335,7 +337,7 @@ const CampusTab = () => {
             </div>
             <div className="flex justify-end">
               <Button color="success" type="submit" className="mt-2">
-                {campusEditing != undefined ? "Save" : "Add"}
+                {subjectEditing != undefined ? "Save" : "Add"}
               </Button>
             </div>
           </form>
@@ -343,20 +345,20 @@ const CampusTab = () => {
       </Modal>
       {/* This dialog for deleting a campus */}
       <ConfirmDeleteModal
-        open={campusDeleteModal}
-        title="Delete Campus?"
+        open={subjectDeleteModal}
+        title="Delete Subject?"
         message={
-          campusDeleteValue
-            ? `Are you sure you want delete '${campusDeleteValue?.name}'?`
+          subjectDeleteValue
+            ? `Are you sure you want delete '${subjectDeleteValue?.name}'?`
             : "Error"
         }
         onClose={() => {
-          setCampusDeleteModal(false);
+          setSubjectDeleteModal(false);
         }}
-        onConfirm={deleteCampus}
+        onConfirm={deleteSubject}
       />
     </>
   );
 };
 
-export default CampusTab;
+export default SubjectTab;

@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { Department } from "@prisma/client";
-import { updateDepartmentsSchema } from "src/validation/departments";
+import {
+  createDepartmentsSchema,
+  updateDepartmentsSchema,
+} from "src/validation/departments";
 
 /**
  * Department Router that will allow for adding, removing, deleting and querying
@@ -10,13 +13,12 @@ import { updateDepartmentsSchema } from "src/validation/departments";
 export const departmentRouter = createTRPCRouter({
   //add department protected procedure to add one department
   addDepartment: protectedProcedure
-    .input(updateDepartmentsSchema)
+    .input(createDepartmentsSchema)
     //async mutation to create a new department
     .mutation(async ({ ctx, input }) => {
       //await the creation of the new department
       await ctx.prisma.department.create({
         data: {
-          tuid: input.tuid,
           name: input.name,
         },
       });
@@ -25,8 +27,12 @@ export const departmentRouter = createTRPCRouter({
     }),
 
   //delete one department protected procedure to delete a single department
-  deleteOneDepartment: protectedProcedure
-    .input(updateDepartmentsSchema)
+  deleteDepartment: protectedProcedure
+    .input(
+      z.object({
+        tuid: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       //query department and get the number of departments with the given tuid
       const hasDepartment = await ctx.prisma.department.count({
@@ -46,6 +52,31 @@ export const departmentRouter = createTRPCRouter({
         return true;
       }
       //could not be deleted
+      return false;
+    }),
+
+  updateDepartment: protectedProcedure
+    .input(updateDepartmentsSchema)
+    .mutation(async ({ ctx, input }) => {
+      //Find if the department exists
+      const hasDepartment = await ctx.prisma.department.count({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+      //Make the department exists
+      if (hasDepartment == 1) {
+        await ctx.prisma.department.update({
+          where: {
+            tuid: input.tuid,
+          },
+          data: {
+            name: input.name,
+          },
+        });
+        return true;
+      }
+      //If there is no department to update, let the frontend know
       return false;
     }),
 

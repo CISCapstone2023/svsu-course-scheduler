@@ -276,6 +276,16 @@ model Room {
   location      CourseLocation    @relation(fields: [location_tuid], references: [tuid], onDelete: Cascade)
 }
 
+model Subject{
+  tuid          String        @id @default(cuid())
+  name          String
+}
+
+model Department{
+  tuid          String        @id @default(cuid())
+  name          String
+}
+
 // Permissions list 
 enum Permissions {
   DEPARTMENT_CHAIR

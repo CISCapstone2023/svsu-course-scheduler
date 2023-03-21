@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import { Department } from "@prisma/client";
+import { updateDepartmentsSchema } from "src/validation/departments";
 
 /**
  * Department Router that will allow for adding, removing, deleting and querying
@@ -9,12 +10,7 @@ import { Department } from "@prisma/client";
 export const departmentRouter = createTRPCRouter({
   //add department protected procedure to add one department
   addDepartment: protectedProcedure
-    .input(
-      z.object({
-        tuid: z.string(),
-        name: z.string(),
-      })
-    )
+    .input(updateDepartmentsSchema)
     //async mutation to create a new department
     .mutation(async ({ ctx, input }) => {
       //await the creation of the new department
@@ -30,12 +26,7 @@ export const departmentRouter = createTRPCRouter({
 
   //delete one department protected procedure to delete a single department
   deleteOneDepartment: protectedProcedure
-    .input(
-      z.object({
-        tuid: z.string(),
-        name: z.string(),
-      })
-    )
+    .input(updateDepartmentsSchema)
     .mutation(async ({ ctx, input }) => {
       //query department and get the number of departments with the given tuid
       const hasDepartment = await ctx.prisma.department.count({
@@ -90,11 +81,11 @@ export const departmentRouter = createTRPCRouter({
         });
 
         /**
-         * FacultyCount
+         * Department Count
          *
-         * Count the total faculty members
+         * Count the total departments
          */
-        const facultyCount = await ctx.prisma.department.count({
+        const departmentCount = await ctx.prisma.department.count({
           where: {
             OR: [
               {
@@ -105,7 +96,7 @@ export const departmentRouter = createTRPCRouter({
             ],
           },
         });
-        totalPages = Math.ceil(facultyCount / resultsPerPage);
+        totalPages = Math.ceil(departmentCount / resultsPerPage);
       } else {
         //if we don't have a search query, don't worry about the filter
         departmentResult = await ctx.prisma.department.findMany({
@@ -129,5 +120,36 @@ export const departmentRouter = createTRPCRouter({
         page: input.page,
         totalPages: totalPages,
       };
+    }),
+
+  //mutation that will return a list of departments based on the dropdown search
+  getAllDepartmentAutofill: protectedProcedure
+    .input(
+      z.object({
+        search: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      //query to find all departments matching the search if there is a search
+      const departmentData = await ctx.prisma.department.findMany({
+        ...(input.search != ""
+          ? {
+              where: {
+                name: {
+                  contains: input.search,
+                },
+              },
+            }
+          : {}),
+      });
+
+      return departmentData.map((department) => {
+        //maps the departmentData array returned
+        return {
+          label: department.name,
+          value: department.name,
+          name: department.name,
+        }; //returns the data mapped to the label and values needed
+      });
     }),
 });

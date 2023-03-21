@@ -442,7 +442,18 @@ const Projects: NextPage = () => {
                 />
               </Tooltip>
             ) : (
-              <></>
+              <Tooltip
+                message="Upload the Excel sheet that provided by the Office of Academic Affairs"
+                position="left"
+                className="relative top-1"
+              >
+                <QuestionMark
+                  size={30}
+                  strokeWidth={2}
+                  color={"black"}
+                  className="rounded-lg border"
+                />
+              </Tooltip>
             )}
             <Button
               size="sm"
@@ -657,7 +668,7 @@ const Projects: NextPage = () => {
           </Button>
         </div>
         <ProjectsLayout>
-          {result != undefined ? (
+          {result.data != undefined && result.data.result.length > 0 ? (
             result.data?.result.map((data, index) => {
               function calculateTime(
                 updatedAt: Date | undefined
@@ -722,7 +733,10 @@ const Projects: NextPage = () => {
               );
             })
           ) : (
-            <span> NO REVISION FOUND!</span>
+            <div className="flex h-full w-full flex-col items-center justify-center">
+              <strong className="text-2xl italic"> NO REVISION FOUND!</strong>
+              <span>Create New Project by Clicking the Button Above</span>
+            </div>
           )}
         </ProjectsLayout>
 

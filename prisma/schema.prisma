@@ -183,6 +183,7 @@ model CourseLocation {
 model GuidelinesFaculty {
   tuid       String                      @id @default(cuid())
   suffix     String
+  department String                 @default("CSIS")
   name       String
   email      String
   is_adjunct Boolean

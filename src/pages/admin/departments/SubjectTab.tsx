@@ -12,7 +12,7 @@ import { api } from "src/utils/api";
 import { createCampusSchema, ICreateCampus } from "src/validation/buildings";
 
 import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
-import { Department } from "@prisma/client";
+import { Subject } from "@prisma/client";
 import { toast } from "react-toastify";
 import PaginationBar from "src/components/Pagination";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
@@ -97,14 +97,14 @@ const SubjectTab = () => {
 
   //DELETE MODAL
   const [subjectDeleteModal, setSubjectDeleteModal] = useState<boolean>(false);
-  const [subjectDeleteValue, setSubjectDeleteValue] = useState<Department>();
+  const [subjectDeleteValue, setSubjectDeleteValue] = useState<Subject>();
 
   /**
    * openDeleteModal -
-   * Open Modal for the current subject (which is a department)
+   * Open Modal for the current subject (which is a Subject)
    * @param subject
    */
-  const openDeleteModal = (subject: Department) => {
+  const openDeleteModal = (subject: Subject) => {
     setSubjectDeleteValue(subject);
     setSubjectDeleteModal(true);
   };
@@ -206,7 +206,7 @@ const SubjectTab = () => {
     setSubjectDeleteModal(false);
   };
 
-  const [subjectEditing, setSubjectEditing] = useState<Department>();
+  const [subjectEditing, setSubjectEditing] = useState<Subject>();
 
   return (
     <>

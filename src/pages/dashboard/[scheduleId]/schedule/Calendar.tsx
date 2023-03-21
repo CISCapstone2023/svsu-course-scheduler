@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { difference } from "lodash";
+import { difference, isEqual } from "lodash";
 import React, { useEffect, useState } from "react";
 import { Button } from "react-daisyui";
 import { start } from "repl";
@@ -10,8 +10,10 @@ import {
 } from "src/server/api/routers/calendar";
 import { api } from "src/utils/api";
 import { number } from "zod";
+import CalendarWeekdayHeader from "./calendar/CalendarWeekdayHeader";
 
 interface CourseListingProps {
+  show: boolean;
   courses: (IScheduleCourse & { withinGuideline: boolean })[] | undefined;
   overlap?: boolean;
   setCourseHover: (value: IScheduleCourseWithTimes | null) => void;
@@ -110,6 +112,7 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
       //If the time is null, meaning there is no locations with proper times
       //the likeliness is said course is an online course
       if (time == null) {
+        console.log("Online course");
         return prev;
       }
 
@@ -228,6 +231,7 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
 };
 
 const CourseListing = ({
+  show,
   courses,
   overlap = true,
   setCourseHover,
@@ -238,102 +242,99 @@ const CourseListing = ({
   const mapped = calendarMapping(courses!);
 
   return (
-    <div className="wrap relative flex h-[900px]  grow border-r border-base-300">
-      <div className="relative w-full grow basis-0">
-        {mapped.map((block, index) => {
-          return (
-            <div
-              key={index}
-              className="absolute w-full "
-              style={{
-                top: block.top + 1,
-                left: block.indents * 10,
-              }}
-            >
-              <div className="flex w-full flex-row p-1">
-                {block.courses.map((course, index) => {
-                  return (
-                    <div
-                      key={index + course.tuid}
-                      style={{ height: (course.difference / 10) * 10 }}
-                      onMouseEnter={() => setCourseHover(course)}
-                      onMouseLeave={() => setCourseHover(null)}
-                      tabIndex={index}
-                      onClick={() => {
-                        onSelect(course.tuid);
-                      }}
-                      className={classNames(
-                        "z-[100]  flex w-32 cursor-pointer overflow-hidden  text-ellipsis rounded-lg  border  border-base-100 bg-base-200 transition-all duration-150 hover:z-[999] hover:shadow-lg",
-                        {
-                          "-ml-10": index > 0 && overlap,
-
-                          "z-[999] shadow-lg":
-                            hover != null && hover.tuid == course.tuid,
-                          "bg-base-300":
-                            hover != null &&
-                            hover.tuid == course.tuid &&
-                            course.withinGuideline,
-                          "mr-10":
-                            hover != null &&
-                            hover.tuid == course.tuid &&
-                            block.courses.length - 1 != index,
-                          "border-[3px] border-green-400":
-                            course.state == "ADDED",
-                          "border-[3px] border-yellow-400":
-                            course.state == "MODIFIED",
-                          "border-[3px] border-red-400":
-                            course.state == "REMOVED",
-                          "border-dotted bg-white": !course.withinGuideline,
-                        }
-                      )}
-                    >
-                      <div
-                        className={classNames("h-full w-full p-2", {
-                          "bg-brand": !course.withinGuideline,
-                        })}
-                      >
-                        <p style={{ fontSize: 12 }}>
-                          <p className="text-md font-bold">
-                            {course.subject} - {course.course_number}
-                          </p>{" "}
-                          {course.title}
-                          {course.credits}
-                          {course.locations.map((loc, i) => {
-                            return (
-                              <div key={i}>
-                                {loc.start_time} {loc.end_time}
-                              </div>
-                            );
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-        {Array(15)
-          .fill(0)
-          .map(function (x, i) {
-            return (
-              <div
-                key={i}
-                className="absolute w-full"
-                style={{
-                  top: i * 60 + 34,
-                  left: 0,
-                }}
-              >
-                <div key={i} className="flex flex-row text-center">
-                  <div className="flex  w-full items-center border-b border-base-300 bg-base-200 text-sm"></div>
+    <>
+      {" "}
+      {show && (
+        <div className="wrap relative flex h-[900px]  grow border-r border-base-300">
+          <div className="relative w-full grow basis-0">
+            {mapped.splice(0).map((block, index) => {
+              return (
+                <div
+                  key={index}
+                  className="absolute w-full "
+                  style={{
+                    top: block.top + 1,
+                    left: block.indents * 10,
+                  }}
+                >
+                  <div className="flex w-full flex-row p-1">
+                    {block.courses.map((course, index) => {
+                      return (
+                        <div
+                          key={index + course.tuid}
+                          style={{ height: (course.difference / 10) * 10 }}
+                          onMouseEnter={() => setCourseHover(course)}
+                          onMouseLeave={() => setCourseHover(null)}
+                          tabIndex={index}
+                          onClick={() => {
+                            onSelect(course.tuid);
+                          }}
+                          className={classNames(
+                            "z-[100] flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 transition-all duration-150 hover:z-[999] hover:shadow-lg",
+                            {
+                              "-ml-10": index > 0 && overlap,
+                              "z-[999] shadow-lg":
+                                hover != null && hover.tuid == course.tuid,
+                              "bg-base-300":
+                                hover != null &&
+                                hover.tuid == course.tuid &&
+                                course.withinGuideline,
+                              "mr-10":
+                                hover != null &&
+                                hover.tuid == course.tuid &&
+                                block.courses.length - 1 != index,
+                              //Check the state
+                              "border-[3px] border-green-400":
+                                course.state == "ADDED",
+                              "border-[3px] border-yellow-400":
+                                course.state == "MODIFIED",
+                              "border-[3px] border-red-400":
+                                course.state == "REMOVED",
+                            }
+                          )}
+                        >
+                          <div
+                            className={classNames("h-full w-full p-2", {
+                              "bg-red-100": !course.withinGuideline,
+                            })}
+                          >
+                            <p style={{ fontSize: 12 }}>
+                              <p className="text-md font-bold">
+                                {course.subject} - {course.course_number} -{" "}
+                                {course.section}
+                              </p>{" "}
+                              {course.title}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-      </div>
-    </div>
+              );
+            })}
+            {Array(15)
+              .fill(0)
+              .map(function (x, i) {
+                return (
+                  <div
+                    key={i}
+                    className="absolute w-full"
+                    style={{
+                      top: i * 60 + 34,
+                      left: 0,
+                    }}
+                  >
+                    <div key={i} className="flex flex-row text-center">
+                      <div className="flex  w-full items-center border-b border-base-300 bg-base-200 text-sm"></div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -351,6 +352,16 @@ interface CalendarComponentProps {
   weekends: boolean; //List of possible weekends to show
   onSelect: (course: string) => void; //Event when an course is selected
   onCourseHover: (course: IScheduleCourseWithTimes) => void; //Eent when the mouse hovers over a course
+}
+
+interface Days {
+  monday: boolean;
+  tuesday: boolean;
+  wednesday: boolean;
+  thursday: boolean;
+  friday: boolean;
+  saturday: boolean;
+  sunday: boolean;
 }
 
 const ScheduleCalendar = ({
@@ -383,6 +394,16 @@ const ScheduleCalendar = ({
     semester_spring: semester == "SP",
   });
 
+  const [sections, setOpenSections] = useState<Days>({
+    monday: true,
+    tuesday: true,
+    wednesday: true,
+    thursday: true,
+    friday: true,
+    saturday: true,
+    sunday: true,
+  });
+
   //List of possible times
   const times = [
     "8:00 AM",
@@ -402,6 +423,22 @@ const ScheduleCalendar = ({
     "10:00 PM",
   ];
 
+  const updateSectionViews = (days: Days) => {
+    if (isEqual(days, sections)) {
+      setOpenSections({
+        monday: true,
+        tuesday: true,
+        wednesday: true,
+        thursday: true,
+        friday: true,
+        saturday: true,
+        sunday: true,
+      });
+    } else {
+      setOpenSections(days);
+    }
+  };
+
   //HTML/JSX Rendering
   return (
     <div className="h-full overflow-hidden">
@@ -417,61 +454,87 @@ const ScheduleCalendar = ({
             Time
           </div>
         </div>
-        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
-          <div
-            className="absolute  "
-            style={{
-              top: 0,
-              left: 0,
-            }}
-          >
-            Monday
-          </div>
-        </div>
-        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
-          <div
-            className="absolute "
-            style={{
-              top: 0,
-              left: 0,
-            }}
-          >
-            Tuesday
-          </div>
-        </div>
-        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
-          <div
-            className="absolute "
-            style={{
-              top: 0,
-              left: 0,
-            }}
-          >
-            Wednesday
-          </div>
-        </div>
-        <div className="relative flex w-[70px]  grow border-r border-b border-base-300">
-          <div
-            className="absolute"
-            style={{
-              top: 0,
-              left: 0,
-            }}
-          >
-            Thursday
-          </div>
-        </div>
-        <div className="relative flex w-[70px]  grow border-r border-b  border-base-300">
-          <div
-            className="absolute "
-            style={{
-              top: 0,
-              left: 0,
-            }}
-          >
-            Friday
-          </div>
-        </div>
+        <CalendarWeekdayHeader
+          weekday="Monday"
+          active={sections.monday}
+          onClick={() => {
+            updateSectionViews({
+              monday: true,
+              tuesday: false,
+              wednesday: false,
+              thursday: false,
+              friday: false,
+              saturday: false,
+              sunday: false,
+            });
+          }}
+        />
+        <CalendarWeekdayHeader
+          weekday="Tuesday"
+          active={sections.tuesday}
+          onClick={() => {
+            updateSectionViews({
+              monday: false,
+              tuesday: true,
+              wednesday: false,
+              thursday: false,
+              friday: false,
+              saturday: false,
+              sunday: false,
+            });
+          }}
+        />
+        <CalendarWeekdayHeader
+          weekday="Wednesday"
+          active={sections.wednesday}
+          onClick={() => {
+            updateSectionViews({
+              monday: false,
+              tuesday: false,
+              wednesday: true,
+              thursday: false,
+              friday: false,
+              saturday: false,
+              sunday: false,
+            });
+          }}
+        />
+        <CalendarWeekdayHeader
+          weekday="Thursday"
+          active={sections.thursday}
+          onClick={() => {
+            updateSectionViews({
+              monday: false,
+              tuesday: false,
+              wednesday: false,
+              thursday: true,
+              friday: false,
+              saturday: false,
+              sunday: false,
+            });
+          }}
+        />
+        <CalendarWeekdayHeader
+          weekday="Friday"
+          active={sections.friday}
+          onClick={() => {
+            updateSectionViews({
+              monday: false,
+              tuesday: false,
+              wednesday: false,
+              thursday: false,
+              friday: true,
+              saturday: false,
+              sunday: false,
+            });
+          }}
+        />
+        {weekends && (
+          <>
+            <CalendarWeekdayHeader weekday="Saturday" />
+            <CalendarWeekdayHeader weekday="Sunday" />
+          </>
+        )}
       </div>
       <div className="flex h-full w-full overflow-y-scroll">
         <div className="flex h-[900px] w-full flex-col">
@@ -516,6 +579,7 @@ const ScheduleCalendar = ({
                 </div>
               </div>
               <CourseListing
+                show={sections.monday}
                 onSelect={onSelect}
                 courses={result.data.monday_courses}
                 setCourseHover={(course) => {
@@ -525,6 +589,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                show={sections.tuesday}
                 onSelect={onSelect}
                 courses={result.data.tuesday_courses}
                 setCourseHover={(course) => {
@@ -534,6 +599,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                show={sections.wednesday}
                 onSelect={onSelect}
                 courses={result.data.wednesday_courses}
                 setCourseHover={(course) => {
@@ -543,6 +609,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                show={sections.thursday}
                 onSelect={onSelect}
                 courses={result.data.thursday_courses}
                 setCourseHover={(course) => {
@@ -552,6 +619,7 @@ const ScheduleCalendar = ({
                 hover={hover}
               />
               <CourseListing
+                show={sections.friday}
                 onSelect={onSelect}
                 courses={result.data.friday_courses}
                 setCourseHover={(course) => {
@@ -564,6 +632,7 @@ const ScheduleCalendar = ({
               {weekends && (
                 <>
                   <CourseListing
+                    show={sections.saturday}
                     onSelect={onSelect}
                     courses={result.data.saturday_courses}
                     setCourseHover={(course) => {
@@ -573,6 +642,7 @@ const ScheduleCalendar = ({
                     hover={hover}
                   />
                   <CourseListing
+                    show={sections.sunday}
                     onSelect={onSelect}
                     courses={result.data.sunday_courses}
                     setCourseHover={(course) => {

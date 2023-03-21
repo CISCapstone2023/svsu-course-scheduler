@@ -179,6 +179,9 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
           {currentRevisionSemesters.data != undefined && (
             <>
               <Tabs
+                onClose={() => {
+                  //hello
+                }}
                 tabs={currentRevisionSemesters.data}
                 active={currentSemesterTabs}
                 onSelect={(tab) => {
@@ -213,8 +216,12 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
           {revisionList.data != undefined && (
             <>
               <Tabs
+                closable={false}
                 tabs={revisionTabs}
                 active={currentReivisionTab}
+                onClose={(tab) => {
+                  removeScheduleCalendar(tab);
+                }}
                 onSelect={(tab) => {
                   console.log(tab);
                   setCurrentRevisionTab(tab);
@@ -244,17 +251,18 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   Open
                 </Button>
               </Tabs>
-              {revisionTabs.length > 0 && (
-                <ScheduleCalendar
-                  onSelect={(value) => {
-                    console.log(value);
-                  }}
-                  semester={revisionTabs[currentReivisionTab]!.semester}
-                  revision={revisionTabs[currentReivisionTab]!.revision}
-                  weekends={false}
-                  onCourseHover={setLastHoveredCourse}
-                />
-              )}
+              {revisionTabs.length > 0 &&
+                revisionTabs[currentReivisionTab] != undefined && (
+                  <ScheduleCalendar
+                    onSelect={(value) => {
+                      console.log(value);
+                    }}
+                    semester={revisionTabs[currentReivisionTab]!.semester}
+                    revision={revisionTabs[currentReivisionTab]!.revision}
+                    weekends={false}
+                    onCourseHover={setLastHoveredCourse}
+                  />
+                )}
             </>
           )}
         </div>

@@ -18,20 +18,43 @@ export const subjectRouter = createTRPCRouter({
     .input(
       z.object({
         //Takes input in as a zod object with the page attribute
+        search: z.string(),
         page: z.number().default(1),
       })
     )
     .query(async ({ ctx, input }) => {
       let totalPages = 1;
+      let subjectResult: Subject[] = [];
 
-      //Queries the database to grab all subjects and handles pagination
-      const subjectResult = await ctx.prisma.subject.findMany({
-        take: TOTAL_RESULTS_PER_PAGE,
-        skip: (input.page - 1) * TOTAL_RESULTS_PER_PAGE,
-      });
-      //Queries the database for the total number of subjects in the subjects table, then calculates the total number of pagination pages
-      const subjectCount = await ctx.prisma.subject.count();
-      totalPages = Math.ceil(subjectCount / TOTAL_RESULTS_PER_PAGE);
+      if (input.search != "") {
+        //Queries the database to grab all subjects and handles pagination
+        subjectResult = await ctx.prisma.subject.findMany({
+          take: TOTAL_RESULTS_PER_PAGE,
+          skip: (input.page - 1) * TOTAL_RESULTS_PER_PAGE,
+          where: {
+            name: {
+              contains: input.search,
+            },
+          },
+        });
+        //Queries the database for the total number of subjects in the subjects table, then calculates the total number of pagination pages
+        const subjectCount = await ctx.prisma.subject.count({
+          where: {
+            name: {
+              contains: input.search,
+            },
+          },
+        });
+        totalPages = Math.ceil(subjectCount / TOTAL_RESULTS_PER_PAGE);
+      } else {
+        subjectResult = await ctx.prisma.subject.findMany({
+          take: TOTAL_RESULTS_PER_PAGE,
+          skip: (input.page - 1) * TOTAL_RESULTS_PER_PAGE,
+        });
+        // Get the count of campuses and use it to compute total page count
+        const subjectCount = await ctx.prisma.subject.count();
+        totalPages = Math.ceil(subjectCount / TOTAL_RESULTS_PER_PAGE);
+      }
 
       return {
         result: subjectResult,
@@ -43,9 +66,8 @@ export const subjectRouter = createTRPCRouter({
 
   //Router to pull all subjects to be autofilled
   getAllSubjectsAutofill: protectedProcedure.query(async ({ ctx, input }) => {
-    //Queries the database to grab all subjects and handles pagination
+    //Queries the database to grab all subjects for autofill
     const subjectResult = await ctx.prisma.subject.findMany();
-    //Queries the database for the total number of subjects in the subjects table, then calculates the total number of pagination pages
 
     return {
       //Returns the subject object with label, name, and value.

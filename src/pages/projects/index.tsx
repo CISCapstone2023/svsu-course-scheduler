@@ -430,7 +430,9 @@ const Projects: NextPage = () => {
             </Steps>
             {stage === 2 ? (
               <Tooltip
-                message="Pick the right column name based on the dropdown!"
+                message={
+                  "•Pick the right column name based on the dropdown! •Hold SHIFT key to scroll horizontally."
+                }
                 position="bottom"
                 className="relative top-1"
               >
@@ -442,7 +444,18 @@ const Projects: NextPage = () => {
                 />
               </Tooltip>
             ) : (
-              <></>
+              <Tooltip
+                message="Upload the Excel sheet that provided by the Office of Academic Affairs"
+                position="left"
+                className="relative top-1"
+              >
+                <QuestionMark
+                  size={30}
+                  strokeWidth={2}
+                  color={"black"}
+                  className="rounded-lg border"
+                />
+              </Tooltip>
             )}
             <Button
               size="sm"
@@ -541,6 +554,9 @@ const Projects: NextPage = () => {
               )}
             </div>
           </Modal.Body>
+          <span className="text-sm italic text-gray-600">
+            * Hold SHIFT key to scroll horizontally
+          </span>
           <div className=" relative mt-5 flex w-full justify-between justify-self-end align-middle">
             {" "}
             {stage > 1.5 ? (
@@ -565,7 +581,9 @@ const Projects: NextPage = () => {
                     {listOfSchedule.data != undefined && (
                       <div className="w-full flex-col">
                         <label className="label">
-                          <span className="label-text">Select Revision</span>
+                          <span className="label-text">
+                            Select Revision (Not Required)
+                          </span>
                         </label>
                         <Select
                           menuPlacement="top"
@@ -657,7 +675,7 @@ const Projects: NextPage = () => {
           </Button>
         </div>
         <ProjectsLayout>
-          {result != undefined ? (
+          {result.data != undefined && result.data.result.length > 0 ? (
             result.data?.result.map((data, index) => {
               function calculateTime(
                 updatedAt: Date | undefined
@@ -722,7 +740,10 @@ const Projects: NextPage = () => {
               );
             })
           ) : (
-            <span> NO REVISION FOUND!</span>
+            <div className="flex h-full w-full flex-col items-center justify-center">
+              <strong className="text-2xl italic"> NO REVISION FOUND!</strong>
+              <span>Create New Project by Clicking the Button Above</span>
+            </div>
           )}
         </ProjectsLayout>
 

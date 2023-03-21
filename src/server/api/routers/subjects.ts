@@ -85,6 +85,7 @@ export const subjectRouter = createTRPCRouter({
   addSubject: protectedProcedure
     .input(createSubjectsSchema)
     .mutation(async ({ ctx, input }) => {
+      console.log(input);
       //Runs a mutation on the database to add a new subject with the subject name that is passed in from client
       const subjectCreate = await ctx.prisma.subject.create({
         data: {

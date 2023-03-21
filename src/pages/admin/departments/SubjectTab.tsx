@@ -46,7 +46,7 @@ const SubjectTab = () => {
   const [subjectPage, setSubjectPage] = useState(1);
 
   //Query all of the data based on the search value
-  const subjects = api.buildings.getAllCampus.useQuery({
+  const subjects = api.subjects.getAllSubjects.useQuery({
     search: searchValue,
     page: subjectPage,
   });
@@ -125,16 +125,16 @@ const SubjectTab = () => {
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting
-  const subjectAddMutation = api.buildings.addCampus.useMutation();
-  const subjectUpdateMutation = api.buildings.updateCampus.useMutation();
-  const subjectDeleteMutation = api.buildings.deleteCampus.useMutation();
+  const subjectAddMutation = api.subjects.addSubject.useMutation();
+  const subjectUpdateMutation = api.subjects.updateSubject.useMutation();
+  const subjectDeleteMutation = api.subjects.deleteSubject.useMutation();
 
   /**
    * onCampusModifySubmit
    * A useCallback which will only update on change of the mutation.
    * Parameters are passed through the reference
    */
-  const onSubjectModifySubmit = async (data: ICreateCampus) => {
+  const onSubjectModifySubmit = async (data: ICreateSubject) => {
     //Do we have to update campus
     console.log(subjectEditing);
 
@@ -157,6 +157,7 @@ const SubjectTab = () => {
       //Update the list
       subjects.refetch();
     } else {
+      console.log(data);
       const result = await subjectAddMutation.mutateAsync(data);
       if (result) {
         toast.success(`Added new subject '${data.name}'`, {

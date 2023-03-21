@@ -430,7 +430,9 @@ const Projects: NextPage = () => {
             </Steps>
             {stage === 2 ? (
               <Tooltip
-                message="Pick the right column name based on the dropdown!"
+                message={
+                  "•Pick the right column name based on the dropdown! •Hold SHIFT key to scroll horizontally."
+                }
                 position="bottom"
                 className="relative top-1"
               >
@@ -552,6 +554,9 @@ const Projects: NextPage = () => {
               )}
             </div>
           </Modal.Body>
+          <span className="text-sm italic text-gray-600">
+            * Hold SHIFT key to scroll horizontally
+          </span>
           <div className=" relative mt-5 flex w-full justify-between justify-self-end align-middle">
             {" "}
             {stage > 1.5 ? (
@@ -576,7 +581,9 @@ const Projects: NextPage = () => {
                     {listOfSchedule.data != undefined && (
                       <div className="w-full flex-col">
                         <label className="label">
-                          <span className="label-text">Select Revision</span>
+                          <span className="label-text">
+                            Select Revision (Not Required)
+                          </span>
                         </label>
                         <Select
                           menuPlacement="top"

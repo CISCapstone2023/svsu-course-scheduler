@@ -9,21 +9,28 @@ interface TabsProps {
   tabs: ITab[];
   showChildren?: boolean;
   active: number;
+  closable?: boolean;
   onSelect: (value: number) => void;
+  onClose: (tab: number) => void;
 }
 //Properities for the <Tab> Component
 interface TabProps {
   children?: React.ReactNode;
   title: string;
   active: boolean;
+  closable?: boolean;
   onClick: () => void;
+  onClose: () => void;
 }
 
 //Tab Component
-const Tab = ({ title, onClick, active }: TabProps) => {
+const Tab = ({ title, onClick, active, closable, onClose }: TabProps) => {
   return (
     <div
-      onClick={onClick}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
       className={classNames(
         "h-50 flex grow cursor-pointer items-center justify-center border-r-2 bg-base-100 text-center hover:bg-base-200",
         {
@@ -31,7 +38,20 @@ const Tab = ({ title, onClick, active }: TabProps) => {
         }
       )}
     >
-      <p>{title}</p>
+      <div className="grow">{title}</div>
+      {closable && (
+        <div>
+          {" "}
+          <Button
+            size="sm"
+            onClick={() => {
+              onClose();
+            }}
+          >
+            X
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -40,8 +60,10 @@ const Tab = ({ title, onClick, active }: TabProps) => {
 const Tabs = ({
   children,
   onSelect,
+  onClose,
   active,
   tabs = [],
+  closable = false,
   showChildren = false,
 }: TabsProps) => {
   return (
@@ -50,9 +72,13 @@ const Tabs = ({
         tabs.map((tab, index) => {
           return (
             <Tab
+              closable={closable}
               key={index}
               onClick={() => {
                 onSelect(index);
+              }}
+              onClose={() => {
+                onClose(index);
               }}
               active={active == index}
               title={tab.title}

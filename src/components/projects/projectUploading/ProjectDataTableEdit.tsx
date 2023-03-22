@@ -38,7 +38,7 @@ export const columnLookupTable: readonly IColumnLookupTable[] = [
   { value: "days", label: "Days" },
   { value: "course_method", label: "Course Method/Method 2" },
   { value: "course_start_date", label: "Course/Meeting Start Date" },
-  { value: "course_end_date", label: "Course/Meeting Emd Date" },
+  { value: "course_end_date", label: "Course/Meeting End Date" },
   { value: "noteAcademicAffairs", label: "Note For Academic Affairs" },
   { value: "notePrintedComments", label: "Printed Comments" },
 ];
@@ -96,9 +96,9 @@ const ProjectDataTableEdit = ({
   };
 
   return (
-    <div className="sticky top-0 h-96 overflow-x-auto overflow-y-scroll">
+    <div className="sticky top-0 h-96 w-full overflow-auto">
       {uploaded != undefined ? (
-        <Table className="sticky top-0 table-fixed border-collapse">
+        <Table className="sticky top-0 table-fixed border-collapse overflow-x-auto overflow-y-auto">
           <thead className="sticky top-0">
             <tr className="sticky top-0">
               <span />

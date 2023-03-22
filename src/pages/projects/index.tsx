@@ -468,7 +468,7 @@ const Projects: NextPage = () => {
           </Modal.Header>
 
           <Modal.Body className=" h-4/5 w-full flex-col overflow-y-auto  transition-all duration-200 ">
-            <div className="flex  w-full justify-center overflow-y-auto align-middle transition-all duration-200">
+            <div className="flex  w-full justify-center  align-middle transition-all duration-200">
               {/* if user uploaded their Excel, let them continue */}
               {stage <= 1.5 && (
                 <ProjectsUpload
@@ -489,11 +489,7 @@ const Projects: NextPage = () => {
               {/* when stage is in the second step show the errors (if haved) else always showed the table edit */}
               {stage === 2 && (
                 <div className="flex h-full w-full  flex-col">
-                  {/* <ProjectFinalize
-                    tuid={uploadedData?.tuid}
-                    columns={organizedColumns}
-                  /> */}
-                  <div className="flex h-full w-full">
+                  <div className="flex h-full w-full overflow-x-hidden">
                     {getMissingColumns().length > 0 && (
                       <div className="mr-5 max-h-96 min-w-[200px] overflow-y-auto">
                         <div className="sticky top-0 flex justify-between bg-white">
@@ -539,24 +535,32 @@ const Projects: NextPage = () => {
                         </ul>
                       </div>
                     )}
-                    <ProjectDataTableEdit
-                      uploaded={uploadedData?.table}
-                      columns={organizedColumns}
-                      onUpdateOrganizedColumns={(value) => {
-                        setOrganizeColumns(
-                          value as IProjectOrganizedColumnRowNumerical
-                        );
-                        localStorage.setItem("columns", JSON.stringify(value));
-                      }}
-                    />
+
+                    <div className="w-full overflow-x-auto">
+                      {" "}
+                      <ProjectDataTableEdit
+                        uploaded={uploadedData?.table}
+                        columns={organizedColumns}
+                        onUpdateOrganizedColumns={(value) => {
+                          setOrganizeColumns(
+                            value as IProjectOrganizedColumnRowNumerical
+                          );
+                          localStorage.setItem(
+                            "columns",
+                            JSON.stringify(value)
+                          );
+                        }}
+                      />{" "}
+                      <span className="text-sm italic text-gray-600">
+                        * Hold SHIFT key to scroll horizontally
+                      </span>{" "}
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </Modal.Body>
-          <span className="text-sm italic text-gray-600">
-            * Hold SHIFT key to scroll horizontally
-          </span>
+
           <div className=" relative mt-5 flex w-full justify-between justify-self-end align-middle">
             {" "}
             {stage > 1.5 ? (

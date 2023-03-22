@@ -65,7 +65,7 @@ export enum Semesters {
  * Calendar Add Course Schema & Validation
  */
 export const calendarCourseSchema = z.object({
-  section_id: z.number().optional(),
+  section_id: z.number().optional().nullable(),
   tuid: z.string().optional(),
   type: z.string().optional().default("?"),
   term: z

@@ -119,7 +119,7 @@ model Course {
   start_time Int
   end_time Int
   credits            Int
-  title              String                      @db.VarChar(30)
+  title              String                      @db.VarChar(100)
   status             String                      @default("Active")
   instruction_method String                      @default("LEC") @db.VarChar(3)
   capacity           Int

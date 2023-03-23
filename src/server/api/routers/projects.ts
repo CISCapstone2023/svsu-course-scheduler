@@ -452,7 +452,7 @@ export const createCourseSchema = (
       start_time: 0,
       subject: row.subject,
       term: row.term,
-      title: row.title.substring(0, 30),
+      title: row.title.substring(0, 100),
       type: row.type,
       semester_fall: row.semester_fall,
       semester_winter: row.semester_winter,

@@ -193,7 +193,7 @@ const Faculty = () => {
         });
         //Else its an error
       } else {
-        toast.error(`Failed to deleted '${facultyDeleteValue?.name}'`, {
+        toast.error(`Failed to delete '${facultyDeleteValue?.name}'`, {
           position: toast.POSITION.TOP_RIGHT,
         });
       }

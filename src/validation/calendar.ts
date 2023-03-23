@@ -64,6 +64,9 @@ export enum Semesters {
 /**
  * Calendar Add Course Schema & Validation
  */
+//Regex here for course_number: 3 numbers followed by, optional letter, followed by optional symbol
+const courseIdRegex = /^\d{3}\w?[!]?$/g;
+
 export const calendarCourseSchema = z
   .object({
     section_id: z.number().optional().nullable(),
@@ -89,7 +92,10 @@ export const calendarCourseSchema = z
       .string()
       .min(2)
       .max(6, { message: "Subject type is larger than expected." }),
-    course_number: z.string(),
+    course_number: z.string().regex(courseIdRegex, {
+      message:
+        "Course ID must be three numbers followed by optional letter, and optional '!'",
+    }),
     section: z.string(),
     start_date: z.date(),
     end_date: z.date(),

@@ -23,7 +23,6 @@ import { api } from "src/utils/api";
 import ProjectItem from "src/components/projects/ProjectsItem";
 import ProjectRevisionItem from "src/components/projects/ProjectsRevisionItem";
 import ProjectsLayout from "src/components/projects/ProjectsLayout";
-import PaginationBar from "src/components/Pagination";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import ProjectsUpload from "src/components/projects/projectUploading/ProjectsUpload";
 import ProjectDataTableEdit, {
@@ -349,30 +348,41 @@ const Projects: NextPage = () => {
    * @param value
    */
   const onHandleFormSubmit = async (value: IProjectFinalizeOnboarding) => {
-    if (uploadedData?.tuid != undefined && organizedColumns != undefined) {
-      const result = await createRevisionMutation.mutateAsync({
-        columns: organizedColumns,
-        tuid: uploadedData.tuid,
-        name: value.name,
-        schedule: selectedSchedule ? selectedSchedule!.value! : null, //force schedule id to null if doesn't have
-      });
-      if (result.success) {
-        //Alert the user it as created sucessfully
-        toast.success("Created Sucessfully, redirecting...", {
-          position: toast.POSITION.BOTTOM_LEFT,
+    try {
+      if (uploadedData?.tuid != undefined && organizedColumns != undefined) {
+        const result = await createRevisionMutation.mutateAsync({
+          columns: organizedColumns,
+          tuid: uploadedData.tuid,
+          name: value.name,
+          schedule: selectedSchedule ? selectedSchedule!.value! : null, //force schedule id to null if doesn't have
         });
-        //Then after two seconds redirect the user via the router
-        setTimeout(() => {
-          router.push(`/dashboard/${uploadedData.tuid}/home`);
-        }, 2000);
-      } else {
-        //Show an notification that an error had occured the user
-        toast.error("An error had occured...", {
-          position: toast.POSITION.BOTTOM_LEFT,
-        });
-        //Add the errors to the state to be shown on screen
-        setError(result.errors);
+        if (result.success) {
+          //Alert the user it as created sucessfully
+          toast.success("Created Sucessfully, redirecting...", {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+          //Then after two seconds redirect the user via the router
+          setTimeout(() => {
+            router.push(`/dashboard/${uploadedData.tuid}/home`);
+          }, 2000);
+        } else {
+          //Show an notification that an error had occured the user
+          toast.error("An error had occured...", {
+            position: toast.POSITION.BOTTOM_LEFT,
+          });
+          //Add the errors to the state to be shown on screen
+          setError(result.errors);
+        }
       }
+    } catch (error) {
+      //Show an notification that an error had occured the user
+      toast.error("An error had occured!", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      toast.error("Try to reupload approriate Excel file in proper form!", {
+        position: toast.POSITION.BOTTOM_LEFT,
+      });
+      console.log(JSON.stringify(error));
     }
   };
 
@@ -445,7 +455,7 @@ const Projects: NextPage = () => {
               </Tooltip>
             ) : (
               <Tooltip
-                message="Upload the Excel sheet that provided by the Office of Academic Affairs"
+                message="Upload the Excel sheet in Proper Format"
                 position="left"
                 className="relative top-1"
               >
@@ -468,7 +478,7 @@ const Projects: NextPage = () => {
           </Modal.Header>
 
           <Modal.Body className=" h-4/5 w-full flex-col overflow-y-auto  transition-all duration-200 ">
-            <div className="flex  w-full justify-center overflow-y-auto align-middle transition-all duration-200">
+            <div className="flex  w-full justify-center  align-middle transition-all duration-200">
               {/* if user uploaded their Excel, let them continue */}
               {stage <= 1.5 && (
                 <ProjectsUpload
@@ -489,11 +499,7 @@ const Projects: NextPage = () => {
               {/* when stage is in the second step show the errors (if haved) else always showed the table edit */}
               {stage === 2 && (
                 <div className="flex h-full w-full  flex-col">
-                  {/* <ProjectFinalize
-                    tuid={uploadedData?.tuid}
-                    columns={organizedColumns}
-                  /> */}
-                  <div className="flex h-full w-full">
+                  <div className="flex h-full w-full overflow-x-hidden">
                     {getMissingColumns().length > 0 && (
                       <div className="mr-5 max-h-96 min-w-[200px] overflow-y-auto">
                         <div className="sticky top-0 flex justify-between bg-white">
@@ -539,24 +545,32 @@ const Projects: NextPage = () => {
                         </ul>
                       </div>
                     )}
-                    <ProjectDataTableEdit
-                      uploaded={uploadedData?.table}
-                      columns={organizedColumns}
-                      onUpdateOrganizedColumns={(value) => {
-                        setOrganizeColumns(
-                          value as IProjectOrganizedColumnRowNumerical
-                        );
-                        localStorage.setItem("columns", JSON.stringify(value));
-                      }}
-                    />
+
+                    <div className="w-full overflow-x-auto">
+                      {" "}
+                      <ProjectDataTableEdit
+                        uploaded={uploadedData?.table}
+                        columns={organizedColumns}
+                        onUpdateOrganizedColumns={(value) => {
+                          setOrganizeColumns(
+                            value as IProjectOrganizedColumnRowNumerical
+                          );
+                          localStorage.setItem(
+                            "columns",
+                            JSON.stringify(value)
+                          );
+                        }}
+                      />{" "}
+                      <span className="text-sm italic text-gray-600">
+                        * Hold SHIFT key to scroll horizontally
+                      </span>{" "}
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </Modal.Body>
-          <span className="text-sm italic text-gray-600">
-            * Hold SHIFT key to scroll horizontally
-          </span>
+
           <div className=" relative mt-5 flex w-full justify-between justify-self-end align-middle">
             {" "}
             {stage > 1.5 ? (

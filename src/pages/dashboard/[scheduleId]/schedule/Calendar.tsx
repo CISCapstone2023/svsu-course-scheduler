@@ -238,6 +238,7 @@ const ScheduleCalendar = ({
       </div>
       <div className="flex h-full w-full overflow-y-scroll">
         <div
+          id="course-root"
           className={classNames(
             { "bg-base-200": locked },
             "flex h-[900px] w-full flex-col border-l-2 border-base-100"
@@ -258,7 +259,7 @@ const ScheduleCalendar = ({
                         }}
                       >
                         <div key={i} className="flex flex-row text-center">
-                          <div className="justi -translate-y- flex h-4 w-full items-center   text-sm">
+                          <div className="justi flex h-4 w-full -translate-y-1 items-center   text-sm">
                             {x}
                           </div>
                         </div>
@@ -402,7 +403,7 @@ export class ScheduleCalendarPrintable extends React.PureComponent<
 > {
   render() {
     return (
-      <div className="h-full overflow-hidden">
+      <div className="flex h-full flex-col overflow-hidden" id="course-main">
         <div className="border-2 border-base-200 font-bold">
           {this.props.name}
         </div>

@@ -150,6 +150,12 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   const handleTopPrint = useReactToPrint({
     content: () => calendarRef.current,
   });
+
+  const calendarBottomRef = useRef(null);
+  const handleBottomPrint = useReactToPrint({
+    content: () => calendarBottomRef.current,
+  });
+
   return (
     <DashboardLayout>
       <DashboardSidebar />
@@ -263,10 +269,15 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               </Tabs>
               {revisionTabs.length > 0 &&
                 revisionTabs[currentReivisionTab] != undefined && (
-                  <ScheduleCalendar
+                  <ScheduleCalendarPrintable
+                    ref={calendarBottomRef}
+                    name={revisionTabs[currentReivisionTab]!.title}
                     locked={true}
                     onSelect={(value) => {
                       console.log(value);
+                    }}
+                    onPrint={() => {
+                      handleBottomPrint();
                     }}
                     semester={revisionTabs[currentReivisionTab]!.semester}
                     revision={revisionTabs[currentReivisionTab]!.revision}

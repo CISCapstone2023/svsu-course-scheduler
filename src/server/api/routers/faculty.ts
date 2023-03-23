@@ -43,8 +43,18 @@ export const facultyRouter = createTRPCRouter({
           tuid: input.tuid,
         },
       });
+
+      //get the count of the courses taught by the faculty to delete
+      const facultyCurrentlyTeaching =
+        await ctx.prisma.guidelinesFacultyToCourse.count({
+          where: {
+            faculty_tuid: input.tuid,
+          },
+        });
+
       //check that there is exactly one faculty with the given tuid
-      if (hasFaculty == 1) {
+      //and check that the teacher is not teaching any courses
+      if (hasFaculty == 1 && facultyCurrentlyTeaching < 1) {
         //delete the given faculty member with client tuid
         await ctx.prisma.guidelinesFaculty.delete({
           where: {

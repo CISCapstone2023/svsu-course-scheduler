@@ -19,7 +19,7 @@ import AnimatedSpinner from "src/components/AnimatedSpinner";
 import Tabs from "./Tabs";
 
 //Local components and types
-import ScheduleCalendar, { type IScheduleCourseWithTimes } from "./Calendar";
+import ScheduleCalendar from "./Calendar";
 import {
   type IRevisionSelect,
   type ITab,
@@ -27,6 +27,7 @@ import {
 import CreateCourseModal from "./CourseModifyModal";
 import CourseInformationSidebar from "./CourseInformation";
 import { toast } from "react-toastify";
+import { IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -254,6 +255,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               {revisionTabs.length > 0 &&
                 revisionTabs[currentReivisionTab] != undefined && (
                   <ScheduleCalendar
+                    locked={true}
                     onSelect={(value) => {
                       console.log(value);
                     }}

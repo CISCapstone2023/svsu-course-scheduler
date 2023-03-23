@@ -55,10 +55,10 @@ export const reportRouter = createTRPCRouter({
                       tuid: true,
                     },
                   },
-                  semester_fall: true,
-                  semester_spring: true,
-                  semester_summer: true,
-                  semester_winter: true,
+                  semester_fall: input.semester_fall,
+                  semester_spring: input.semester_spring,
+                  semester_summer: input.semester_summer,
+                  semester_winter: input.semester_winter,
 
                   subject: true,
                   course_number: true,
@@ -176,7 +176,13 @@ export const reportRouter = createTRPCRouter({
       //and send it to the front end
       const faculties = courseResult.map((faculty) => {
         const to_courses = faculty.to_courses.filter((to_course) => {
-          return to_course.course.revision.tuid == input.tuid;
+          return (
+            to_course.course.revision.tuid == input.tuid &&
+            (to_course.course.semester_fall == input.semester_fall ||
+              to_course.course.semester_spring == input.semester_spring ||
+              to_course.course.semester_summer == input.semester_summer ||
+              to_course.course.semester_winter == input.semester_winter)
+          );
         });
 
         //Get the total amount of credits that a faculty member is teaching

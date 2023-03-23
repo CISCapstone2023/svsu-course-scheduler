@@ -233,8 +233,10 @@ const CourseListing = ({
   onSelect,
 }: CourseListingProps) => {
   //Get the mapped version of the calendar from the list of courses
-  const mapped = calendarMapping(courses!);
-
+  let mapped = [] as ICalendarMappingJustified[];
+  if (courses != undefined) {
+    mapped = calendarMapping(courses);
+  }
   return (
     <>
       {" "}

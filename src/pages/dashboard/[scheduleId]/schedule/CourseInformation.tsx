@@ -1,6 +1,6 @@
 import React from "react";
 import militaryToTime from "src/utils/time";
-import { IScheduleCourseWithTimes } from "./Calendar";
+import { IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
 
 interface CourseInformationSidebarProps {
   children?: React.ReactNode;

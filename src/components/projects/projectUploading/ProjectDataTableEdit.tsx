@@ -38,8 +38,8 @@ export const columnLookupTable: readonly IColumnLookupTable[] = [
   { value: "days", label: "Days" },
   { value: "course_method", label: "Course Method/Method 2" },
   { value: "course_start_date", label: "Course/Meeting Start Date" },
-  { value: "course_end_date", label: "Course/Meeting Emd Date" },
-  { value: "noteAcademicAffairs", label: "Note For Academic Affairs" },
+  { value: "course_end_date", label: "Course/Meeting End Date" },
+  { value: "noteAcademicAffairs", label: "Notes For Academic Affairs" },
   { value: "notePrintedComments", label: "Printed Comments" },
 ];
 
@@ -96,16 +96,19 @@ const ProjectDataTableEdit = ({
   };
 
   return (
-    <div className="sticky top-0 h-96 overflow-x-auto overflow-y-scroll">
+    <div className="sticky top-0 h-96 w-full overflow-auto">
       {uploaded != undefined ? (
-        <Table className="sticky top-0 table-fixed border-collapse">
+        <Table className="sticky top-0 table-fixed border-collapse overflow-x-auto overflow-y-auto">
           <thead className="sticky top-0">
             <tr className="sticky top-0">
               <span />
               {uploaded[0] !== undefined &&
                 uploaded[0].map((columnName, index) => {
                   return (
-                    <th className="top-0   border border-slate-600" key={index}>
+                    <th
+                      className="top-0 w-[200px] justify-center border border-slate-600"
+                      key={index}
+                    >
                       {columnName.length > 20
                         ? `${columnName.substring(0, 20)}...`
                         : columnName}
@@ -122,35 +125,6 @@ const ProjectDataTableEdit = ({
                           }}
                         />
                       </div>
-                      {/* <Select
-                        value={getSelectValue(index)}
-                        size="xs"
-                        onChange={onSelect}
-                        className="w-full"
-                        style={{ position: "static", transform: "none" }}
-                        bordered={true}
-                        color="ghost"
-                        id={index + ""}
-                      >
-                        {columnLookupTable.map((item, index) => {
-                          if (index === 0) {
-                            return (
-                              <>
-                                <option value={"default"}></option>
-                                <option value={item.id} key={index}>
-                                  {item.name}
-                                </option>
-                                ;
-                              </>
-                            );
-                          }
-                          return (
-                            <option value={item.id} key={index}>
-                              {item.name}
-                            </option>
-                          );
-                        })}
-                      </Select> */}
                     </th>
                   );
                 })}

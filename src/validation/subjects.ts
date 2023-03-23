@@ -13,7 +13,8 @@ export const createSubjectsSchema = z.object({
   name: z
     .string()
     .regex(regex, {
-      message: "Subject name must be an alphabetical and include no whitespace.",
+      message:
+        "Subject name must be an alphabetical and include no whitespace.",
     })
     .min(2, { message: "Subject name must be at least 3 characters" })
     .max(30),
@@ -23,8 +24,5 @@ export const updateSubjectsSchema = createSubjectsSchema.extend({
   tuid: z.string(),
 });
 
-
-export type ICreateSubjectss = z.infer<typeof createSubjectsSchema>;
-export type IUpdateSubjects = z.infer<typeof updateSubjectsSchema>;
-
-
+export type ICreateSubject = z.infer<typeof createSubjectsSchema>;
+export type IUpdateSubject = z.infer<typeof updateSubjectsSchema>;

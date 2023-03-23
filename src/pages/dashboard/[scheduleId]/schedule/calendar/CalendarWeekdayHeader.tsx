@@ -4,12 +4,14 @@ interface CalendarWeekdayHeaderProps {
   weekday: string;
   onClick?: () => void;
   active?: boolean;
+  locked?: boolean;
 }
 
 const CalendarWeekdayHeader = ({
   weekday,
   active = false,
   onClick,
+  locked = false,
 }: CalendarWeekdayHeaderProps) => {
   return (
     <>

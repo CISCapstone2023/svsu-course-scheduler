@@ -1,10 +1,10 @@
 //Next and NextAuth
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Toggle } from "react-daisyui";
 import Select from "react-select";
-
+import { useReactToPrint } from "react-to-print";
 //Database and authentiation
 import { prisma } from "src/server/db";
 import { routeNeedsAuthSession } from "src/server/auth";
@@ -19,7 +19,7 @@ import AnimatedSpinner from "src/components/AnimatedSpinner";
 import Tabs from "./Tabs";
 
 //Local components and types
-import ScheduleCalendar from "./Calendar";
+import ScheduleCalendar, { ScheduleCalendarPrintable } from "./Calendar";
 import {
   type IRevisionSelect,
   type ITab,
@@ -146,7 +146,10 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
       );
     }
   };
-
+  const calendarRef = useRef(null);
+  const handleTopPrint = useReactToPrint({
+    content: () => calendarRef.current,
+  });
   return (
     <DashboardLayout>
       <DashboardSidebar />
@@ -189,11 +192,17 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   setCurrentSemesterTabValue(tab);
                 }}
               />
-              <ScheduleCalendar
+
+              <ScheduleCalendarPrintable
+                name={currentRevisionSemesters.data[currentReivisionTab]!.name!}
+                ref={calendarRef}
                 update={openModifyCourseModal}
                 onSelect={(value) => {
                   setCourseToEdit(value);
                   setModifyCourseModal(true);
+                }}
+                onPrint={() => {
+                  handleTopPrint();
                 }}
                 semester={
                   currentRevisionSemesters.data[currentSemesterTabs]!.semester

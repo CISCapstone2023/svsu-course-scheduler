@@ -21,7 +21,7 @@ const CalendarWeekdayHeader = ({
             if (onClick) onClick();
           }}
           className={classNames(
-            { "bg-green-500 text-white": active },
+            { "": active },
             "relative flex w-[70px] grow  border-r border-b border-base-300  pl-2 hover:cursor-pointer hover:bg-blue-500 hover:text-white"
           )}
         >

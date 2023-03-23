@@ -568,7 +568,7 @@ export const calendarRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       //Get each semester count
-      const [sp, fa, wi, su] = await ctx.prisma.$transaction([
+      const [sp, fa, wi, su, name] = await ctx.prisma.$transaction([
         //Spring
         ctx.prisma.course.count({
           where: {
@@ -605,41 +605,55 @@ export const calendarRouter = createTRPCRouter({
             semester_summer: true,
           },
         }),
+        ctx.prisma.scheduleRevision.findFirst({
+          where: {
+            tuid: input.revision,
+          },
+          select: {
+            name: true,
+          },
+        }),
       ]);
       //Temp list of possible semesters for this current revision
       const semesters: ITab[] = [];
 
-      if (fa > 0) {
-        //Add fall to this list for the current revision
-        semesters.push({
-          title: "Fall",
-          semester: "FA",
-          revision: input.revision,
-        });
-      }
-      if (wi > 0) {
-        //Add winter to this list for the current revision
-        semesters.push({
-          title: "Winter",
-          semester: "WI",
-          revision: input.revision,
-        });
-      }
-      if (sp > 0) {
-        //Add spring to this list for the current revision
-        semesters.push({
-          title: "Spring",
-          semester: "SP",
-          revision: input.revision,
-        });
-      }
-      if (su > 0) {
-        //Add summer to the list for the current revision
-        semesters.push({
-          title: "Summer",
-          semester: "SU",
-          revision: input.revision,
-        });
+      if (name != undefined) {
+        if (fa > 0) {
+          //Add fall to this list for the current revision
+          semesters.push({
+            title: "Fall",
+            name: name.name,
+            semester: "FA",
+            revision: input.revision,
+          });
+        }
+        if (wi > 0) {
+          //Add winter to this list for the current revision
+          semesters.push({
+            title: "Winter",
+            name: name.name,
+            semester: "WI",
+            revision: input.revision,
+          });
+        }
+        if (sp > 0) {
+          //Add spring to this list for the current revision
+          semesters.push({
+            title: "Spring",
+            name: name.name,
+            semester: "SP",
+            revision: input.revision,
+          });
+        }
+        if (su > 0) {
+          //Add summer to the list for the current revision
+          semesters.push({
+            title: "Summer",
+            name: name.name,
+            semester: "SU",
+            revision: input.revision,
+          });
+        }
       }
       return semesters;
     }),
@@ -1114,6 +1128,7 @@ async function queryCoursesByDay(
  */
 export interface ITab {
   title: string;
+  name: string | null;
   semester: "FA" | "WI" | "SP" | "SU";
   revision: string;
 }

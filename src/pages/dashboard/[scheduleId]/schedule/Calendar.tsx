@@ -1,9 +1,11 @@
 import classNames from "classnames";
 import { isEqual } from "lodash";
 import React, { useEffect, useState } from "react";
+import { Button, Dropdown } from "react-daisyui";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
 import { type IScheduleCourse } from "src/server/api/routers/calendar";
 import { api } from "src/utils/api";
+import { Dots, DotsCircleHorizontal, Printer } from "tabler-icons-react";
 import CourseListing, {
   IScheduleCourseWithTimes,
 } from "./calendar/CalendarCourseListing";
@@ -23,8 +25,9 @@ interface CalendarComponentProps {
   update?: boolean; //Do we want to refetch this calendar? (true or false both update when toggled)
   weekends: boolean; //List of possible weekends to show
   locked?: boolean; //Is this calendar view locked?
-  onSelect: (course: string) => void; //Event when an course is selected
-  onCourseHover: (course: IScheduleCourseWithTimes) => void; //Eent when the mouse hovers over a course
+  onSelect?: (course: string) => void; //Event when an course is selected
+  onCourseHover?: (course: IScheduleCourseWithTimes) => void; //Eent when the mouse hovers over a course
+  onPrint?: () => void;
 }
 
 interface Days {
@@ -45,6 +48,7 @@ const ScheduleCalendar = ({
   locked = false,
   onSelect,
   onCourseHover,
+  onPrint,
 }: CalendarComponentProps) => {
   //Hover state of the current scheduler
   const [hover, setCourseHover] = useState<IScheduleCourseWithTimes | null>(
@@ -118,11 +122,28 @@ const ScheduleCalendar = ({
     <div className="h-full overflow-hidden">
       <div className="flex h-7 flex-row justify-evenly">
         <div className="relative flex w-[70px] border-r border-b border-base-300">
+          <Dropdown
+            className="z-[1000]"
+            style={{
+              top: 0,
+              left: 0,
+            }}
+          >
+            <Dropdown.Item>
+              <DotsCircleHorizontal className="inline" />
+            </Dropdown.Item>
+            <Dropdown.Menu className="w-52">
+              <Dropdown.Item onClick={onPrint}>
+                <Printer className="inline" />
+                Print
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
           <div
             className="absolute  "
             style={{
               top: 0,
-              left: 0,
+              left: 25,
             }}
           >
             Time
@@ -217,6 +238,7 @@ const ScheduleCalendar = ({
       </div>
       <div className="flex h-full w-full overflow-y-scroll">
         <div
+          id="course-root"
           className={classNames(
             { "bg-base-200": locked },
             "flex h-[900px] w-full flex-col border-l-2 border-base-100"
@@ -237,14 +259,14 @@ const ScheduleCalendar = ({
                         }}
                       >
                         <div key={i} className="flex flex-row text-center">
-                          <div className="justi -translate-y- flex h-4 w-full items-center   text-sm">
+                          <div className="justi flex h-4 w-full -translate-y-1 items-center   text-sm">
                             {x}
                           </div>
                         </div>
                       </div>
                     );
                   })}
-                  {times.map(function (x, i) {
+                  {times.map(function (_x, i) {
                     return (
                       <div
                         key={i}
@@ -265,55 +287,65 @@ const ScheduleCalendar = ({
               <CourseListing
                 locked={locked}
                 show={sections.monday}
-                onSelect={onSelect}
+                onSelect={(course) => {
+                  if (onSelect != undefined) onSelect(course);
+                }}
                 courses={result.data.monday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
-                  onCourseHover(course!);
+                  if (onCourseHover != undefined) onCourseHover(course!);
                 }}
                 hover={hover}
               />
               <CourseListing
                 locked={locked}
                 show={sections.tuesday}
-                onSelect={onSelect}
+                onSelect={(course) => {
+                  if (onSelect != undefined) onSelect(course);
+                }}
                 courses={result.data.tuesday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
-                  onCourseHover(course!);
+                  if (onCourseHover != undefined) onCourseHover(course!);
                 }}
                 hover={hover}
               />
               <CourseListing
                 locked={locked}
                 show={sections.wednesday}
-                onSelect={onSelect}
+                onSelect={(course) => {
+                  if (onSelect != undefined) onSelect(course);
+                }}
                 courses={result.data.wednesday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
-                  onCourseHover(course!);
+                  if (onCourseHover != undefined) onCourseHover(course!);
                 }}
                 hover={hover}
               />
               <CourseListing
                 locked={locked}
                 show={sections.thursday}
-                onSelect={onSelect}
+                onSelect={(course) => {
+                  if (onSelect != undefined) onSelect(course);
+                }}
                 courses={result.data.thursday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
-                  onCourseHover(course!);
+                  if (onCourseHover != undefined) onCourseHover(course!);
                 }}
                 hover={hover}
               />
               <CourseListing
                 locked={locked}
                 show={sections.friday}
-                onSelect={onSelect}
+                onSelect={(course) => {
+                  if (onSelect != undefined) onSelect(course);
+                }}
                 courses={result.data.friday_courses}
                 setCourseHover={(course) => {
                   setCourseHover(course);
-                  onCourseHover(course!);
+                  if (onCourseHover != undefined) onCourseHover(course!);
                 }}
                 hover={hover}
               />
@@ -323,22 +355,26 @@ const ScheduleCalendar = ({
                   <CourseListing
                     locked={locked}
                     show={sections.saturday}
-                    onSelect={onSelect}
+                    onSelect={(course) => {
+                      if (onSelect != undefined) onSelect(course);
+                    }}
                     courses={result.data.saturday_courses}
                     setCourseHover={(course) => {
                       setCourseHover(course);
-                      onCourseHover(course!);
+                      if (onCourseHover != undefined) onCourseHover(course!);
                     }}
                     hover={hover}
                   />
                   <CourseListing
                     locked={locked}
                     show={sections.sunday}
-                    onSelect={onSelect}
+                    onSelect={(course) => {
+                      if (onSelect != undefined) onSelect(course!);
+                    }}
                     courses={result.data.sunday_courses}
                     setCourseHover={(course) => {
                       setCourseHover(course);
-                      onCourseHover(course!);
+                      if (onCourseHover != undefined) onCourseHover(course!);
                     }}
                     hover={hover}
                   />
@@ -360,3 +396,19 @@ const ScheduleCalendar = ({
 };
 
 export default React.memo(ScheduleCalendar);
+
+// eslint-disable-next-line react/display-name
+export class ScheduleCalendarPrintable extends React.PureComponent<
+  CalendarComponentProps & { name: string }
+> {
+  render() {
+    return (
+      <div className="flex h-full flex-col overflow-hidden" id="course-main">
+        <div className="border-2 border-base-200 font-bold">
+          {this.props.name}
+        </div>
+        <ScheduleCalendar {...this.props} />
+      </div>
+    );
+  }
+}

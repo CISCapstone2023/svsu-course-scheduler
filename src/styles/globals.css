@@ -52,3 +52,13 @@ input[type="number"] {
   display: flex;
   align-items: center;
 }
+
+/* print styles */
+@media print {
+  #course-main {
+    margin: 2em;
+  }
+  #course-root {
+    background-color: white !important;
+  }
+}

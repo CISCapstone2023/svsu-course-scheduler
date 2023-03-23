@@ -111,8 +111,17 @@ export const buildingsRouter = createTRPCRouter({
           tuid: input.tuid,
         },
       });
+
+      //Get the count of the buildings that are in the campus being deleted
+      const campusesInUse = await ctx.prisma.guidelineBuilding.count({
+        where: {
+          campus_tuid: input.tuid,
+        },
+      });
+
       //Make sure to delete it if it exists
-      if (hasCampus == 1) {
+      //and make sure the campus doesn't connect to any buildings
+      if (hasCampus == 1 && campusesInUse < 1) {
         await ctx.prisma.guidelineCampus.delete({
           where: {
             tuid: input.tuid,
@@ -320,8 +329,17 @@ export const buildingsRouter = createTRPCRouter({
           tuid: input.tuid,
         },
       });
-      // Make sure to delete it if it exists
-      if (hasBuilding == 1) {
+
+      //Get the count of the rooms that are in the building being deleted
+      const buildingsInUse = await ctx.prisma.room.count({
+        where: {
+          building_tuid: input.tuid,
+        },
+      });
+
+      //Make sure to delete it if it exists
+      //and make sure that the building is not in use
+      if (hasBuilding == 1 && buildingsInUse < 1) {
         await ctx.prisma.guidelineBuilding.delete({
           where: {
             tuid: input.tuid,

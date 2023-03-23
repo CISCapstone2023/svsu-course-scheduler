@@ -202,7 +202,7 @@ const BuildingsTab = () => {
 
         //Else its an error
       } else {
-        toast.error(`Failed to deleted '${buildingDeleteValue?.name}'`, {
+        toast.error(`Failed to delete '${buildingDeleteValue?.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       }

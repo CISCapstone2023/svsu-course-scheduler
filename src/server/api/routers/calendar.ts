@@ -180,6 +180,9 @@ export const calendarRouter = createTRPCRouter({
       const sunday_courses: RevisionWithCourses | null =
         await queryCoursesByDay(input, "day_sunday");
 
+      const online_courses: RevisionWithCourses | null =
+        await queryCoursesByDay(input);
+
       // Use the semester input booleans to return what specific semester we are looking for
       const semester = getSemester(input);
 
@@ -339,6 +342,9 @@ export const calendarRouter = createTRPCRouter({
         friday_courses: await coursesWithinAGuideline(friday_courses),
         saturday_courses: await coursesWithinAGuideline(saturday_courses),
         sunday_courses: await coursesWithinAGuideline(sunday_courses),
+        online: online_courses?.courses as (IScheduleCourse & {
+          withinGuideline: boolean;
+        })[],
       };
 
       console.log(out);
@@ -1041,7 +1047,7 @@ async function queryCoursesByDay(
     minRoomNum: string;
     maxRoomNum: string;
   },
-  day: string
+  day?: string
 ) {
   const coursesByDay: RevisionWithCourses | null =
     // Query will find a revision based on tuid, then will find every course linked to that revision on the specified day, along with the faculty
@@ -1069,11 +1075,37 @@ async function queryCoursesByDay(
 
             // Filter by course location...
             locations: {
-              some: {
+              every: {
                 // ...if a course is taught in any location on a certain day
-                [day]: {
-                  equals: true,
-                },
+                ...(day != undefined
+                  ? {
+                      [day]: {
+                        equals: true,
+                      },
+                    }
+                  : {
+                      day_monday: {
+                        equals: false,
+                      },
+                      day_tuesday: {
+                        equals: false,
+                      },
+                      day_wednesday: {
+                        equals: false,
+                      },
+                      day_thursday: {
+                        equals: false,
+                      },
+                      day_friday: {
+                        equals: false,
+                      },
+                      day_saturday: {
+                        equals: false,
+                      },
+                      day_sunday: {
+                        equals: false,
+                      },
+                    }),
 
                 // ...and if a course is taught in any location present within a list of buildings, if
                 // said list of buildings is provided by the client
@@ -1101,15 +1133,43 @@ async function queryCoursesByDay(
               },
             },
             locations: {
-              where: {
-                [day]: {
-                  equals: true,
-                },
-              },
+              ...(day != undefined
+                ? {
+                    where: {
+                      [day]: {
+                        equals: true,
+                      },
+                    },
+                  }
+                : {
+                    where: {
+                      day_monday: {
+                        equals: false,
+                      },
+                      day_tuesday: {
+                        equals: false,
+                      },
+                      day_wednesday: {
+                        equals: false,
+                      },
+                      day_thursday: {
+                        equals: false,
+                      },
+                      day_friday: {
+                        equals: false,
+                      },
+                      day_saturday: {
+                        equals: false,
+                      },
+                      day_sunday: {
+                        equals: false,
+                      },
+                    },
+                  }),
               include: {
                 rooms: {
                   include: {
-                    building: true,
+                    building: day != undefined,
                   },
                 },
               },
@@ -1136,19 +1196,4 @@ export interface ITab {
 export interface IRevisionSelect {
   value: ITab;
   label: string;
-}
-
-function parseCourseData(input: ICalendarCourseSchema) {
-  let isSuccess = true; //Defines and initializes a boolean to store whether or not parse is successful
-  if (input != undefined) {
-    //Checks to see if the input course is undefined
-    const isSafe = calendarCourseSchema.safeParse(input); //If it is, conducts a safeParse on the input and stores the object of the parse
-
-    if (!isSafe.success) {
-      //Checks if the provided input is safe based on the return of the parse
-      isSuccess = false; //If not, then isSuccess is set to false
-      console.log(isSafe.error); //And error is printed to console
-    }
-    return isSuccess;
-  }
 }

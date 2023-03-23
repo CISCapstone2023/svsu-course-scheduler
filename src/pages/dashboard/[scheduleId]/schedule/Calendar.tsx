@@ -11,6 +11,7 @@ import CourseListing, {
 } from "./calendar/CalendarCourseListing";
 
 import CalendarWeekdayHeader from "./calendar/CalendarWeekdayHeader";
+import CalendarCourseOnline from "./calendar/CalenderCourseOnline";
 
 /**
  * CalendarComponentProps
@@ -99,6 +100,7 @@ const ScheduleCalendar = ({
     "8:00 PM",
     "9:00 PM",
     "10:00 PM",
+    "ONLINE",
   ];
 
   const updateSectionViews = (days: Days) => {
@@ -120,6 +122,28 @@ const ScheduleCalendar = ({
   //HTML/JSX Rendering
   return (
     <div className="h-full overflow-hidden">
+      {result.data && result.data.online.length > 0 && (
+        <>
+          <p className="font-bold">Online Courses</p>
+          <div className="m-2 flex h-[100px] flex-wrap overflow-y-scroll bg-white">
+            {result.data && (
+              <CalendarCourseOnline
+                locked={locked}
+                show={sections.monday}
+                onSelect={(course) => {
+                  if (onSelect != undefined) onSelect(course);
+                }}
+                courses={result.data!.online}
+                setCourseHover={(course) => {
+                  setCourseHover(course);
+                  if (onCourseHover != undefined) onCourseHover(course!);
+                }}
+                hover={hover}
+              />
+            )}
+          </div>
+        </>
+      )}
       <div className="flex h-7 flex-row justify-evenly">
         <div className="relative flex w-[70px] border-r border-b border-base-300">
           <Dropdown
@@ -241,146 +265,148 @@ const ScheduleCalendar = ({
           id="course-root"
           className={classNames(
             { "bg-base-200": locked },
-            "flex h-[900px] w-full flex-col border-l-2 border-base-100"
+            "flex h-[900px] w-full flex-col "
           )}
         >
           {result.data != undefined && (
-            <div className="flex h-full flex-row justify-evenly">
-              <div className="wrap relative flex h-full w-[70px]  border-r border-base-300">
-                <div className="relative grow basis-0  ">
-                  {times.map(function (x, i) {
-                    return (
-                      <div
-                        key={i}
-                        className="absolute w-full pl-1"
-                        style={{
-                          top: i * 60,
-                          left: 0,
-                        }}
-                      >
-                        <div key={i} className="flex flex-row text-center">
-                          <div className="justi flex h-4 w-full -translate-y-1 items-center   text-sm">
-                            {x}
+            <>
+              <div className="flex h-full flex-row justify-evenly  ">
+                <div className="wrap relative flex h-full w-[70px]  border-r border-base-300">
+                  <div className="relative grow basis-0  ">
+                    {times.map(function (x, i) {
+                      return (
+                        <div
+                          key={i}
+                          className="absolute w-full pl-1"
+                          style={{
+                            top: i * 60,
+                            left: 0,
+                          }}
+                        >
+                          <div key={i} className="flex flex-row text-center">
+                            <div className="justi flex h-4 w-full -translate-y-1 items-center   text-sm">
+                              {x}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                  {times.map(function (_x, i) {
-                    return (
-                      <div
-                        key={i}
-                        className="absolute w-full "
-                        style={{
-                          top: i * 60 + 34,
-                          left: 0,
-                        }}
-                      >
-                        <div key={i} className="flex flex-row text-center">
-                          <div className=" flex  w-full items-center border-b border-base-300 bg-base-200  text-sm"></div>
+                      );
+                    })}
+                    {times.map(function (_x, i) {
+                      return (
+                        <div
+                          key={i}
+                          className="absolute w-full "
+                          style={{
+                            top: i * 60 + 34,
+                            left: 0,
+                          }}
+                        >
+                          <div key={i} className="flex flex-row text-center">
+                            <div className=" flex  w-full items-center border-b border-base-300 bg-base-200  text-sm"></div>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
+                <CourseListing
+                  locked={locked}
+                  show={sections.monday}
+                  onSelect={(course) => {
+                    if (onSelect != undefined) onSelect(course);
+                  }}
+                  courses={result.data.monday_courses}
+                  setCourseHover={(course) => {
+                    setCourseHover(course);
+                    if (onCourseHover != undefined) onCourseHover(course!);
+                  }}
+                  hover={hover}
+                />
+                <CourseListing
+                  locked={locked}
+                  show={sections.tuesday}
+                  onSelect={(course) => {
+                    if (onSelect != undefined) onSelect(course);
+                  }}
+                  courses={result.data.tuesday_courses}
+                  setCourseHover={(course) => {
+                    setCourseHover(course);
+                    if (onCourseHover != undefined) onCourseHover(course!);
+                  }}
+                  hover={hover}
+                />
+                <CourseListing
+                  locked={locked}
+                  show={sections.wednesday}
+                  onSelect={(course) => {
+                    if (onSelect != undefined) onSelect(course);
+                  }}
+                  courses={result.data.wednesday_courses}
+                  setCourseHover={(course) => {
+                    setCourseHover(course);
+                    if (onCourseHover != undefined) onCourseHover(course!);
+                  }}
+                  hover={hover}
+                />
+                <CourseListing
+                  locked={locked}
+                  show={sections.thursday}
+                  onSelect={(course) => {
+                    if (onSelect != undefined) onSelect(course);
+                  }}
+                  courses={result.data.thursday_courses}
+                  setCourseHover={(course) => {
+                    setCourseHover(course);
+                    if (onCourseHover != undefined) onCourseHover(course!);
+                  }}
+                  hover={hover}
+                />
+                <CourseListing
+                  locked={locked}
+                  show={sections.friday}
+                  onSelect={(course) => {
+                    if (onSelect != undefined) onSelect(course);
+                  }}
+                  courses={result.data.friday_courses}
+                  setCourseHover={(course) => {
+                    setCourseHover(course);
+                    if (onCourseHover != undefined) onCourseHover(course!);
+                  }}
+                  hover={hover}
+                />
+                {/*Do we want to show the weekends? */}
+                {weekends && (
+                  <>
+                    <CourseListing
+                      locked={locked}
+                      show={sections.saturday}
+                      onSelect={(course) => {
+                        if (onSelect != undefined) onSelect(course);
+                      }}
+                      courses={result.data.saturday_courses}
+                      setCourseHover={(course) => {
+                        setCourseHover(course);
+                        if (onCourseHover != undefined) onCourseHover(course!);
+                      }}
+                      hover={hover}
+                    />
+                    <CourseListing
+                      locked={locked}
+                      show={sections.sunday}
+                      onSelect={(course) => {
+                        if (onSelect != undefined) onSelect(course!);
+                      }}
+                      courses={result.data.sunday_courses}
+                      setCourseHover={(course) => {
+                        setCourseHover(course);
+                        if (onCourseHover != undefined) onCourseHover(course!);
+                      }}
+                      hover={hover}
+                    />
+                  </>
+                )}
               </div>
-              <CourseListing
-                locked={locked}
-                show={sections.monday}
-                onSelect={(course) => {
-                  if (onSelect != undefined) onSelect(course);
-                }}
-                courses={result.data.monday_courses}
-                setCourseHover={(course) => {
-                  setCourseHover(course);
-                  if (onCourseHover != undefined) onCourseHover(course!);
-                }}
-                hover={hover}
-              />
-              <CourseListing
-                locked={locked}
-                show={sections.tuesday}
-                onSelect={(course) => {
-                  if (onSelect != undefined) onSelect(course);
-                }}
-                courses={result.data.tuesday_courses}
-                setCourseHover={(course) => {
-                  setCourseHover(course);
-                  if (onCourseHover != undefined) onCourseHover(course!);
-                }}
-                hover={hover}
-              />
-              <CourseListing
-                locked={locked}
-                show={sections.wednesday}
-                onSelect={(course) => {
-                  if (onSelect != undefined) onSelect(course);
-                }}
-                courses={result.data.wednesday_courses}
-                setCourseHover={(course) => {
-                  setCourseHover(course);
-                  if (onCourseHover != undefined) onCourseHover(course!);
-                }}
-                hover={hover}
-              />
-              <CourseListing
-                locked={locked}
-                show={sections.thursday}
-                onSelect={(course) => {
-                  if (onSelect != undefined) onSelect(course);
-                }}
-                courses={result.data.thursday_courses}
-                setCourseHover={(course) => {
-                  setCourseHover(course);
-                  if (onCourseHover != undefined) onCourseHover(course!);
-                }}
-                hover={hover}
-              />
-              <CourseListing
-                locked={locked}
-                show={sections.friday}
-                onSelect={(course) => {
-                  if (onSelect != undefined) onSelect(course);
-                }}
-                courses={result.data.friday_courses}
-                setCourseHover={(course) => {
-                  setCourseHover(course);
-                  if (onCourseHover != undefined) onCourseHover(course!);
-                }}
-                hover={hover}
-              />
-              {/*Do we want to show the weekends? */}
-              {weekends && (
-                <>
-                  <CourseListing
-                    locked={locked}
-                    show={sections.saturday}
-                    onSelect={(course) => {
-                      if (onSelect != undefined) onSelect(course);
-                    }}
-                    courses={result.data.saturday_courses}
-                    setCourseHover={(course) => {
-                      setCourseHover(course);
-                      if (onCourseHover != undefined) onCourseHover(course!);
-                    }}
-                    hover={hover}
-                  />
-                  <CourseListing
-                    locked={locked}
-                    show={sections.sunday}
-                    onSelect={(course) => {
-                      if (onSelect != undefined) onSelect(course!);
-                    }}
-                    courses={result.data.sunday_courses}
-                    setCourseHover={(course) => {
-                      setCourseHover(course);
-                      if (onCourseHover != undefined) onCourseHover(course!);
-                    }}
-                    hover={hover}
-                  />
-                </>
-              )}
-            </div>
+            </>
           )}
           {/* Make a spinner show if we have no calendar data loaded */}
           {result.data == undefined && (

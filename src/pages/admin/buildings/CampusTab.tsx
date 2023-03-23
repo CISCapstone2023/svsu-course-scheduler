@@ -194,7 +194,7 @@ const CampusTab = () => {
         });
         //Else its an error
       } else {
-        toast.error(`Failed to deleted '${campusDeleteValue?.name}'`, {
+        toast.error(`Failed to delete '${campusDeleteValue?.name}'`, {
           position: NOTIFICATION_POSITION,
         });
       }

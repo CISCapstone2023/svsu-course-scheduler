@@ -64,58 +64,68 @@ export enum Semesters {
 /**
  * Calendar Add Course Schema & Validation
  */
-export const calendarCourseSchema = z.object({
-  section_id: z.number().optional().nullable(),
-  tuid: z.string().optional(),
-  type: z.string().optional().default("?"),
-  term: z
-    .number()
-    .min(0)
-    .max(twoDigitYear + 2),
-  semester: z
-    .nativeEnum(Semesters, {
-      errorMap: (issue, ctx) => {
-        return { message: "Select a semester" };
-      },
-    })
-    .default(Semesters.FALL),
-  div: z.string().optional().default("SC"),
-  department: z
-    .string()
-    .min(2)
-    .max(6, { message: "Department type is larger than expected." }),
-  subject: z
-    .string()
-    .min(2)
-    .max(6, { message: "Subject type is larger than expected." }),
-  course_number: z.string(),
-  section: z.string(),
-  start_date: z.date(),
-  end_date: z.date(),
-  credits: z.number(),
-  title: z.string().max(100).optional().default(""),
-  status: z.string().default("Active"),
-  instruction_method: z.string().default("LEC"),
-  capacity: z
-    .number()
-    .min(1)
-    .max(500, {
-      message: "Capacity has a limit of 500 students on a course.",
-    })
-    .default(30),
-  original_state: z.nativeEnum(CourseState).default("UNMODIFIED"),
-  state: z.nativeEnum(CourseState).default("UNMODIFIED"),
+export const calendarCourseSchema = z
+  .object({
+    section_id: z.number().optional().nullable(),
+    tuid: z.string().optional(),
+    type: z.string().optional().default("?"),
+    term: z
+      .number()
+      .min(0)
+      .max(twoDigitYear + 2),
+    semester: z
+      .nativeEnum(Semesters, {
+        errorMap: (issue, ctx) => {
+          return { message: "Select a semester" };
+        },
+      })
+      .default(Semesters.FALL),
+    div: z.string().optional().default("SC"),
+    department: z
+      .string()
+      .min(2)
+      .max(6, { message: "Department type is larger than expected." }),
+    subject: z
+      .string()
+      .min(2)
+      .max(6, { message: "Subject type is larger than expected." }),
+    course_number: z.string(),
+    section: z.string(),
+    start_date: z.date(),
+    end_date: z.date(),
+    credits: z.number(),
+    title: z.string().max(100).optional().default(""),
+    status: z.string().default("Active"),
+    instruction_method: z.string().default("LEC"),
+    capacity: z
+      .number()
+      .min(1)
+      .max(500, {
+        message: "Capacity has a limit of 500 students on a course.",
+      })
+      .default(30),
+    original_state: z.nativeEnum(CourseState).default("UNMODIFIED"),
+    state: z.nativeEnum(CourseState).default("UNMODIFIED"),
 
-  //Get a single faculty member on a course
-  faculty: facultyToCourseSchema,
-  //Force set the notes type here
-  notes: z.object({
-    ACAMDEMIC_AFFAIRS: z.string(),
-    DEPARTMENT: z.string(),
-    CHANGES: z.string(),
-  }),
-  locations: z.array(locationsSchema),
-});
+    //Get a single faculty member on a course
+    faculty: facultyToCourseSchema,
+    //Force set the notes type here
+    notes: z.object({
+      ACAMDEMIC_AFFAIRS: z.string(),
+      DEPARTMENT: z.string(),
+      CHANGES: z.string(),
+    }),
+    locations: z.array(locationsSchema),
+  })
+  .superRefine(async (val, ctx) => {
+    if (val.start_date > val.end_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["end_date"],
+        message: "Start date cannot be later than end year.",
+      });
+    }
+  });
 
 export const calendarAddNewCourseToRevisionSchema = z.object({
   tuid: z.string().optional(),

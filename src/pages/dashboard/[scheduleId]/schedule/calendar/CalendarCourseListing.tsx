@@ -2,6 +2,7 @@ import classNames from "classnames";
 
 import { type IScheduleCourse } from "src/server/api/routers/calendar";
 import { Lock } from "tabler-icons-react";
+import CalendarCourseInfo from "./CalendarCourseInfo";
 
 interface CourseListingProps {
   show: boolean; //Do we show the courses
@@ -241,7 +242,7 @@ const CourseListing = ({
     <>
       {" "}
       {show && (
-        <div className="wrap relative flex h-[900px]  grow border-r border-base-300">
+        <div className="wrap relative flex h-[1000px] grow border-r border-base-300">
           <div className="relative w-full grow basis-0">
             {mapped.splice(0).map((block, index) => {
               return (
@@ -289,22 +290,7 @@ const CourseListing = ({
                             }
                           )}
                         >
-                          <div
-                            className={classNames("flex h-full w-full p-1", {
-                              "bg-red-100": !course.withinGuideline,
-                            })}
-                          >
-                            <p style={{ fontSize: 12 }}>
-                              <p className="text-md font-bold">
-                                {course.subject} - {course.course_number} -{" "}
-                                {course.section}
-                              </p>{" "}
-                              {course.title}
-                            </p>
-                            {locked && (
-                              <Lock className="inline" width={20} height={20} />
-                            )}
-                          </div>
+                          <CalendarCourseInfo locked={locked} course={course} />
                         </div>
                       );
                     })}

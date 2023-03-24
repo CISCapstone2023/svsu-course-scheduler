@@ -17,6 +17,7 @@ import {
   Semesters,
   type ICalendarCourseSchema,
 } from "src/validation/calendar";
+import { IScheduleCourseWithTimes } from "src/pages/dashboard/[scheduleId]/schedule/calendar/CalendarCourseListing";
 
 // Validation -----------------------------------------------------------------------------------------------------
 
@@ -342,9 +343,9 @@ export const calendarRouter = createTRPCRouter({
         friday_courses: await coursesWithinAGuideline(friday_courses),
         saturday_courses: await coursesWithinAGuideline(saturday_courses),
         sunday_courses: await coursesWithinAGuideline(sunday_courses),
-        online: online_courses?.courses as (IScheduleCourse & {
-          withinGuideline: boolean;
-        })[],
+        online: (online_courses?.courses as IScheduleCourseWithTimes[]).map(
+          (course) => ({ ...course, withinGuideline: false })
+        ),
       };
 
       console.log(out);

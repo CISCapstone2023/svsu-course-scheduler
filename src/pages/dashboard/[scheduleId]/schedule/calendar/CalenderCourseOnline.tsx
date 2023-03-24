@@ -6,7 +6,7 @@ import { IScheduleCourseWithTimes } from "./CalendarCourseListing";
 interface CalendarCourseOnlineProps {
   show: boolean; //Do we show the courses
   locked?: boolean; //Do we tell the user this is in lcoked mode
-  courses: (IScheduleCourse & { withinGuideline: boolean })[] | undefined; //The course with data array
+  courses: IScheduleCourseWithTimes[];
   overlap?: boolean; //Do we want to overlap courses in this mode?
   setCourseHover: (value: IScheduleCourseWithTimes | null) => void; //Hover event
   onSelect: (value: string) => void; //Selection event
@@ -29,7 +29,7 @@ const CalendarCourseOnline = ({
           return (
             <div
               key={index + course.tuid}
-              onMouseEnter={() => setCourseHover(course as any)}
+              onMouseEnter={() => setCourseHover(course)}
               onMouseLeave={() => setCourseHover(null)}
               tabIndex={index}
               onClick={() => {

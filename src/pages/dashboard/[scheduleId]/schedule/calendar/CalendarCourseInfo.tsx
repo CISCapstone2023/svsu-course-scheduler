@@ -14,19 +14,23 @@ const CalendarCourseInfo = ({
   online = false,
 }: CalendarCourseInfoProps) => {
   return (
-    <div
-      className={classNames("flex h-full w-full p-1", {
-        "bg-red-100": !course.withinGuideline && !online,
-      })}
-    >
-      <p style={{ fontSize: 12 }}>
-        <p className="text-md font-bold">
-          {course.subject} - {course.course_number} - {course.section}
-        </p>{" "}
-        {course.title}
-      </p>
-      {locked && <Lock className="inline" width={20} height={20} />}
-    </div>
+    <>
+      {course != undefined && (
+        <div
+          className={classNames("flex h-full w-full p-1", {
+            "bg-red-100": !online && !course.withinGuideline,
+          })}
+        >
+          <p style={{ fontSize: 12 }}>
+            <p className="text-md font-bold">
+              {course.subject} - {course.course_number} - {course.section}
+            </p>{" "}
+            {course.title}
+          </p>
+          {locked && <Lock className="inline" width={20} height={20} />}
+        </div>
+      )}
+    </>
   );
 };
 

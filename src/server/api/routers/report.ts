@@ -46,6 +46,7 @@ export const reportRouter = createTRPCRouter({
         },
         select: {
           name: true,
+          department: true,
           to_courses: {
             select: {
               course: {
@@ -127,6 +128,7 @@ export const reportRouter = createTRPCRouter({
         },
         select: {
           name: true,
+          department: true,
           to_courses: {
             select: {
               course: {

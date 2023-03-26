@@ -48,6 +48,11 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
     search: "",
     tuid: scheduleId,
   });
+
+  // Sort faculty by department
+  faculties.data?.faculties.sort((a, b) =>
+    a.department > b.department ? 1 : b.department > a.department ? -1 : 0
+  );
   console.log(faculties);
 
   return (

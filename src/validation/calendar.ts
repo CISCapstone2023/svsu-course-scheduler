@@ -18,6 +18,7 @@ const roomsSchema = z.object({
     .object({
       buiding_tuid: z.string().cuid().nullable(),
     })
+    .optional()
     .nullable(),
 });
 

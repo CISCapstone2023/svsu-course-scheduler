@@ -100,7 +100,6 @@ const ScheduleCalendar = ({
     "8:00 PM",
     "9:00 PM",
     "10:00 PM",
-    "ONLINE",
   ];
 
   const updateSectionViews = (days: Days) => {
@@ -124,7 +123,7 @@ const ScheduleCalendar = ({
     <div className="h-full overflow-hidden">
       {result.data && result.data.online.length > 0 && (
         <>
-          <p className="font-bold">Online Courses</p>
+          <p className="font-bold">Asynchronous Online Courses</p>
           <div className="m-2 flex h-[100px] flex-wrap overflow-y-scroll bg-white">
             {result.data && (
               <CalendarCourseOnline
@@ -148,7 +147,7 @@ const ScheduleCalendar = ({
       <div className="flex h-7 flex-row justify-evenly">
         <div className="relative flex w-[70px] border-r border-b border-base-300">
           <Dropdown
-            className="z-[1000]"
+            className="z-[900]"
             style={{
               top: 0,
               left: 0,

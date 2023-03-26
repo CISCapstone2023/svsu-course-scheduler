@@ -48,6 +48,7 @@ export type IScheduleCourseWithTimes = IScheduleCourse & {
   startTime: number;
   endTime: number;
   difference: number;
+  online?: boolean;
   withinGuideline: boolean;
   faculty: {
     faculty: {
@@ -100,7 +101,25 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
       const course = current as IScheduleCourseWithTimes;
       //Get the first time from the current course location that's not null
       const time = current.locations.find((loc) => {
-        return loc.start_time != null && loc.end_time != null;
+        return (
+          loc.start_time != null &&
+          loc.end_time != null &&
+          loc.is_online == false
+        );
+      });
+
+      const onlineNonAsync = current.locations.find((loc) => {
+        return (
+          (loc.day_monday ||
+            loc.day_tuesday ||
+            loc.day_wednesday ||
+            loc.day_thursday ||
+            loc.day_friday ||
+            loc.day_saturday ||
+            loc.day_sunday ||
+            loc.day_saturday) &&
+          loc.is_online
+        );
       });
 
       //If the time is null, meaning there is no locations with proper times
@@ -130,6 +149,14 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
           //we make a new entry with said course
 
           //480 is the pixel amount from the top
+
+          console.log({
+            top: course.startTime - 480,
+            totalMinutes: course.startTime,
+            endTime: course.endTime,
+            courses: [course],
+          });
+
           prev.push({
             top: course.startTime - 480,
             totalMinutes: course.startTime,
@@ -160,6 +187,30 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
           courses: [course],
         });
       }
+
+      if (onlineNonAsync != undefined) {
+        console.debug("We have a non async course");
+        const indexTop = prev.findIndex((item) => item.totalMinutes == 480);
+        const copyOfCourse = { ...course };
+        copyOfCourse.startTime = 480;
+        copyOfCourse.endTime = 1100; //1350
+        copyOfCourse.difference = copyOfCourse.endTime - copyOfCourse.startTime;
+        copyOfCourse.online = true;
+        if (indexTop == -1) {
+          prev.push({
+            top: copyOfCourse.startTime - 480,
+            totalMinutes: copyOfCourse.startTime,
+            endTime: copyOfCourse.endTime,
+            courses: [copyOfCourse],
+          });
+        } else {
+          if (course.endTime > prev[indexTop]!.endTime) {
+            prev[indexTop]!.endTime = copyOfCourse.endTime;
+          }
+          prev[indexTop]?.courses.push(copyOfCourse);
+        }
+      }
+
       //Return the prevous value (which is an array of ICalendarMapping)
       return prev;
     },
@@ -242,7 +293,7 @@ const CourseListing = ({
     <>
       {" "}
       {show && (
-        <div className="wrap relative flex h-[1000px] grow border-r border-base-300">
+        <div className="wrap relative flex h-[1050px] grow border-r border-base-300">
           <div className="relative w-full grow basis-0">
             {mapped.splice(0).map((block, index) => {
               return (

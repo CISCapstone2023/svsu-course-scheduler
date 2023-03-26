@@ -249,6 +249,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   options={revisionList.data as IRevisionSelect[]}
                   value={selectedRevision}
                   classNamePrefix="selection"
+                  className="z-[1000]"
                   onChange={(selectedRevision) => {
                     //Check to make sure the reivison won't be undefined
                     if (selectedRevision != undefined) {

@@ -1,9 +1,7 @@
 import { z } from "zod";
 
-//this will ensure the user is only inputting one or multiple numbers followed by 0 or 1
-//letter followed by 0 or 1 comma or followed by a hyphen and another number(s) followed by 0 or 1 letter
-
-const regex = /[a-zA-Z]+/g;
+//This regex ensures the user only enters alphabetical characters with no whitespaces
+const regex = /^[a-zA-Z]+$/;
 
 /**
  * Creates department schema

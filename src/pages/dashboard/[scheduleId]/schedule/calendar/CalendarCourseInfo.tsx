@@ -18,6 +18,7 @@ const CalendarCourseInfo = ({
       {course != undefined && (
         <div
           className={classNames("flex h-full w-full p-1", {
+            "bg-green-100": course.online || online,
             "bg-red-100": !online && !course.withinGuideline,
           })}
         >

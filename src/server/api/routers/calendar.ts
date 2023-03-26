@@ -1085,27 +1085,36 @@ async function queryCoursesByDay(
                       },
                     }
                   : {
-                      day_monday: {
-                        equals: false,
-                      },
-                      day_tuesday: {
-                        equals: false,
-                      },
-                      day_wednesday: {
-                        equals: false,
-                      },
-                      day_thursday: {
-                        equals: false,
-                      },
-                      day_friday: {
-                        equals: false,
-                      },
-                      day_saturday: {
-                        equals: false,
-                      },
-                      day_sunday: {
-                        equals: false,
-                      },
+                      OR: [
+                        // {
+                        //   day_monday: {
+                        //     equals: false,
+                        //   },
+                        //   day_tuesday: {
+                        //     equals: false,
+                        //   },
+                        //   day_wednesday: {
+                        //     equals: false,
+                        //   },
+                        //   day_thursday: {
+                        //     equals: false,
+                        //   },
+                        //   day_friday: {
+                        //     equals: false,
+                        //   },
+                        //   day_saturday: {
+                        //     equals: false,
+                        //   },
+                        //   day_sunday: {
+                        //     equals: false,
+                        //   },
+                        // },
+                        {
+                          is_online: {
+                            equals: true,
+                          },
+                        },
+                      ],
                     }),
 
                 // ...and if a course is taught in any location present within a list of buildings, if
@@ -1144,26 +1153,8 @@ async function queryCoursesByDay(
                   }
                 : {
                     where: {
-                      day_monday: {
-                        equals: false,
-                      },
-                      day_tuesday: {
-                        equals: false,
-                      },
-                      day_wednesday: {
-                        equals: false,
-                      },
-                      day_thursday: {
-                        equals: false,
-                      },
-                      day_friday: {
-                        equals: false,
-                      },
-                      day_saturday: {
-                        equals: false,
-                      },
-                      day_sunday: {
-                        equals: false,
+                      is_online: {
+                        equals: true,
                       },
                     },
                   }),

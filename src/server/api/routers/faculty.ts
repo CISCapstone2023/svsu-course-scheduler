@@ -98,6 +98,9 @@ export const facultyRouter = createTRPCRouter({
               },
             ],
           },
+          orderBy: {
+            department: "asc",
+          },
         });
 
         /**
@@ -124,6 +127,9 @@ export const facultyRouter = createTRPCRouter({
           take: resultsPerPage,
           //we start at 0
           skip: (input.page - 1) * resultsPerPage,
+          orderBy: {
+            department: "asc",
+          },
         });
 
         /**

@@ -12,6 +12,7 @@ export const reportRouter = createTRPCRouter({
         semester_winter: z.boolean(),
         semester_spring: z.boolean(),
         semester_summer: z.boolean(),
+        department: z.string().optional().nullable(),
         search: z.string(),
         tuid: z.string(),
       })
@@ -21,6 +22,9 @@ export const reportRouter = createTRPCRouter({
       //by the user and the search string if it is not empty.
       const courseResult = await ctx.prisma.guidelinesFaculty.findMany({
         where: {
+          ...(input.department != null
+            ? { department: { contains: input.department } }
+            : {}),
           to_courses: {
             some: {
               course: {

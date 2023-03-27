@@ -217,7 +217,7 @@ const CreateCourseModal = ({
                         className="w-full"
                         size="sm"
                         {...courseAddForm.register("title")}
-                        disabled={true}
+                        disabled={false}
                       />
                     </div>
                   </div>

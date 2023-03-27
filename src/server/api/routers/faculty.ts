@@ -73,6 +73,7 @@ export const facultyRouter = createTRPCRouter({
     .input(
       z.object({
         search: z.string(),
+        department: z.string().optional().nullable(),
         page: z.number().default(0),
       })
     )
@@ -90,6 +91,9 @@ export const facultyRouter = createTRPCRouter({
           skip: (input.page - 1) * resultsPerPage,
           //check if the first name and/or last name are being searched for
           where: {
+            ...(input.department != null
+              ? { department: { contains: input.department } }
+              : {}),
             OR: [
               {
                 name: {
@@ -97,6 +101,9 @@ export const facultyRouter = createTRPCRouter({
                 },
               },
             ],
+          },
+          orderBy: {
+            department: "asc",
           },
         });
 
@@ -124,6 +131,14 @@ export const facultyRouter = createTRPCRouter({
           take: resultsPerPage,
           //we start at 0
           skip: (input.page - 1) * resultsPerPage,
+          where: {
+            ...(input.department != null
+              ? { department: { contains: input.department } }
+              : {}),
+          },
+          orderBy: {
+            department: "asc",
+          },
         });
 
         /**

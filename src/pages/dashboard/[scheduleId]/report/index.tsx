@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
@@ -16,8 +16,20 @@ import FacultyReport from "./FacultyReport";
 import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
 import { CaretDown } from "tabler-icons-react";
 
+import AsyncSelect from "react-select/async";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { debounce } from "lodash";
+import { ActionMeta, SingleValue } from "react-select";
+
 interface DashboardProps {
   scheduleId: string;
+}
+
+// Creates a type for storing/using departments
+interface DepartmentSelect {
+  label: string | null;
+  value: string | null;
+  name: string | null;
 }
 
 const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
@@ -34,21 +46,38 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
    * The value which will be searching that is set by the debouncing below
    */
 
-  //Filter the semesters
+  // Filter the semesters
   const [filterFallSemester, setFilterFallSemester] = useState(true);
   const [filterWinterSemester, setFilterWinterSemester] = useState(true);
   const [filterSpringSemester, setFilterSpringSemester] = useState(true);
   const [filterSummerSemester, setFilterSummerSemester] = useState(true);
+
+  // Get a list of departments
+  const departmentMutation =
+    api.department.getAllDepartmentAutofill.useMutation();
+
+  // Filter faculty members by department
+  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+  const [departmentValue, setDepartmentValue] = useState<DepartmentSelect>({
+    label: null,
+    value: null,
+    name: null,
+  });
 
   const faculties = api.report.getAllReports.useQuery({
     semester_fall: filterFallSemester,
     semester_spring: filterSpringSemester,
     semester_summer: filterSummerSemester,
     semester_winter: filterWinterSemester,
+    department: departmentFilter,
     search: "",
     tuid: scheduleId,
   });
-  console.log(faculties);
+
+  // Sort faculty by department
+  faculties.data?.faculties.sort((a, b) =>
+    a.department > b.department ? 1 : b.department > a.department ? -1 : 0
+  );
 
   return (
     <DashboardLayout>
@@ -56,60 +85,99 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
       <DashboardContent>
         <DashboardContentHeader title="Report" />
         <div className="m-2 h-full overflow-auto">
-          <Dropdown>
-            <Button>
-              Semester
-              <CaretDown />
-            </Button>
-            <Dropdown.Menu>
-              <Card.Body>
-                <div className="flex space-x-4">
-                  <p>Fall</p>
-                  <Checkbox
-                    disabled={!faculties.data?.isFall}
-                    indeterminate={true}
-                    checked={filterFallSemester}
-                    onChange={(e) => {
-                      setFilterFallSemester(e.currentTarget.checked);
-                    }}
-                  />
-                </div>
-                <div className="flex">
-                  <p>Winter</p>
-                  <Checkbox
-                    indeterminate={true}
-                    disabled={!faculties.data?.isWinter}
-                    checked={filterWinterSemester}
-                    onChange={(e) => {
-                      setFilterWinterSemester(e.currentTarget.checked);
-                    }}
-                  />
-                </div>
-                <div className="flex">
-                  <p>Spring</p>
-                  <Checkbox
-                    indeterminate={true}
-                    disabled={!faculties.data?.isSpring}
-                    checked={filterSpringSemester}
-                    onChange={(e) => {
-                      setFilterSpringSemester(e.currentTarget.checked);
-                    }}
-                  />
-                </div>
-                <div className="flex space-x-4">
-                  <p>Summer</p>
-                  <Checkbox
-                    indeterminate={true}
-                    disabled={!faculties.data?.isSummer}
-                    checked={filterSummerSemester}
-                    onChange={(e) => {
-                      setFilterSummerSemester(e.currentTarget.checked);
-                    }}
-                  />
-                </div>
-              </Card.Body>
-            </Dropdown.Menu>
-          </Dropdown>
+          <div className="flex">
+            <Dropdown>
+              <Button>
+                Semester
+                <CaretDown />
+              </Button>
+              <Dropdown.Menu>
+                <Card.Body>
+                  <div className="flex space-x-4">
+                    <p>Fall</p>
+                    <Checkbox
+                      disabled={!faculties.data?.isFall}
+                      indeterminate={true}
+                      checked={filterFallSemester}
+                      onChange={(e) => {
+                        setFilterFallSemester(e.currentTarget.checked);
+                      }}
+                    />
+                  </div>
+                  <div className="flex">
+                    <p>Winter</p>
+                    <Checkbox
+                      indeterminate={true}
+                      disabled={!faculties.data?.isWinter}
+                      checked={filterWinterSemester}
+                      onChange={(e) => {
+                        setFilterWinterSemester(e.currentTarget.checked);
+                      }}
+                    />
+                  </div>
+                  <div className="flex">
+                    <p>Spring</p>
+                    <Checkbox
+                      indeterminate={true}
+                      disabled={!faculties.data?.isSpring}
+                      checked={filterSpringSemester}
+                      onChange={(e) => {
+                        setFilterSpringSemester(e.currentTarget.checked);
+                      }}
+                    />
+                  </div>
+                  <div className="flex space-x-4">
+                    <p>Summer</p>
+                    <Checkbox
+                      indeterminate={true}
+                      disabled={!faculties.data?.isSummer}
+                      checked={filterSummerSemester}
+                      onChange={(e) => {
+                        setFilterSummerSemester(e.currentTarget.checked);
+                      }}
+                    />
+                  </div>
+                </Card.Body>
+              </Dropdown.Menu>
+            </Dropdown>
+
+            <AsyncSelect
+              isClearable
+              defaultOptions
+              className="ml-2 w-[250px]"
+              placeholder={"Enter Department"}
+              loadOptions={(search, callback) => {
+                new Promise<any>(async (resolve) => {
+                  const data = await departmentMutation.mutateAsync({
+                    search: search.toLowerCase(),
+                  });
+                  if (data != undefined) {
+                    callback(
+                      data.map((obj) => ({
+                        label: obj.label,
+                        value: obj.value,
+                        name: obj.name,
+                      }))
+                    );
+                  } else {
+                    callback([]);
+                  }
+                });
+              }}
+              onChange={(value) => {
+                setDepartmentValue(value as DepartmentSelect);
+                if (value != null) {
+                  setDepartmentFilter(value.name);
+                } else {
+                  setDepartmentFilter(null);
+                }
+              }}
+              value={departmentValue}
+              // {...field}
+              // styles={customStyles}
+            />
+          </div>
+
           <div className="container mx-auto mt-5 space-y-3 px-4">
             {faculties.data != undefined &&
               faculties.data.faculties.map((faculty, index) => {

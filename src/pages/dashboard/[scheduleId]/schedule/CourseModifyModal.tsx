@@ -42,7 +42,7 @@ interface CreateCourseModalProps {
 }
 
 //Used for debugging
-// const seen: any[] = [];
+const seen: any[] = [];
 
 //Component
 const CreateCourseModal = ({
@@ -130,17 +130,17 @@ const CreateCourseModal = ({
   const [isCourseEditing, setCourseEditing] =
     useState<ICalendarCourseSchema | null>();
 
-  // console.log(
-  //   JSON.stringify(courseAddForm.formState.errors, function (key, val) {
-  //     if (val != null && typeof val == "object") {
-  //       if (seen.indexOf(val) >= 0) {
-  //         return;
-  //       }
-  //       seen.push(val);
-  //     }
-  //     return val;
-  //   })
-  // );
+  console.log(
+    JSON.stringify(courseAddForm.formState.errors, function (key, val) {
+      if (val != null && typeof val == "object") {
+        if (seen.indexOf(val) >= 0) {
+          return;
+        }
+        seen.push(val);
+      }
+      return val;
+    })
+  );
 
   return (
     //Main modal for body
@@ -574,7 +574,7 @@ const CreateCourseModal = ({
 
                 {/* header for label and add location button */}
                 <div
-                  className="mt-4 flex border-t-[1px] border-gray-400 pt-2"
+                  className="mt-4 flex border-t-[1px] border-gray-200 pt-2"
                   id="locationHeader"
                 >
                   <div className="grow" id="locationLabel">
@@ -616,79 +616,11 @@ const CreateCourseModal = ({
                   {locationFields.fields.map((item, index) => {
                     return (
                       <div
-                        className="rounded-md bg-gray-100 p-2"
+                        className="rounded-md bg-gray-200 p-2"
                         id="informationBLock"
                         key={index}
                       >
                         <div className="flex  space-x-10" id="locationList">
-                          <div className="flex flex-row items-end justify-end space-x-4">
-                            <div className="flex w-full flex-col" id="starTime">
-                              <div className="w-50 m-1 flex h-8 " id="timeLbl">
-                                <p>Start Time</p>
-                              </div>
-                              <div className="flex" id="timeInputBoxes">
-                                {/* Custom Time Input */}
-                                <Controller
-                                  control={courseAddForm.control}
-                                  name={`locations.${index}.start_time`}
-                                  render={({ field }) => {
-                                    return <TimeInput {...field} />;
-                                  }}
-                                />
-
-                                {/* Error message thrown when zod detects a problem */}
-                                <ErrorMessage
-                                  errors={courseAddForm.formState.errors}
-                                  name={`locations.${index}.start_time`}
-                                  render={({ message }) => (
-                                    <p className="font-semibold text-red-600">
-                                      {message}
-                                    </p>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                            <div className="mb-2 flex">
-                              <p>to</p>
-                            </div>
-                            <div className="flex w-full flex-col" id="endTime">
-                              <div className="w-50 m-1 flex h-8 " id="timeLbl">
-                                <p>End Time</p>
-                              </div>
-                              <div className="flex" id="timeInputBoxes">
-                                {/* Custom Time Input */}
-                                <Controller
-                                  control={courseAddForm.control}
-                                  name={`locations.${index}.end_time`}
-                                  render={({
-                                    field: { onChange, value, name, ref },
-                                  }) => {
-                                    return (
-                                      <TimeInput
-                                        ref={ref}
-                                        value={value}
-                                        onChange={(value) => {
-                                          console.log(value);
-                                          onChange(value);
-                                        }}
-                                      />
-                                    );
-                                  }}
-                                />
-
-                                {/* Error message thrown when zod detects a problem */}
-                                <ErrorMessage
-                                  errors={courseAddForm.formState.errors}
-                                  name={`locations.${index}.end_time`}
-                                  render={({ message }) => (
-                                    <p className="font-semibold text-red-600">
-                                      {message}
-                                    </p>
-                                  )}
-                                />
-                              </div>
-                            </div>
-                          </div>
                           {/* Checkboxes for days */}
                           <div className="flex-col items-center justify-end">
                             <br />
@@ -750,6 +682,158 @@ const CreateCourseModal = ({
                                 />
                               </div>
                             </div>
+                            <ErrorMessage
+                              errors={courseAddForm.formState.errors}
+                              name={`locations.${index}.day_monday`}
+                              render={({ message }) => (
+                                <p className="font-semibold text-red-600">
+                                  {message}
+                                </p>
+                              )}
+                            />
+                          </div>
+                          <div className="flex flex-col">
+                            <div className="flex  items-end justify-end space-x-4">
+                              {" "}
+                              <div
+                                className="flex w-full flex-col"
+                                id="starTime"
+                              >
+                                <div
+                                  className="w-50 m-1 flex h-8 "
+                                  id="timeLbl"
+                                >
+                                  <p>Start Time</p>
+                                </div>
+                                <div
+                                  className="flex flex-col"
+                                  id="timeInputBoxes"
+                                >
+                                  {/* Custom Time Input */}
+                                  <Controller
+                                    control={courseAddForm.control}
+                                    name={`locations.${index}.start_time`}
+                                    render={({ field }) => {
+                                      return (
+                                        <TimeInput
+                                          {...field}
+                                          disabled={
+                                            !(
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_monday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_tuesday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_wednesday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_thursday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_friday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_saturday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_sunday`
+                                              )
+                                            )
+                                          }
+                                        />
+                                      );
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="mb-2 flex">
+                                <p>to</p>
+                              </div>
+                              <div
+                                className="flex w-full flex-col"
+                                id="endTime"
+                              >
+                                <div
+                                  className="w-50 m-1 flex h-8 "
+                                  id="timeLbl"
+                                >
+                                  <p>End Time</p>
+                                </div>
+                                <div
+                                  className="flex flex-col"
+                                  id="timeInputBoxes"
+                                >
+                                  {/* Custom Time Input */}
+                                  <Controller
+                                    control={courseAddForm.control}
+                                    name={`locations.${index}.end_time`}
+                                    render={({
+                                      field: { onChange, value, name, ref },
+                                    }) => {
+                                      return (
+                                        <TimeInput
+                                          ref={ref}
+                                          disabled={
+                                            !(
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_monday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_tuesday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_wednesday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_thursday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_friday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_saturday`
+                                              ) ||
+                                              courseAddForm.watch(
+                                                `locations.${index}.day_sunday`
+                                              )
+                                            )
+                                          }
+                                          value={value}
+                                          onChange={(value) => {
+                                            console.log(value);
+                                            onChange(value);
+                                          }}
+                                        />
+                                      );
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              {/* Error message thrown when zod detects a problem */}
+                              <ErrorMessage
+                                errors={courseAddForm.formState.errors}
+                                name={`locations.${index}.start_time`}
+                                render={({ message }) => (
+                                  <p className="font-semibold text-red-600">
+                                    {message}
+                                  </p>
+                                )}
+                              />
+                              {/* Error message thrown when zod detects a problem */}
+                              <ErrorMessage
+                                errors={courseAddForm.formState.errors}
+                                name={`locations.${index}.end_time`}
+                                render={({ message }) => (
+                                  <p className="font-semibold text-red-600">
+                                    {message}
+                                  </p>
+                                )}
+                              />
+                            </div>
                           </div>
 
                           <div className="flex grow justify-end pr-4">
@@ -795,6 +879,9 @@ const CreateCourseModal = ({
                                     defaultOptions
                                     className="w-[250px]"
                                     placeholder={"Enter Building"}
+                                    isDisabled={courseAddForm.watch(
+                                      `locations.${index}.is_online`
+                                    )}
                                     loadOptions={(search, callback) => {
                                       new Promise<any>(async (resolve) => {
                                         const data =
@@ -836,17 +923,25 @@ const CreateCourseModal = ({
                                 {...courseAddForm.register(
                                   `locations.${index}.rooms.room`
                                 )}
+                                disabled={courseAddForm.watch(
+                                  `locations.${index}.is_online`
+                                )}
                               />
 
                               {/* Error message thrown when zod detects a problem */}
                             </div>
                           </div>
                         </div>
-
-                        {/* Add remove button to remove a loction block */}
                       </div>
                     );
                   })}
+                  <ErrorMessage
+                    errors={courseAddForm.formState.errors}
+                    name="locations"
+                    render={({ message }) => (
+                      <p className="font-semibold text-red-600">{message}</p>
+                    )}
+                  />
                 </div>
               </div>
 

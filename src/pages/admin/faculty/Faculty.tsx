@@ -28,6 +28,14 @@ import { api } from "src/utils/api";
 
 //Import Animated Spinner
 import AnimatedSpinner from "src/components/AnimatedSpinner";
+import AsyncSelect from "react-select/async";
+
+// Creates a type for storing/using departments
+interface DepartmentSelect {
+  label: string | null;
+  value: string | null;
+  name: string | null;
+}
 
 const Faculty = () => {
   /**
@@ -43,11 +51,24 @@ const Faculty = () => {
    */
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Get a list of departments
+  const departmentMutation =
+    api.department.getAllDepartmentAutofill.useMutation();
+
+  // Filter faculty members by department
+  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+  const [departmentValue, setDepartmentValue] = useState<DepartmentSelect>({
+    label: null,
+    value: null,
+    name: null,
+  });
+
   //Query all of the data based on the search value
 
   const faculties = api.faculty.getAllFaculty.useQuery({
     page: currentPage,
     search: searchValue,
+    department: departmentFilter,
   });
 
   useEffect(() => {
@@ -214,8 +235,44 @@ const Faculty = () => {
   return (
     <>
       <div className="m-2 flex justify-between ">
-        <div>
+        <div className="flex">
           <Input onChange={onSearch} placeholder="Search" />
+
+          <AsyncSelect
+            isClearable
+            defaultOptions
+            className="ml-2 w-[250px]"
+            placeholder="Enter Department"
+            loadOptions={(search, callback) => {
+              new Promise<any>(async (resolve) => {
+                const data = await departmentMutation.mutateAsync({
+                  search: search.toLowerCase(),
+                });
+                if (data != undefined) {
+                  callback(
+                    data.map((obj) => ({
+                      label: obj.label,
+                      value: obj.value,
+                      name: obj.name,
+                    }))
+                  );
+                } else {
+                  callback([]);
+                }
+              });
+            }}
+            onChange={(value) => {
+              setDepartmentValue(value as DepartmentSelect);
+              if (value != null) {
+                setDepartmentFilter(value.name);
+              } else {
+                setDepartmentFilter(null);
+              }
+            }}
+            value={departmentValue}
+            // {...field}
+            // styles={customStyles}
+          />
         </div>
         <div>
           <Button

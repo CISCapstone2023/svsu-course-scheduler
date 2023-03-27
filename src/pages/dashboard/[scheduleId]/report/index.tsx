@@ -25,6 +25,7 @@ interface DashboardProps {
   scheduleId: string;
 }
 
+// Creates a type for storing/using departments
 interface DepartmentSelect {
   label: string | null;
   value: string | null;
@@ -45,15 +46,17 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
    * The value which will be searching that is set by the debouncing below
    */
 
-  //Filter the semesters
+  // Filter the semesters
   const [filterFallSemester, setFilterFallSemester] = useState(true);
   const [filterWinterSemester, setFilterWinterSemester] = useState(true);
   const [filterSpringSemester, setFilterSpringSemester] = useState(true);
   const [filterSummerSemester, setFilterSummerSemester] = useState(true);
 
+  // Get a list of departments
   const departmentMutation =
     api.department.getAllDepartmentAutofill.useMutation();
 
+  // Filter faculty members by department
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   const [departmentValue, setDepartmentValue] = useState<DepartmentSelect>({
     label: null,
@@ -74,37 +77,6 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
   // Sort faculty by department
   faculties.data?.faculties.sort((a, b) =>
     a.department > b.department ? 1 : b.department > a.department ? -1 : 0
-  );
-  console.log(faculties);
-
-  const [searchValue, setSearchValue] = useState<string>("");
-
-  //The function that gets called when a input event has occured.
-  //It pass the the React Change Event which has a input element
-  //This called the waitForSearch debounced callback that is below
-  async function onSearch(
-    newValue: SingleValue<{
-      currentTarget: {
-        value: string;
-      };
-    }>,
-    actionMeta: ActionMeta<{ currentTarget: { value: string } }>
-  ) {
-    if (newValue) {
-      waitForSearch(newValue.currentTarget.value);
-    }
-  }
-
-  //Create a callback to hold a single instance of a debounce
-  const waitForSearch = useCallback(
-    //The value that is passed in the callback is directly passed into the function
-    //and because debounced does the same thing it will pass the value to its parameter which
-    //is an arrow function
-    debounce((value: string) => {
-      //Now we actually update the search so we don't keep fetching the server
-      setSearchValue(value);
-    }, 500), //This waits 500 ms (half a second) before the function inside (aka above) gets called
-    []
   );
 
   return (
@@ -179,7 +151,6 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
                   const data = await departmentMutation.mutateAsync({
                     search: search.toLowerCase(),
                   });
-                  console.log({ departmentData: data });
                   if (data != undefined) {
                     callback(
                       data.map((obj) => ({
@@ -194,7 +165,6 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
                 });
               }}
               onChange={(value) => {
-                console.log(value);
                 setDepartmentValue(value as DepartmentSelect);
                 if (value != null) {
                   setDepartmentFilter(value.name);

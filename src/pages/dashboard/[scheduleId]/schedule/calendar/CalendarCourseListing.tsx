@@ -108,6 +108,8 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
         );
       });
 
+      console.log({ time });
+
       const onlineNonAsync = current.locations.find((loc) => {
         return (
           (loc.day_monday ||
@@ -288,6 +290,7 @@ const CourseListing = ({
   let mapped = [] as ICalendarMappingJustified[];
   if (courses != undefined) {
     mapped = calendarMapping(courses);
+    console.log({ courses, mapped });
   }
   return (
     <>

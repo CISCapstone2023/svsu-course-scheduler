@@ -128,7 +128,7 @@ const ScheduleCalendar = ({
             {result.data && (
               <CalendarCourseOnline
                 locked={locked}
-                show={sections.monday}
+                show={true}
                 onSelect={(course) => {
                   if (onSelect != undefined) onSelect(course);
                 }}

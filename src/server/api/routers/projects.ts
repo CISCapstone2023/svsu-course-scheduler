@@ -1023,6 +1023,8 @@ const invertedNestedOrganizedColumns = async (
         ...data
       } = c as IProjectOrganizedColumnRow & { _: string }; //A wonderful unioned type
 
+      console.log({ c });
+
       //Get the building
       const updatedBuilding =
         data.building != undefined ? data.building.split(/\r\n|\n|\r/) : [];
@@ -1056,6 +1058,13 @@ const invertedNestedOrganizedColumns = async (
         data.faculty != undefined
           ? data.faculty.trim().split(/\r\n|\n|\r/)
           : [];
+
+      const courseMethods =
+        data.course_method != undefined
+          ? data.course_method.trim().split(/\r\n|\n|\r/)
+          : [];
+
+      console.log({ courseMethods });
 
       //TODO: Do we need the course global times?
       let start_time_updated = 0;
@@ -1127,8 +1136,30 @@ const invertedNestedOrganizedColumns = async (
         //NOTE: Ths has to be done asyncronously to allow for database calls
 
         const value = await Promise.all(
-          updatedBuilding.map(async (item, index) => {
+          courseMethods.map(async (method, index) => {
             //Get the times, which are in an object as they could be possible be use for the root of the object (course)
+            console.log({ courseMethods: "here" });
+            const item = updatedBuilding[index];
+
+            if (item == undefined) {
+              return {
+                building: null,
+                rooms: [],
+                //Add the times
+                start_time: 0,
+                end_time: 0,
+                //Because item (this current map we are in) is the building we can check for if its ONL
+                is_online: true,
+                //Days basically
+                day_monday: false,
+                day_tuesday: false,
+                day_wednesday: false,
+                day_thursday: false,
+                day_friday: false,
+                day_saturday: false,
+                day_sunday: false,
+              };
+            }
 
             const times = {
               start_time:

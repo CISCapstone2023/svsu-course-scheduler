@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import Select from "react-select";
 
 //React Component Libraries and Icons
-import { FilePlus, Logout, QuestionMark } from "tabler-icons-react";
+import { FilePlus, Logout, QuestionMark, User } from "tabler-icons-react";
 import { Button, Input, Modal, Steps, Tooltip } from "react-daisyui";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -101,11 +101,12 @@ const Projects: NextPage = () => {
   //ConfirmationCancel Modal State
   const [confirmationCancel, setComfirmation] = useState<boolean>(false);
 
+  //Confirmation Delete Modal State
+  const [confirmationDelete, setComfirmationDelete] = useState<boolean>(false);
+  const [DeleteID, setDeleteID] = useState("");
+
   //Visibility of the modal
   const [modalVisible, setModalVisible] = useState<boolean>(false);
-
-  //The current page for the pagination
-  // const [currentPage, setCurrentPage] = useState(1);
 
   //The reset flag for the onboarding
   const [setReset, setResetFlag] = useState(false);
@@ -204,12 +205,14 @@ const Projects: NextPage = () => {
         toast.success(`Succesfully Remove Revision`, {
           position: toast.POSITION.TOP_RIGHT,
         });
+        result.refetch();
         //Else its an error
       } else {
         toast.error(`Failed to Remove Revision`, {
           position: toast.POSITION.TOP_RIGHT,
         });
       }
+      result.refetch();
     } catch (error) {
       // handle error
       toast.error(`Failed to Connect Database`, {
@@ -407,15 +410,27 @@ const Projects: NextPage = () => {
             </div>
           </div>
 
-          <button
-            className="justify-ends btn-active btn"
-            onClick={() => {
-              signOut();
-            }}
-          >
-            <Logout size={30} />
-            Log Out
-          </button>
+          <div className="flex justify-end space-x-2">
+            <Button
+              className="justify-ends btn-active btn"
+              color="info"
+              onClick={() => {
+                router.push(`/admin/courses`);
+              }}
+            >
+              <User size={30} />
+              Admin
+            </Button>
+            <Button
+              className="justify-ends btn-active btn"
+              onClick={() => {
+                signOut();
+              }}
+            >
+              <Logout size={30} />
+              Log Out
+            </Button>
+          </div>
         </div>
         <Modal
           open={modalVisible}
@@ -681,6 +696,19 @@ const Projects: NextPage = () => {
             setSelectSchedule(null);
           }}
         />
+        <ConfirmDeleteModal
+          title="Deletion Confirmation"
+          message="Are you sure you want to delete this revision?"
+          open={confirmationDelete}
+          onClose={() => {
+            setComfirmationDelete(false);
+          }}
+          //when confirm, reset everything to the beginning
+          onConfirm={() => {
+            if (DeleteID) deleteRevision(DeleteID);
+            setComfirmationDelete(false);
+          }}
+        />
         <div className="container mx-auto  flex justify-between p-4">
           <p className=" text-3xl font-bold">Recent Project: </p>
 
@@ -733,6 +761,9 @@ const Projects: NextPage = () => {
                   strTitle={data.main.name}
                   strTimesAgo={calculateTime(data.main.updatedAt)}
                   key={index}
+                  onDelete={() => {
+                    result.refetch();
+                  }}
                   hasRevision={data.revisions.length > 0}
                   id={data.main.tuid != undefined ? data.main.tuid : "#!"}
                 >
@@ -743,6 +774,8 @@ const Projects: NextPage = () => {
                           key={index}
                           title={rev.name}
                           timesAgo={calculateTime(rev.updatedAt)}
+                          setID={setDeleteID}
+                          setConfirmation={setComfirmationDelete}
                           id={rev.tuid}
                         />
                       );

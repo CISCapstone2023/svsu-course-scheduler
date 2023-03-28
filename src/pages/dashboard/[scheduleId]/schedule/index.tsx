@@ -2,7 +2,7 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import { Button, ButtonGroup, Toggle } from "react-daisyui";
+import { Button, ButtonGroup, Dropdown, Toggle } from "react-daisyui";
 import Select from "react-select";
 import { useReactToPrint } from "react-to-print";
 //Database and authentiation
@@ -28,7 +28,17 @@ import CreateCourseModal from "./CourseModifyModal";
 import CourseInformationSidebar from "./CourseInformation";
 import { toast } from "react-toastify";
 import { IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
-import { Check, Cross, X } from "tabler-icons-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  Cross,
+  FileExport,
+  PencilPlus,
+  Plus,
+  Printer,
+  X,
+} from "tabler-icons-react";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -178,15 +188,40 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
         <div className="flex h-full w-full flex-col">
           <DashboardContentHeader title="Scheduler">
             <div className="flex items-center space-x-2">
+              <Dropdown className="z-[900]">
+                <Button size="sm" color="info">
+                  <Printer className="mr-2 inline" />
+                  Print
+                </Button>
+                <Dropdown.Menu className="w-[300px]">
+                  <Dropdown.Item
+                    onClick={handleTopPrint}
+                    className="border-b border-black"
+                  >
+                    <ArrowUp className="inline" />
+                    <Printer className="inline" />
+                    Print Top Calendar
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={handleBottomPrint}>
+                    <ArrowDown className="inline" />
+                    <Printer className="inline" />
+                    Print Bottom Calendar
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+
               <Button onClick={exportCalendar} size="sm" color="success">
+                <FileExport className="mr-2" />
                 Export
               </Button>
               <Button
                 size="sm"
+                color="warning"
                 onClick={() => {
                   setModifyCourseModal(true);
                 }}
               >
+                <PencilPlus className="mr-2" />
                 Add Course
               </Button>
               <ButtonGroup className="border-l-2 border-black pl-2">
@@ -238,9 +273,6 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   setCourseToCopy(value);
                   setCourseToEdit(null);
                   setModifyCourseModal(true);
-                }}
-                onPrint={() => {
-                  handleTopPrint();
                 }}
                 semester={
                   currentRevisionSemesters.data[currentSemesterTabs]!.semester
@@ -315,9 +347,6 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                         setCourseToCopy(value);
                         setCourseToEdit(null);
                         setModifyCourseModal(true);
-                      }}
-                      onPrint={() => {
-                        handleBottomPrint();
                       }}
                       semester={revisionTabs[currentReivisionTab]!.semester}
                       revision={revisionTabs[currentReivisionTab]!.revision}

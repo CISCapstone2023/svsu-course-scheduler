@@ -1,7 +1,7 @@
 import { signUpSchema } from "src/validation/auth";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
-import { hash } from "bcrypt";
+import { hash } from "bcryptjs";
 
 export const routerAuth = createTRPCRouter({
   signUp: publicProcedure

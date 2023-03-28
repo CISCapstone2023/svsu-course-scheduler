@@ -25,7 +25,7 @@ module.exports = {
       {
         light: {
           ...daisyThemes["[data-theme=light]"],
-          primary: "blue",
+          primary: "teal",
           "primary-focus": "mediumblue",
           secondary: "gray",
         },

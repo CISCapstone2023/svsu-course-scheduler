@@ -203,28 +203,11 @@ const ScheduleCalendar = ({
       )}
       <div className="flex h-7 flex-row justify-evenly">
         <div className="relative flex w-[70px] border-r border-b border-base-300">
-          <Dropdown
-            className="z-[900]"
-            style={{
-              top: 0,
-              left: 0,
-            }}
-          >
-            <Dropdown.Item>
-              <DotsCircleHorizontal className="inline" />
-            </Dropdown.Item>
-            <Dropdown.Menu className="w-52">
-              <Dropdown.Item onClick={onPrint}>
-                <Printer className="inline" />
-                Print
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
           <div
             className="absolute  "
             style={{
               top: 0,
-              left: 25,
+              left: 2,
             }}
           >
             Time

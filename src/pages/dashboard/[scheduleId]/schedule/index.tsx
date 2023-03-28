@@ -19,7 +19,7 @@ import AnimatedSpinner from "src/components/AnimatedSpinner";
 import Tabs from "./Tabs";
 
 //Local components and types
-import ScheduleCalendar, { type ScheduleCalendarPrintable } from "./Calendar";
+import ScheduleCalendar, { ScheduleCalendarPrintable } from "./Calendar";
 import {
   type IRevisionSelect,
   type ITab,

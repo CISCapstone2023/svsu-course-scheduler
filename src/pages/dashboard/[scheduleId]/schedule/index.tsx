@@ -154,6 +154,10 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId, name }) => {
   //The state of the course modal
   const [openModifyCourseModal, setModifyCourseModal] = useState(false);
 
+  useEffect(() => {
+    currentRevisionSemesters.refetch();
+  }, [openModifyCourseModal]);
+
   //The course tuid that will be currently edited
   const [courseToEdit, setCourseToEdit] = useState<string | null>(null);
   const [courseToCopy, setCourseToCopy] = useState<string | null>(null);

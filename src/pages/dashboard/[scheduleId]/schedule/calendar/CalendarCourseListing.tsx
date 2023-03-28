@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { type IScheduleCourse } from "src/server/api/routers/calendar";
 import { Lock } from "tabler-icons-react";
 import CalendarCourseInfo from "./CalendarCourseInfo";
-
+import { MouseEvent } from "react";
 interface CourseListingProps {
   show: boolean; //Do we show the courses
   locked?: boolean; //Do we tell the user this is in lcoked mode
@@ -11,6 +11,7 @@ interface CourseListingProps {
   overlap?: boolean; //Do we want to overlap courses in this mode?
   setCourseHover: (value: IScheduleCourseWithTimes | null) => void; //Hover event
   onSelect: (value: string) => void; //Selection event
+  onContext: (value: string, e: MouseEvent<HTMLDivElement>) => void;
   hover: IScheduleCourseWithTimes | null; //Hover data?
 }
 
@@ -108,6 +109,8 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
         );
       });
 
+      //console.log({ time });
+
       const onlineNonAsync = current.locations.find((loc) => {
         return (
           (loc.day_monday ||
@@ -150,12 +153,12 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
 
           //480 is the pixel amount from the top
 
-          console.log({
-            top: course.startTime - 480,
-            totalMinutes: course.startTime,
-            endTime: course.endTime,
-            courses: [course],
-          });
+          // console.log({
+          //   top: course.startTime - 480,
+          //   totalMinutes: course.startTime,
+          //   endTime: course.endTime,
+          //   courses: [course],
+          // });
 
           prev.push({
             top: course.startTime - 480,
@@ -189,7 +192,7 @@ const calendarMapping = (courses: IScheduleCourse[]) => {
       }
 
       if (onlineNonAsync != undefined) {
-        console.debug("We have a non async course");
+        //console.debug("We have a non async course");
         const indexTop = prev.findIndex((item) => item.totalMinutes == 480);
         const copyOfCourse = { ...course };
         copyOfCourse.startTime = 480;
@@ -282,12 +285,14 @@ const CourseListing = ({
   locked = false,
   setCourseHover,
   hover,
+  onContext,
   onSelect,
 }: CourseListingProps) => {
   //Get the mapped version of the calendar from the list of courses
   let mapped = [] as ICalendarMappingJustified[];
   if (courses != undefined) {
     mapped = calendarMapping(courses);
+    //console.log({ courses, mapped });
   }
   return (
     <>
@@ -317,11 +322,15 @@ const CourseListing = ({
                           onClick={() => {
                             onSelect(course.tuid);
                           }}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            onContext(course.tuid, e);
+                          }}
                           className={classNames(
-                            "z-[100] flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 transition-all duration-150 hover:z-[999] hover:shadow-lg",
+                            "z-[100] flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 transition-all duration-150 hover:z-[500] hover:shadow-lg",
                             {
                               "-ml-10": index > 0 && overlap,
-                              "z-[999] shadow-lg":
+                              "shadow-lg":
                                 hover != null && hover.tuid == course.tuid,
                               "bg-base-300":
                                 hover != null &&

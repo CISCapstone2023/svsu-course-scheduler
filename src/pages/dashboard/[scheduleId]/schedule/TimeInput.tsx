@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import classNames from "classnames";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Checkbox, Input } from "react-daisyui";
 import militaryToTime from "src/utils/time";
 
@@ -6,9 +7,17 @@ interface TimeInputProps {
   value: number;
   onChange: (time: number) => void;
   ref: any;
+  disabled?: boolean;
 }
 
-const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
+const TimeInput = ({
+  value,
+  ref,
+  onChange,
+  disabled = false,
+}: TimeInputProps) => {
+  const localRef = useRef<HTMLInputElement>(null);
+
   const [hour, setHour] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [isPM, setIsPM] = useState(false);
@@ -41,8 +50,11 @@ const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
   return (
     <div className="flex rounded-lg border-[1px] border-gray-300 p-1" ref={ref}>
       <input
+        ref={localRef}
+        disabled={disabled}
         type="number"
-        className="time-input w-8"
+        style={{ textAlign: "right" }}
+        className="time-input w-5"
         value={hour}
         onChange={(event) => {
           const hours = parseInt(event.currentTarget.value);
@@ -58,13 +70,24 @@ const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
             setHour(12);
           }
         }}
-        min="1"
-        max="12"
       />
-      :
+      <div
+        onClick={() => {
+          if (localRef != null) {
+            localRef.current?.focus();
+          }
+        }}
+        className={classNames({
+          "bg-white": !disabled,
+          "bg-gray-100": disabled,
+        })}
+      >
+        :{minutes <= 9 ? "0" : null}
+      </div>
       <input
+        disabled={disabled}
         type="number"
-        className="time-input w-8"
+        className="time-input w-5"
         value={minutes}
         onChange={(event) => {
           const mins = parseInt(event.currentTarget.value);
@@ -80,10 +103,10 @@ const TimeInput = ({ value, ref, onChange }: TimeInputProps) => {
             setMinutes(59);
           }
         }}
-        min="0"
-        max="60"
       />
       <select
+        disabled={disabled}
+        className={classNames("pl-2", { "bg-white": !disabled })}
         value={isPM == true ? "PM" : "AM"}
         onChange={(event) => {
           setIsPM(event.currentTarget.value == "PM");

@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { MouseEvent } from "react";
 import { IScheduleCourse } from "src/server/api/routers/calendar";
 import CalendarCourseInfo from "./CalendarCourseInfo";
 import { IScheduleCourseWithTimes } from "./CalendarCourseListing";
@@ -9,6 +10,7 @@ interface CalendarCourseOnlineProps {
   courses: IScheduleCourseWithTimes[];
   overlap?: boolean; //Do we want to overlap courses in this mode?
   setCourseHover: (value: IScheduleCourseWithTimes | null) => void; //Hover event
+  onContext: (value: string, e: MouseEvent<HTMLDivElement>) => void;
   onSelect: (value: string) => void; //Selection event
   hover: IScheduleCourseWithTimes | null; //Hover data?
 }
@@ -17,6 +19,7 @@ const CalendarCourseOnline = ({
   show,
   locked,
   courses,
+  onContext,
   overlap,
   setCourseHover,
   onSelect,
@@ -35,8 +38,12 @@ const CalendarCourseOnline = ({
               onClick={() => {
                 onSelect(course.tuid);
               }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                onContext(course.tuid, e);
+              }}
               className={classNames(
-                "z-[100] m-1 flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 transition-all duration-150 hover:z-[999] hover:shadow-lg",
+                "z-[100] m-1 flex w-32 cursor-pointer overflow-hidden text-ellipsis rounded-lg border border-base-100 bg-base-200 transition-all duration-150 hover:z-[500] hover:shadow-lg",
                 {
                   "-ml-10": index > 0 && overlap,
                   "z-[999] shadow-lg":

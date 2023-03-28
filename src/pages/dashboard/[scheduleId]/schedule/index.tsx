@@ -130,6 +130,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
 
   //The course tuid that will be currently edited
   const [courseToEdit, setCourseToEdit] = useState<string | null>(null);
+  const [courseToCopy, setCourseToCopy] = useState<string | null>(null);
 
   const exportMutation = api.projects.exportScheduleRevision.useMutation();
 
@@ -169,7 +170,6 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               <Button
                 size="sm"
                 onClick={() => {
-                  setCourseToEdit(null);
                   setModifyCourseModal(true);
                 }}
               >
@@ -205,6 +205,11 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                 update={openModifyCourseModal}
                 onSelect={(value) => {
                   setCourseToEdit(value);
+                  setModifyCourseModal(true);
+                }}
+                onCopy={(value) => {
+                  setCourseToCopy(value);
+                  setCourseToEdit(null);
                   setModifyCourseModal(true);
                 }}
                 onPrint={() => {
@@ -249,7 +254,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   options={revisionList.data as IRevisionSelect[]}
                   value={selectedRevision}
                   classNamePrefix="selection"
-                  className="z-[1000]"
+                  className="z-[500] w-[200px]"
                   onChange={(selectedRevision) => {
                     //Check to make sure the reivison won't be undefined
                     if (selectedRevision != undefined) {
@@ -275,7 +280,12 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                     name={revisionTabs[currentReivisionTab]!.title}
                     locked={true}
                     onSelect={(value) => {
-                      console.log(value);
+                      //do nothing
+                    }}
+                    onCopy={(value) => {
+                      setCourseToCopy(value);
+                      setCourseToEdit(null);
+                      setModifyCourseModal(true);
                     }}
                     onPrint={() => {
                       handleBottomPrint();
@@ -294,11 +304,13 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
             revisionTuid={scheduleId}
             open={openModifyCourseModal}
             edit={courseToEdit}
+            copy={courseToCopy}
             onSuccess={() => {
               setModifyCourseModal(false);
             }}
             onClose={() => {
               setModifyCourseModal(false);
+              setCourseToCopy(null);
             }}
           />
         )}

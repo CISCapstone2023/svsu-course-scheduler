@@ -83,7 +83,7 @@ export type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
  * This is to provide the information about the current faculty and buildings,
  * although we store all the information by the TUID value of faculty and building to courses
  */
-type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
+export type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
   faculty: {
     value: string;
     label: string;
@@ -1076,8 +1076,9 @@ async function queryCoursesByDay(
 
             // Filter by course location...
             locations: {
-              every: {
+              some: {
                 // ...if a course is taught in any location on a certain day
+
                 ...(day != undefined
                   ? {
                       [day]: {
@@ -1086,33 +1087,8 @@ async function queryCoursesByDay(
                     }
                   : {
                       OR: [
-                        // {
-                        //   day_monday: {
-                        //     equals: false,
-                        //   },
-                        //   day_tuesday: {
-                        //     equals: false,
-                        //   },
-                        //   day_wednesday: {
-                        //     equals: false,
-                        //   },
-                        //   day_thursday: {
-                        //     equals: false,
-                        //   },
-                        //   day_friday: {
-                        //     equals: false,
-                        //   },
-                        //   day_saturday: {
-                        //     equals: false,
-                        //   },
-                        //   day_sunday: {
-                        //     equals: false,
-                        //   },
-                        // },
                         {
-                          is_online: {
-                            equals: true,
-                          },
+                          is_online: true,
                         },
                       ],
                     }),
@@ -1146,18 +1122,14 @@ async function queryCoursesByDay(
               ...(day != undefined
                 ? {
                     where: {
-                      [day]: {
-                        equals: true,
-                      },
+                      OR: [
+                        {
+                          is_online: false,
+                        },
+                      ],
                     },
                   }
-                : {
-                    where: {
-                      is_online: {
-                        equals: true,
-                      },
-                    },
-                  }),
+                : {}),
               include: {
                 rooms: {
                   include: {

@@ -15,7 +15,7 @@ import { Theme } from "react-daisyui";
 //Import the Notificaitons container and styles
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import "react-contexify/ReactContexify.css";
 // minified version is also included
 /**
  * NextJS Middleware Wrapper

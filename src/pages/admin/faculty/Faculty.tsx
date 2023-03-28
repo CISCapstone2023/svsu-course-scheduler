@@ -51,9 +51,12 @@ const Faculty = () => {
    */
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Get a list of departments
+  // Grab the mutation for getting a list of departments in a label, value, name format
   const departmentMutation =
     api.department.getAllDepartmentAutofill.useMutation();
+
+  // Get a list of all departments
+  const allDepartments = api.department.getAllDepartmentsSelect.useQuery();
 
   // Filter faculty members by department
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
@@ -150,6 +153,7 @@ const Faculty = () => {
       name: "",
       suffix: "",
       is_adjunct: false,
+      department: "",
     });
   };
 
@@ -291,6 +295,7 @@ const Faculty = () => {
             <span />
             <div className="grow">Name</div>
             <div className="grow">Email</div>
+            <div>Department</div>
             <div>Is Adjunct?</div>
             <div>Edit</div>
             <div>Delete</div>
@@ -303,6 +308,7 @@ const Faculty = () => {
                   <span>{i + 1}</span>
                   <span>{faculty.name}</span>
                   <span>{faculty.email}</span>
+                  <span>{faculty.department}</span>
                   <span>
                     {faculty.is_adjunct && (
                       <Check className="text-green-400" size={40} />
@@ -451,6 +457,33 @@ const Faculty = () => {
               <ErrorMessage
                 errors={facultyForm.formState.errors}
                 name="email"
+                render={({ message }) => (
+                  <p className="font-semibold text-red-600">{message}</p>
+                )}
+              />
+
+              <p>Department</p>
+              <Select
+                className="mt-2"
+                placeholder="Department"
+                {...facultyForm.register("department")}
+              >
+                <Select.Option value="">Select a department</Select.Option>
+                <>
+                  {allDepartments.data?.result.map((department, i) => {
+                    return (
+                      <Select.Option key={i} value={department.name}>
+                        {department.name}
+                      </Select.Option>
+                    );
+                  })}
+                  ;
+                </>
+              </Select>
+
+              <ErrorMessage
+                errors={facultyForm.formState.errors}
+                name="department"
                 render={({ message }) => (
                   <p className="font-semibold text-red-600">{message}</p>
                 )}

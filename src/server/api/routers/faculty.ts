@@ -24,6 +24,7 @@ export const facultyRouter = createTRPCRouter({
           name: input.name,
           email: input.email,
           is_adjunct: input.is_adjunct,
+          department: input.department,
         },
       });
       //faculty has been added
@@ -190,6 +191,7 @@ export const facultyRouter = createTRPCRouter({
           name: input.name,
           email: input.email,
           is_adjunct: input.is_adjunct,
+          department: input.department,
         },
       });
       //return the updated faculty member to the client

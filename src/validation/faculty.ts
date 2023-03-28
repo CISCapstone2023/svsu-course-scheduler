@@ -35,6 +35,7 @@ export const createFacultySchema = z.object({
     .string()
     .email({ message: "Faculty's email field must be a valid email address" }),
   is_adjunct: z.boolean(),
+  department: z.string(),
 });
 
 //zod faculty schema with tuid added for reusability in api's

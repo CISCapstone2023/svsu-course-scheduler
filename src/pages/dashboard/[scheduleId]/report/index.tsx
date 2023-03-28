@@ -39,7 +39,17 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
    * A function provided by the NextJSAuth library which provides data about the user
    * assuming they are successfully signed-in. If they are it will be null.
    */
-  const {} = useSession();
+
+  const user = api.auth.getUser.useQuery();
+
+  useEffect(() => {
+    if (user.data != null) {
+      const value = user.data?.department;
+
+      setDepartmentValue({ value: value, label: value, name: value });
+      setDepartmentFilter(value);
+    }
+  }, [user]);
 
   /**
    * Filter values

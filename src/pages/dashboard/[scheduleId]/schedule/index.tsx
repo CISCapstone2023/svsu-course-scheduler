@@ -2,7 +2,7 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import { Button, Toggle } from "react-daisyui";
+import { Button, ButtonGroup, Toggle } from "react-daisyui";
 import Select from "react-select";
 import { useReactToPrint } from "react-to-print";
 //Database and authentiation
@@ -28,6 +28,7 @@ import CreateCourseModal from "./CourseModifyModal";
 import CourseInformationSidebar from "./CourseInformation";
 import { toast } from "react-toastify";
 import { IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
+import { Check, Cross, X } from "tabler-icons-react";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -169,7 +170,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   const handleBottomPrint = useReactToPrint({
     content: () => calendarBottomRef.current,
   });
-
+  const [showWeekends, setShowWeekends] = useState(false);
   return (
     <DashboardLayout>
       <DashboardSidebar />
@@ -188,15 +189,28 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               >
                 Add Course
               </Button>
-              <p>Basic Course Info?</p>
-              <Toggle
-                className="ml-2"
-                checked={courseInformationSidebar}
-                size="sm"
-                onClick={() => {
-                  toggleCourseInformationSidebar(!courseInformationSidebar);
-                }}
-              />
+              <ButtonGroup className="border-l-2 border-black pl-2">
+                <Button
+                  onClick={() => {
+                    setShowWeekends(!showWeekends);
+                  }}
+                  size="sm"
+                  active={showWeekends}
+                >
+                  {showWeekends && <Check />}
+                  {!showWeekends && <X />} Show Weekends
+                </Button>
+                <Button
+                  active={courseInformationSidebar}
+                  size="sm"
+                  onClick={() => {
+                    toggleCourseInformationSidebar(!courseInformationSidebar);
+                  }}
+                >
+                  {courseInformationSidebar && <Check />}
+                  {!courseInformationSidebar && <X />} Basic Course Info?
+                </Button>
+              </ButtonGroup>
             </div>
           </DashboardContentHeader>
           {currentRevisionSemesters.data != undefined && (
@@ -232,7 +246,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   currentRevisionSemesters.data[currentSemesterTabs]!.semester
                 }
                 revision={scheduleId}
-                weekends={false}
+                weekends={showWeekends}
                 onCourseHover={setLastHoveredCourse}
               />
             </>

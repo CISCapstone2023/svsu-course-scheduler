@@ -887,7 +887,14 @@ const Courses = () => {
                                 </div>
                               </div>
                               <div>
-                                <Button color="error" size="sm" type="button">
+                                <Button
+                                  type="button"
+                                  color="error"
+                                  size="sm"
+                                  onClick={() => {
+                                    dayFields.remove(index);
+                                  }}
+                                >
                                   <Trash />
                                 </Button>
                               </div>

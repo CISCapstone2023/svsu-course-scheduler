@@ -1047,10 +1047,7 @@ const invertedNestedOrganizedColumns = async (
       //Days
       const updatedDays =
         data.days != undefined
-          ? data.days
-              .trim()
-              .split(/\r\n|\n|\r/)
-              .map((c) => c.toLowerCase().split(""))
+          ? data.days.split(/\r\n|\n|\r/).map((c) => c.toLowerCase().split(""))
           : [];
       console.log({ updatedDays });
       //Faculty

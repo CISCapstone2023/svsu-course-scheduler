@@ -699,8 +699,8 @@ const Courses = () => {
                         size="xs"
                         onClick={() => {
                           timeFields.append({
-                            end_time: 830,
-                            start_time: 1020,
+                            end_time: 1020,
+                            start_time: 830,
                           });
                         }}
                         type="button"

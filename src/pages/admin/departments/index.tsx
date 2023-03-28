@@ -13,6 +13,7 @@ import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 
 import AdminDashboardSidebar from "src/components/dashboard/AdminDashboardSidebar";
 import SubjectTab from "./SubjectTab";
+import Head from "next/head";
 
 const Departments: NextPage = () => {
   /**
@@ -32,6 +33,9 @@ const Departments: NextPage = () => {
 
   return (
     <DashboardLayout>
+      <Head>
+        <title>SVSU Course Scheduler | Departments & Subjects</title>
+      </Head>
       <AdminDashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Department/Subjects" />

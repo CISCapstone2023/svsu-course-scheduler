@@ -29,10 +29,12 @@ import CourseInformationSidebar from "./CourseInformation";
 import { toast } from "react-toastify";
 import { IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
 import { Check, Cross, X } from "tabler-icons-react";
+import Head from "next/head";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
   scheduleId: string;
+  name: string;
 }
 
 /**
@@ -43,7 +45,7 @@ interface ScheduleCalendar {
  * @param scheduleId Identifier of the current schedudle revision
  * @returns
  */
-const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
+const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId, name }) => {
   /**
    * useSession
    *
@@ -173,6 +175,11 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   const [showWeekends, setShowWeekends] = useState(false);
   return (
     <DashboardLayout>
+      <Head>
+        <title>
+          {name.substring(0, 30)} | SVSU Course Scheduler | Calendar
+        </title>
+      </Head>
       <DashboardSidebar />
       <DashboardContent>
         <div className="flex h-full w-full flex-col">
@@ -402,12 +409,21 @@ export const getServerSideProps = routeNeedsAuthSession(
       }
     }
 
-    //NOTE: Passing the entire session to the NextPage will error,
-    //which is likely due to undefined values.
-    //Ideally just hook with "useSession" in the page
+    //Now get the revision and get the name so we can use it in the title
+    const revision = await prisma.scheduleRevision.findFirst({
+      where: {
+        tuid: query.scheduleId as string,
+        creator_tuid: session?.user?.id,
+      },
+      select: {
+        name: true,
+      },
+    });
+
     return {
       props: {
         scheduleId,
+        name: revision!.name,
       },
     };
   }

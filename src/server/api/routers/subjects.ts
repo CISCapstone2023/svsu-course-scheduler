@@ -65,21 +65,23 @@ export const subjectRouter = createTRPCRouter({
     }),
 
   //Router to pull all subjects to be autofilled
-  getAllSubjectsAutofill: protectedProcedure.query(async ({ ctx, input }) => {
-    //Queries the database to grab all subjects for autofill
-    const subjectResult = await ctx.prisma.subject.findMany();
+  getAllSubjectsAutofill: protectedProcedure.mutation(
+    async ({ ctx, input }) => {
+      //Queries the database to grab all subjects for autofill
+      const subjectResult = await ctx.prisma.subject.findMany();
 
-    return {
+      console.log({ subjectResult });
+
       //Returns the subject object with label, name, and value.
-      result: subjectResult.map((subject) => {
+      return subjectResult.map((subject) => {
         return {
           label: subject.name,
           value: subject.name,
-          subject: subject.name,
+          name: subject.name,
         };
-      }),
-    };
-  }),
+      });
+    }
+  ),
 
   //Router to add a subject to the subject table
   addSubject: protectedProcedure

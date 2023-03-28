@@ -12,6 +12,7 @@ import { z } from "zod";
  */
 export const signInSchema = z.object({
   email: z.string().email(),
+  department: z.string().nullable(),
   password: z
     .string()
     .min(6, { message: "Password must at least 6 characters" })

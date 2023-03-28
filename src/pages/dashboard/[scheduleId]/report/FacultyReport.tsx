@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useSession } from "next-auth/react";
+import React, { useEffect, useState } from "react";
 import { Button, ButtonGroup } from "react-daisyui";
 import militaryToTime from "src/utils/time";
 import { CaretDown, CaretUp } from "tabler-icons-react";
@@ -51,6 +52,7 @@ interface FacultyReportProps {
 const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
   //useState for caret Icon
   const [isCaretDown, setCaret] = useState(true);
+
   return (
     <div className="border-neutral-900 container mx-auto   flex-col  rounded-lg border-2 border-opacity-50 bg-stone-200 p-4">
       <div

@@ -25,6 +25,7 @@ import Head from "next/head";
 interface DashboardProps {
   scheduleId: string;
   name: string;
+  department: string;
 }
 
 // Creates a type for storing/using departments
@@ -34,14 +35,24 @@ interface DepartmentSelect {
   name: string | null;
 }
 
-const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
+const Report: NextPage<DashboardProps> = ({ scheduleId, name, department }) => {
   /**
    * useSession
    *
    * A function provided by the NextJSAuth library which provides data about the user
    * assuming they are successfully signed-in. If they are it will be null.
    */
-  const {} = useSession();
+
+  // const user = api.auth.getUser.useQuery();
+
+  // useEffect(() => {
+  //   if (user.data != null) {
+  //     const value = user.data?.department;
+
+  //     setDepartmentValue({ value: value, label: value, name: value });
+  //     setDepartmentFilter(value);
+  //   }
+  // }, [user]);
 
   /**
    * Filter values
@@ -59,11 +70,13 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
     api.department.getAllDepartmentAutofill.useMutation();
 
   // Filter faculty members by department
-  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
+  const [departmentFilter, setDepartmentFilter] = useState<string | null>(
+    department
+  );
   const [departmentValue, setDepartmentValue] = useState<DepartmentSelect>({
-    label: null,
-    value: null,
-    name: null,
+    label: department,
+    value: department,
+    name: department,
   });
 
   const faculties = api.report.getAllReports.useQuery({
@@ -220,6 +233,15 @@ export const getServerSideProps = routeNeedsAuthSession(
     //Grab schedule id from query parameter
     const scheduleId = query.scheduleId || "";
 
+    if (session == undefined) {
+      return {
+        redirect: {
+          destination: "/",
+          permanent: false,
+        },
+      };
+    }
+
     //Check to make sure its a string
     if (typeof scheduleId === "string") {
       //Make sure we have owenrship of said revision
@@ -253,10 +275,23 @@ export const getServerSideProps = routeNeedsAuthSession(
       },
     });
 
+    //Get the user also so we can grab the departments for the filter automaitcally
+    const user = await prisma.user.findFirst({
+      where: {
+        id: session?.user?.id,
+      },
+      select: {
+        department: true,
+      },
+    });
+
     return {
       props: {
         scheduleId,
+        //Pass the name to the page
         name: revision!.name,
+        //Pass department to the page
+        department: user?.department,
       },
     };
   }

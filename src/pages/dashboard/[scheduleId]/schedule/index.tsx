@@ -154,6 +154,10 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId, name }) => {
   //The state of the course modal
   const [openModifyCourseModal, setModifyCourseModal] = useState(false);
 
+  useEffect(() => {
+    currentRevisionSemesters.refetch();
+  }, [openModifyCourseModal]);
+
   //The course tuid that will be currently edited
   const [courseToEdit, setCourseToEdit] = useState<string | null>(null);
   const [courseToCopy, setCourseToCopy] = useState<string | null>(null);
@@ -449,10 +453,23 @@ export const getServerSideProps = routeNeedsAuthSession(
       },
     });
 
+    //Get the user also so we can grab the departments for the filter automaitcally
+    const user = await prisma.user.findFirst({
+      where: {
+        id: session?.user?.id,
+      },
+      select: {
+        department: true,
+      },
+    });
+
     return {
       props: {
         scheduleId,
+        //Pass the name to the page
         name: revision!.name,
+        //Pass department to the page
+        department: user?.department,
       },
     };
   }

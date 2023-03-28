@@ -41,7 +41,7 @@ const DashboardHomeTabs = ({ tuid }: DashboardHomeTabsProps) => {
       </h1>
       {/* info card to display total numbers of courses currently intialized a schedule */}
       <div>
-        <Stats className="mb-4 bg-base-200 shadow">
+        <Stats className="mb-4 border border-success bg-base-200 shadow">
           <Stats.Stat>
             <div className="stat-title">Total Courses</div>
             <div className="stat-value">
@@ -52,7 +52,7 @@ const DashboardHomeTabs = ({ tuid }: DashboardHomeTabsProps) => {
           </Stats.Stat>
         </Stats>
         {/* info card to display total numbers of faculty currently in a schedule */}
-        <Stats className="ml-5 mb-4 bg-base-200 shadow">
+        <Stats className="ml-5 mb-4 border border-warning bg-base-200 shadow">
           <Stats.Stat>
             <div className="stat-title">Total Faculty Members</div>
             <div className="stat-value">

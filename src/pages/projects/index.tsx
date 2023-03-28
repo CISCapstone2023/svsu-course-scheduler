@@ -39,6 +39,7 @@ import {
   type IProjectFinalizeOnboarding,
 } from "src/validation/projects.frontend";
 import classNames from "classnames";
+import Head from "next/head";
 
 //THE DEFAULT SCHEMA FOR THE ORGANIZED COLUMNS
 const DEFAULT_ORGANIZED_COLUMNS = {
@@ -391,6 +392,9 @@ const Projects: NextPage = () => {
 
   return (
     <DashboardLayout>
+      <Head>
+        <title>SVSU Course Scheduler | Project Listings</title>
+      </Head>
       <div className="w-full flex-col p-5">
         <div className="flex w-full justify-between pb-12">
           <div className="flex">

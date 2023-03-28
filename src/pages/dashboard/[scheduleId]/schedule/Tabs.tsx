@@ -44,7 +44,12 @@ const Tab = ({ title, onClick, active, closable, onClose }: TabProps) => {
           {" "}
           <Button
             size="sm"
-            onClick={() => {
+            onClick={(e) => {
+              //Prevent default behavior
+              e.preventDefault();
+
+              //Prevents tabs from minimizing
+              e.stopPropagation();
               onClose();
             }}
           >

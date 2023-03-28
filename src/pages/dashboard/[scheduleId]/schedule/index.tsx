@@ -90,10 +90,23 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
   /**
    * Remove a calendar for a revision
    * @param index
-   * @author Brendan Fuller
+   * @author Brendan Fuller, Saturn Gilbert
    */
   const removeScheduleCalendar = (index: number) => {
-    setSchedueleTab(revisionTabs.splice(index, 1));
+    //Grabs copy of revision tabs array
+    const copyOfRevisionTabs = [...revisionTabs];
+
+    //Splices copy (removes tab at index)
+    copyOfRevisionTabs.splice(index, 1);
+
+    //If statement checks to see if current tab is at end of revision tabs array
+    if (currentReivisionTab == copyOfRevisionTabs.length) {
+      //If so, set currently selected tab to previous tab in array
+      setCurrentRevisionTab(copyOfRevisionTabs.length - 1);
+    }
+
+    //Set selected revision tab
+    setSchedueleTab(copyOfRevisionTabs);
   };
 
   /**
@@ -214,7 +227,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
               />
 
               <ScheduleCalendarPrintable
-                name={currentRevisionSemesters.data[currentReivisionTab]!.name!}
+                name={""}
                 ref={calendarRef}
                 update={openModifyCourseModal}
                 onSelect={(value) => {
@@ -251,14 +264,14 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
           {revisionList.data != undefined && (
             <>
               <Tabs
-                closable={false}
+                closable={true}
                 tabs={revisionTabs}
                 active={currentReivisionTab}
                 onClose={(tab) => {
                   removeScheduleCalendar(tab);
                 }}
                 onSelect={(tab) => {
-                  console.log(tab);
+                  // console.log(tab);
                   setCurrentRevisionTab(tab);
                 }}
                 showChildren={true}
@@ -287,29 +300,35 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId }) => {
                   Open
                 </Button>
               </Tabs>
-              {revisionTabs.length > 0 &&
-                revisionTabs[currentReivisionTab] != undefined && (
-                  <ScheduleCalendarPrintable
-                    ref={calendarBottomRef}
-                    name={revisionTabs[currentReivisionTab]!.title}
-                    locked={true}
-                    onSelect={(value) => {
-                      //do nothing
-                    }}
-                    onCopy={(value) => {
-                      setCourseToCopy(value);
-                      setCourseToEdit(null);
-                      setModifyCourseModal(true);
-                    }}
-                    onPrint={() => {
-                      handleBottomPrint();
-                    }}
-                    semester={revisionTabs[currentReivisionTab]!.semester}
-                    revision={revisionTabs[currentReivisionTab]!.revision}
-                    weekends={showWeekends}
-                    onCourseHover={setLastHoveredCourse}
-                  />
-                )}
+              {revisionTabs.map((tab, index) => {
+                if (index == currentReivisionTab) {
+                  return (
+                    <ScheduleCalendarPrintable
+                      key={index}
+                      ref={calendarBottomRef}
+                      name={revisionTabs[currentReivisionTab]!.title}
+                      locked={true}
+                      onSelect={(value) => {
+                        //do nothing
+                      }}
+                      onCopy={(value) => {
+                        setCourseToCopy(value);
+                        setCourseToEdit(null);
+                        setModifyCourseModal(true);
+                      }}
+                      onPrint={() => {
+                        handleBottomPrint();
+                      }}
+                      semester={revisionTabs[currentReivisionTab]!.semester}
+                      revision={revisionTabs[currentReivisionTab]!.revision}
+                      weekends={false}
+                      onCourseHover={setLastHoveredCourse}
+                    />
+                  );
+                }
+
+                return null;
+              })}
             </>
           )}
         </div>

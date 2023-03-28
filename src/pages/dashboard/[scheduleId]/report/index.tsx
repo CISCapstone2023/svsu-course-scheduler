@@ -20,9 +20,11 @@ import AsyncSelect from "react-select/async";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import { ActionMeta, SingleValue } from "react-select";
+import Head from "next/head";
 
 interface DashboardProps {
   scheduleId: string;
+  name: string;
 }
 
 // Creates a type for storing/using departments
@@ -32,7 +34,7 @@ interface DepartmentSelect {
   name: string | null;
 }
 
-const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
+const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
   /**
    * useSession
    *
@@ -91,6 +93,9 @@ const Report: NextPage<DashboardProps> = ({ scheduleId }) => {
 
   return (
     <DashboardLayout>
+      <Head>
+        <title>{name.substring(0, 30)} | SVSU Course Scheduler | Report</title>
+      </Head>
       <DashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Report" />
@@ -247,12 +252,21 @@ export const getServerSideProps = routeNeedsAuthSession(
       }
     }
 
-    //NOTE: Passing the entire session to the NextPage will error,
-    //which is likely due to undefined values.
-    //Ideally just hook with "useSession" in the page
+    //Now get the revision and get the name so we can use it in the title
+    const revision = await prisma.scheduleRevision.findFirst({
+      where: {
+        tuid: query.scheduleId as string,
+        creator_tuid: session?.user?.id,
+      },
+      select: {
+        name: true,
+      },
+    });
+
     return {
       props: {
         scheduleId,
+        name: revision!.name,
       },
     };
   }

@@ -16,6 +16,7 @@ import { Theme } from "react-daisyui";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-contexify/ReactContexify.css";
+import Head from "next/head";
 // minified version is also included
 /**
  * NextJS Middleware Wrapper
@@ -42,6 +43,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <Theme dataTheme="light" id="theme">
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <SessionProvider session={session}>
         <ToastContainer />
         <Component {...pageProps} />

@@ -10,12 +10,14 @@ import DashboardContentHeader from "src/components/dashboard/DashboardContentHea
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import { routeNeedsAuthSession } from "src/server/auth";
+import Head from "next/head";
 
 interface HomeProps {
   scheduleId: string;
+  name: string;
 }
 
-const Dashboard: NextPage<HomeProps> = ({ scheduleId }) => {
+const Dashboard: NextPage<HomeProps> = ({ scheduleId, name }) => {
   /**
    * useSession
    *
@@ -26,6 +28,9 @@ const Dashboard: NextPage<HomeProps> = ({ scheduleId }) => {
 
   return (
     <DashboardLayout>
+      <Head>
+        <title>{name.substring(0, 30)} | SVSU Course Scheduler | Home</title>
+      </Head>
       <DashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Home"></DashboardContentHeader>
@@ -82,12 +87,21 @@ export const getServerSideProps = routeNeedsAuthSession(
       }
     }
 
-    //NOTE: Passing the entire session to the NextPage will error,
-    //which is likely due to undefined values.
-    //Ideally just hook with "useSession" in the page
+    //Now get the revision and get the name so we can use it in the title
+    const revision = await prisma.scheduleRevision.findFirst({
+      where: {
+        tuid: query.scheduleId as string,
+        creator_tuid: session?.user?.id,
+      },
+      select: {
+        name: true,
+      },
+    });
+
     return {
       props: {
         scheduleId,
+        name: revision!.name,
       },
     };
   }

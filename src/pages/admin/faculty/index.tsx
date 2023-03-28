@@ -6,6 +6,7 @@ import DashboardContentHeader from "src/components/dashboard/DashboardContentHea
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import Faculty from "./Faculty";
 import AdminDashboardSidebar from "src/components/dashboard/AdminDashboardSidebar";
+import Head from "next/head";
 
 const Buildings: NextPage = () => {
   /**
@@ -17,6 +18,9 @@ const Buildings: NextPage = () => {
    */
   return (
     <DashboardLayout>
+      <Head>
+        <title>SVSU Course Scheduler | Faculty</title>
+      </Head>
       <AdminDashboardSidebar />
       <DashboardContent>
         <DashboardContentHeader title="Faculty" />

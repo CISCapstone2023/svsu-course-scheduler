@@ -2,7 +2,7 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import { Button, ButtonGroup, Dropdown, Toggle } from "react-daisyui";
+import { Button, ButtonGroup, Dropdown } from "react-daisyui";
 import Select from "react-select";
 import { useReactToPrint } from "react-to-print";
 //Database and authentiation
@@ -19,7 +19,7 @@ import AnimatedSpinner from "src/components/AnimatedSpinner";
 import Tabs from "./Tabs";
 
 //Local components and types
-import ScheduleCalendar, { ScheduleCalendarPrintable } from "./Calendar";
+import ScheduleCalendar, { type ScheduleCalendarPrintable } from "./Calendar";
 import {
   type IRevisionSelect,
   type ITab,
@@ -27,23 +27,19 @@ import {
 import CreateCourseModal from "./CourseModifyModal";
 import CourseInformationSidebar from "./CourseInformation";
 import { toast } from "react-toastify";
-import { IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
+import { type IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
 
-import { Check, Cross, X } from "tabler-icons-react";
 import Head from "next/head";
 
 import {
   ArrowDown,
   ArrowUp,
   Check,
-  Cross,
   FileExport,
   PencilPlus,
-  Plus,
   Printer,
   X,
 } from "tabler-icons-react";
-
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {

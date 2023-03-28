@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, ButtonGroup } from "react-daisyui";
 import militaryToTime from "src/utils/time";
-import { CaretDown, CaretUp } from "tabler-icons-react";
+import { CaretDown, CaretUp, Mail } from "tabler-icons-react";
 
 interface FacultyReportProps {
   children?: React.ReactNode;
@@ -53,13 +53,27 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
   const [isCaretDown, setCaret] = useState(true);
   return (
     <div className="border-neutral-900 container mx-auto   flex-col  rounded-lg border-2 border-opacity-50 bg-stone-200 p-4">
-      <div
-        className="flex cursor-pointer justify-between"
-        onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
-      >
-        <strong>{faculty?.name}</strong>
+      <div className="flex justify-between">
+        <strong
+          className=" cursor-pointer "
+          onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
+        >
+          {faculty?.name}
+        </strong>
         <div className="flex">
-          <span className="mr-3">
+          <Button
+            color="info"
+            className="mr-2"
+            onClick={() => {
+              alert("mail");
+            }}
+          >
+            <Mail />
+          </Button>
+          <span
+            className="mr-3 cursor-pointer"
+            onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
+          >
             with <strong>{faculty?.totalCredits}</strong> credits teaching in
           </span>
 

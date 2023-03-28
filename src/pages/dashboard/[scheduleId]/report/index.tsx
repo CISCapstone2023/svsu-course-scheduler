@@ -14,7 +14,7 @@ import { prisma } from "src/server/db";
 import { api } from "src/utils/api";
 import FacultyReport from "./FacultyReport";
 import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
-import { CaretDown } from "tabler-icons-react";
+import { CaretDown, Mail } from "tabler-icons-react";
 
 import AsyncSelect from "react-select/async";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -181,6 +181,15 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
               // {...field}
               // styles={customStyles}
             />
+            <Button
+              color="info"
+              className="ml-2"
+              onClick={() => {
+                alert("mail");
+              }}
+            >
+              <Mail /> Email to All
+            </Button>
           </div>
 
           <div className="container mx-auto mt-5 space-y-3 px-4">

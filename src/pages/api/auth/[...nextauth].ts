@@ -5,7 +5,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 //Argon (Hashing)
-import { compare } from "bcrypt";
+import { compare } from "bcryptjs";
 
 //Import the local files for environment files, prisma and schema
 import { env } from "src/env/server.mjs";

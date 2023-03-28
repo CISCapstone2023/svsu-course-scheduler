@@ -951,7 +951,7 @@ export const calendarRouter = createTRPCRouter({
             start_date: course.start_date,
             end_time: 0,
             start_time: 0,
-            original_state: course.original_state,
+            original_state: "MODIFIED",
             section: course.section.toString(),
             section_id: null,
             state: "MODIFIED",

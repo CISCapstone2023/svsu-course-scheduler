@@ -310,10 +310,39 @@ const ScheduleCalendar = ({
             });
           }}
         />
+
         {weekends && (
           <>
-            <CalendarWeekdayHeader weekday="Saturday" locked={locked} />
-            <CalendarWeekdayHeader weekday="Sunday" locked={locked} />
+            <CalendarWeekdayHeader
+              weekday="Saturday"
+              active={sections.saturday}
+              onClick={() => {
+                updateSectionViews({
+                  monday: false,
+                  tuesday: false,
+                  wednesday: false,
+                  thursday: false,
+                  friday: false,
+                  saturday: true,
+                  sunday: false,
+                });
+              }}
+            />
+            <CalendarWeekdayHeader
+              weekday="Sunday"
+              active={sections.sunday}
+              onClick={() => {
+                updateSectionViews({
+                  monday: false,
+                  tuesday: false,
+                  wednesday: false,
+                  thursday: false,
+                  friday: false,
+                  saturday: false,
+                  sunday: true,
+                });
+              }}
+            />
           </>
         )}
       </div>

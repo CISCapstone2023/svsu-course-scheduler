@@ -185,6 +185,10 @@ const ScheduleCalendar = ({
                 onSelect={(course) => {
                   if (onSelect != undefined) onSelect(course);
                 }}
+                onContext={(course, e) => {
+                  setContextCourse(course);
+                  handleContextMenu(e);
+                }}
                 courses={result.data!.online}
                 setCourseHover={(course) => {
                   setCourseHover(course);

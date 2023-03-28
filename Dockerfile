@@ -9,7 +9,7 @@ COPY package.json .
 RUN yarn install
 #Copy all of the other code for the project
 COPY . .
-ENV DATABASE_URL=mysql://root:wG,JT3Psz,@database:3306/CIS-Capstone-WI23-DB
+ENV DATABASE_URL=mysql://root:wGJT3Psz@database:3306/cis_capstone_wi23
 ENV NEXTAUTH_SECRET=example
 ENV NEXTAUTH_URL=http://course-scheduling.svsu.edu
 #Add the wait for connection file for mysql to fully boot

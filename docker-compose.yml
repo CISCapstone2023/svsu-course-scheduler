@@ -15,7 +15,7 @@ services:
       - database
 
     environment:
-      - DATABASE_URL=mysql://root:wG,JT3Psz,@database:3306/CIS-Capstone-WI23-DB
+      - DATABASE_URL=mysql://root:wGJT3Psz@database:3306/cis_capstone_wi23
       - NEXTAUTH_SECRET=PGpzmn9Y6J+tD4BGTuY+PGjrk6rB1U5eneDSNvxbQaM=
       - NEXTAUTH_URL=http://course-scheduling.svsu.edu
       - WAIT_HOSTS=database:3306
@@ -26,5 +26,5 @@ services:
   database:
     image: mysql:latest
     environment:
-      MYSQL_ROOT_PASSWORD: "wG,JT3Psz,"
-      MYSQL_DATABASE: "CIS-Capstone-WI23-DB"
+      MYSQL_ROOT_PASSWORD: "wGJT3Psz"
+      MYSQL_DATABASE: "cis_capstone_wi23"

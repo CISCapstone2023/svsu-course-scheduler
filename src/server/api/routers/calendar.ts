@@ -83,7 +83,7 @@ export type RevisionWithCourses = Prisma.ScheduleRevisionGetPayload<
  * This is to provide the information about the current faculty and buildings,
  * although we store all the information by the TUID value of faculty and building to courses
  */
-type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
+export type ICourseSchemaWithMetadata = ICalendarCourseSchema & {
   faculty: {
     value: string;
     label: string;

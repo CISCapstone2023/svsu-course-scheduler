@@ -1,14 +1,27 @@
 import classNames from "classnames";
 import { isEqual } from "lodash";
-import React, { useEffect, useState } from "react";
+import React, { MouseEvent, useEffect, useState } from "react";
 import { Button, Dropdown } from "react-daisyui";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
 import { type IScheduleCourse } from "src/server/api/routers/calendar";
 import { api } from "src/utils/api";
-import { Dots, DotsCircleHorizontal, Printer } from "tabler-icons-react";
+import {
+  Copy,
+  Dots,
+  DotsCircleHorizontal,
+  Printer,
+  Trash,
+} from "tabler-icons-react";
 import CourseListing, {
   IScheduleCourseWithTimes,
 } from "./calendar/CalendarCourseListing";
+import {
+  Menu,
+  Item,
+  Separator,
+  Submenu,
+  useContextMenu,
+} from "react-contexify";
 
 import CalendarWeekdayHeader from "./calendar/CalendarWeekdayHeader";
 import CalendarCourseOnline from "./calendar/CalenderCourseOnline";
@@ -27,6 +40,7 @@ interface CalendarComponentProps {
   weekends: boolean; //List of possible weekends to show
   locked?: boolean; //Is this calendar view locked?
   onSelect?: (course: string) => void; //Event when an course is selected
+  onCopy?: (value: string | null) => void;
   onCourseHover?: (course: IScheduleCourseWithTimes) => void; //Eent when the mouse hovers over a course
   onPrint?: () => void;
 }
@@ -41,6 +55,8 @@ interface Days {
   sunday: boolean;
 }
 
+const MENU_ID = "calendar-menu";
+
 const ScheduleCalendar = ({
   semester,
   weekends = false,
@@ -48,6 +64,7 @@ const ScheduleCalendar = ({
   revision,
   locked = false,
   onSelect,
+  onCopy,
   onCourseHover,
   onPrint,
 }: CalendarComponentProps) => {
@@ -117,14 +134,50 @@ const ScheduleCalendar = ({
       setOpenSections(days);
     }
   };
+  const { show } = useContextMenu({
+    id: MENU_ID,
+  });
+
+  const [contextCourse, setContextCourse] = useState<string | null>(null);
+
+  const handleContextMenu = (event: MouseEvent<HTMLDivElement>) => {
+    show({
+      event,
+      props: {
+        key: "value",
+      },
+    });
+  };
 
   //HTML/JSX Rendering
   return (
     <div className="h-full overflow-hidden">
+      <Menu id={MENU_ID} className="z-[900]">
+        <Item
+          id="copy"
+          onClick={({ id, event, props }) => {
+            if (onCopy != undefined) {
+              onCopy(contextCourse);
+            }
+          }}
+        >
+          <Copy className="mr-2 text-orange-300" /> Copy Course
+        </Item>
+        <Separator />
+        <Item
+          id="copy"
+          className="text-red-400"
+          onClick={({ id, event, props }) => {
+            alert("NOT IMPLEMENTED");
+          }}
+        >
+          <Trash className="mr-2 text-red-400" /> Force Delete
+        </Item>
+      </Menu>
       {result.data && result.data.online.length > 0 && (
         <>
-          <p className="font-bold">Asynchronous Online Courses</p>
-          <div className="m-2 flex h-[100px] flex-wrap overflow-y-scroll bg-white">
+          <p className="-2 font-bold">Asynchronous Online Courses</p>
+          <div className="flex h-[100px] flex-wrap overflow-y-scroll border-b-2 bg-white p-2">
             {result.data && (
               <CalendarCourseOnline
                 locked={locked}
@@ -315,6 +368,10 @@ const ScheduleCalendar = ({
                   onSelect={(course) => {
                     if (onSelect != undefined) onSelect(course);
                   }}
+                  onContext={(course, e) => {
+                    setContextCourse(course);
+                    handleContextMenu(e);
+                  }}
                   courses={result.data.monday_courses}
                   setCourseHover={(course) => {
                     setCourseHover(course);
@@ -327,6 +384,10 @@ const ScheduleCalendar = ({
                   show={sections.tuesday}
                   onSelect={(course) => {
                     if (onSelect != undefined) onSelect(course);
+                  }}
+                  onContext={(course, e) => {
+                    setContextCourse(course);
+                    handleContextMenu(e);
                   }}
                   courses={result.data.tuesday_courses}
                   setCourseHover={(course) => {
@@ -341,6 +402,10 @@ const ScheduleCalendar = ({
                   onSelect={(course) => {
                     if (onSelect != undefined) onSelect(course);
                   }}
+                  onContext={(course, e) => {
+                    setContextCourse(course);
+                    handleContextMenu(e);
+                  }}
                   courses={result.data.wednesday_courses}
                   setCourseHover={(course) => {
                     setCourseHover(course);
@@ -354,6 +419,10 @@ const ScheduleCalendar = ({
                   onSelect={(course) => {
                     if (onSelect != undefined) onSelect(course);
                   }}
+                  onContext={(course, e) => {
+                    setContextCourse(course);
+                    handleContextMenu(e);
+                  }}
                   courses={result.data.thursday_courses}
                   setCourseHover={(course) => {
                     setCourseHover(course);
@@ -366,6 +435,10 @@ const ScheduleCalendar = ({
                   show={sections.friday}
                   onSelect={(course) => {
                     if (onSelect != undefined) onSelect(course);
+                  }}
+                  onContext={(course, e) => {
+                    setContextCourse(course);
+                    handleContextMenu(e);
                   }}
                   courses={result.data.friday_courses}
                   setCourseHover={(course) => {
@@ -383,6 +456,10 @@ const ScheduleCalendar = ({
                       onSelect={(course) => {
                         if (onSelect != undefined) onSelect(course);
                       }}
+                      onContext={(course, e) => {
+                        setContextCourse(course);
+                        handleContextMenu(e);
+                      }}
                       courses={result.data.saturday_courses}
                       setCourseHover={(course) => {
                         setCourseHover(course);
@@ -395,6 +472,10 @@ const ScheduleCalendar = ({
                       show={sections.sunday}
                       onSelect={(course) => {
                         if (onSelect != undefined) onSelect(course!);
+                      }}
+                      onContext={(course, e) => {
+                        setContextCourse(course);
+                        handleContextMenu(e);
                       }}
                       courses={result.data.sunday_courses}
                       setCourseHover={(course) => {

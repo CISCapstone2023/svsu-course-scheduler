@@ -30,6 +30,7 @@ import { Edit, Trash } from "tabler-icons-react";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
 import { CourseState } from "@prisma/client";
 import { isDirty } from "zod";
+import { ICourseSchemaWithMetadata } from "src/server/api/routers/calendar";
 
 //Modal
 interface CreateCourseModalProps {
@@ -37,6 +38,7 @@ interface CreateCourseModalProps {
   open: boolean;
   revisionTuid: string;
   edit: string | null;
+  copy: string | null;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -50,6 +52,7 @@ const CreateCourseModal = ({
   onSuccess,
   open,
   onClose,
+  copy,
   edit = null,
 }: CreateCourseModalProps) => {
   //When input on form is changed, zod is called to validate schema
@@ -91,6 +94,27 @@ const CreateCourseModal = ({
     };
     if (edit != null) {
       getEditedCourse();
+    }
+
+    const getCopiedCourse = async () => {
+      const result = (await getEditCourseMutation.mutateAsync({
+        tuid: copy!,
+      })) as Partial<ICourseSchemaWithMetadata>;
+      console.log({ result });
+      if (result != undefined) {
+        //Reset the values for copy
+        result.section_id = null;
+
+        result.faculty = undefined;
+        result.start_date = undefined;
+        result.end_date = undefined;
+        reset(result);
+        //setCourseEditing(result as ICourseSchemaWithMetadata);
+      }
+    };
+
+    if (copy != null) {
+      getCopiedCourse();
     }
   }, []);
 
@@ -164,7 +188,8 @@ const CreateCourseModal = ({
 
       {/* Header for Modal */}
       <Modal.Header>
-        {isCourseEditing ? "Edit" : "Add"} Course Placement
+        {isCourseEditing ? "Edit" : copy == null ? "Add" : "Copy"} Course
+        Placement
       </Modal.Header>
       <Modal.Body className="max-h-screen  w-full">
         {/* <DevTool control={courseAddForm.control} /> set up the dev tool */}

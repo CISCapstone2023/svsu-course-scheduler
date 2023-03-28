@@ -70,6 +70,11 @@ const CreateCourseModal = ({
   //API to get all faculty lists from backend
   const facultyMutation = api.faculty.getRevisionCourseFaculty.useMutation();
 
+  const departmentMutation =
+    api.department.getAllDepartmentAutofill.useMutation();
+
+  const subjectMutation = api.subjects.getAllSubjectsAutofill.useMutation();
+
   const buildingMutation = api.buildings.getBuildingsList.useMutation();
 
   //API to add course to database for revision
@@ -389,12 +394,47 @@ const CreateCourseModal = ({
                       <p>Department</p>
                     </div>
                     <div>
-                      {/* Department */}
-                      <Input
-                        type="text"
-                        className="w-full"
-                        size="sm"
-                        {...courseAddForm.register("department")}
+                      <Controller
+                        name="department"
+                        control={courseAddForm.control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange, ref } }) => (
+                          <AsyncSelect
+                            isClearable
+                            defaultOptions
+                            className="w-[150px]"
+                            placeholder={"Enter Department"}
+                            blurInputOnSelect={true}
+                            loadOptions={(search, callback) => {
+                              //Create promise for the current options being loadded
+                              new Promise<any>(async (resolve) => {
+                                //Now call the mutation to find any faculty by the search value
+                                const data =
+                                  await departmentMutation.mutateAsync({
+                                    search: search.toLowerCase(),
+                                  });
+
+                                //If we do have data, set it to the callback,
+                                //which is basaically an update function
+                                if (data != undefined) {
+                                  callback(data);
+                                  resolve(true);
+                                } else {
+                                  //Else instead just set it to nothing
+                                  callback([]);
+                                  resolve(true);
+                                }
+                              });
+                            }}
+                            //Manually pass in the props with values
+                            value={value}
+                            ref={ref}
+                            onChange={(event) => {
+                              onChange(event);
+                            }}
+                            //styles={customStyles}
+                          />
+                        )}
                       />
 
                       {/* Error message thrown when zod detects a problem */}
@@ -416,11 +456,45 @@ const CreateCourseModal = ({
                     </div>
                     <div>
                       {/* Department */}
-                      <Input
-                        type="text"
-                        className="w-full"
-                        size="sm"
-                        {...courseAddForm.register("subject")}
+                      <Controller
+                        name="subject"
+                        control={courseAddForm.control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange, ref } }) => (
+                          <AsyncSelect
+                            isClearable
+                            defaultOptions
+                            className="w-[150px]"
+                            placeholder={"Enter Subject"}
+                            blurInputOnSelect={true}
+                            loadOptions={(search, callback) => {
+                              //Create promise for the current options being loadded
+                              new Promise<any>(async (resolve) => {
+                                //Now call the mutation to find any faculty by the search value
+                                const data =
+                                  await subjectMutation.mutateAsync();
+
+                                //If we do have data, set it to the callback,
+                                //which is basaically an update function
+                                if (data != undefined) {
+                                  callback(data);
+                                  resolve(true);
+                                } else {
+                                  //Else instead just set it to nothing
+                                  callback([]);
+                                  resolve(true);
+                                }
+                              });
+                            }}
+                            //Manually pass in the props with values
+                            value={value}
+                            ref={ref}
+                            onChange={(event) => {
+                              onChange(event);
+                            }}
+                            //styles={customStyles}
+                          />
+                        )}
                       />
 
                       {/* Error message thrown when zod detects a problem */}
@@ -512,8 +586,16 @@ const CreateCourseModal = ({
                               //Create promise for the current options being loadded
                               new Promise<any>(async (resolve) => {
                                 //Now call the mutation to find any faculty by the search value
+
+                                console.log({
+                                  department:
+                                    courseAddForm.getValues("department.name"),
+                                });
+
                                 const data = await facultyMutation.mutateAsync({
                                   search: search.toLowerCase(),
+                                  department:
+                                    courseAddForm.getValues("department.name"),
                                 });
 
                                 //If we do have data, set it to the callback,

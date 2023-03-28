@@ -13,13 +13,13 @@ const timesSchemaExtended = z
 
   //Refine the time object
   .superRefine(async (val, ctx) => {
-    //Make sure the star time is NOT before the end time
+    //Make sure the start time is NOT before the end time
     if (val.start_time > val.end_time) {
       //Add the issue
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["tuid"],
-        message: `End time can occur before start time!`,
+        message: `End time cannot occur before start time!`,
       });
     }
   });

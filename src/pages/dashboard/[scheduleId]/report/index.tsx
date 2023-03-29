@@ -4,7 +4,9 @@ import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
+import DashboardSidebar, {
+  DashboardPages,
+} from "src/components/dashboard/DashboardSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
@@ -86,7 +88,7 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
       <Head>
         <title>{name.substring(0, 30)} | SVSU Course Scheduler | Report</title>
       </Head>
-      <DashboardSidebar />
+      <DashboardSidebar page={DashboardPages.REPORT} />
       <DashboardContent>
         <DashboardContentHeader title="Report" />
         <div className="m-2 h-full overflow-auto">

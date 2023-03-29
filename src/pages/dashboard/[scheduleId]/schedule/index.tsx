@@ -14,7 +14,9 @@ import { api } from "src/utils/api";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
+import DashboardSidebar, {
+  DashboardPages,
+} from "src/components/dashboard/DashboardSidebar";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
 import Tabs from "./Tabs";
 
@@ -40,6 +42,7 @@ import {
   Printer,
   X,
 } from "tabler-icons-react";
+import useSidebar from "src/hooks/useSidebar";
 
 //Type that defines the current NextJS page for use
 interface ScheduleCalendar {
@@ -187,6 +190,10 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId, name }) => {
     content: () => calendarBottomRef.current,
   });
   const [showWeekends, setShowWeekends] = useState(false);
+
+  //Add sidebar toggle
+  const [showSidebar, toggleSidebar] = useSidebar();
+
   return (
     <DashboardLayout>
       <Head>
@@ -194,69 +201,76 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId, name }) => {
           {name.substring(0, 30)} | SVSU Course Scheduler | Calendar
         </title>
       </Head>
-      <DashboardSidebar />
+      {showSidebar && <DashboardSidebar page={DashboardPages.SCHEDULER} />}
       <DashboardContent>
         <div className="flex h-full w-full flex-col">
-          <DashboardContentHeader title="Scheduler">
-            <div className="flex items-center space-x-2">
-              <Dropdown className="z-[900]">
-                <Button size="sm" color="info">
-                  <Printer className="mr-2 inline" />
-                  Print
-                </Button>
-                <Dropdown.Menu className="w-[300px]">
-                  <Dropdown.Item
-                    onClick={handleTopPrint}
-                    className="border-b border-black"
-                  >
-                    <ArrowUp className="inline" />
-                    <Printer className="inline" />
-                    Print Top Calendar
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={handleBottomPrint}>
-                    <ArrowDown className="inline" />
-                    <Printer className="inline" />
-                    Print Bottom Calendar
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+          <DashboardContentHeader
+            title={`Scheduler | ${name}`}
+            onMenuClick={toggleSidebar}
+          >
+            <div className="flex flex-col lg:flex-row">
+              <div className="flex space-x-2">
+                <Dropdown className="z-[900]">
+                  <Button size="sm" color="info">
+                    <Printer className="mr-2 inline" />
+                    Print
+                  </Button>
+                  <Dropdown.Menu className="w-[300px]">
+                    <Dropdown.Item
+                      onClick={handleTopPrint}
+                      className="border-b border-black"
+                    >
+                      <ArrowUp className="inline" />
+                      <Printer className="inline" />
+                      Print Top Calendar
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={handleBottomPrint}>
+                      <ArrowDown className="inline" />
+                      <Printer className="inline" />
+                      Print Bottom Calendar
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
 
-              <Button onClick={exportCalendar} size="sm" color="success">
-                <FileExport className="mr-2" />
-                Export
-              </Button>
-              <Button
-                size="sm"
-                color="warning"
-                onClick={() => {
-                  setModifyCourseModal(true);
-                }}
-              >
-                <PencilPlus className="mr-2" />
-                Add Course
-              </Button>
-              <ButtonGroup className="border-l-2 border-black pl-2">
-                <Button
-                  onClick={() => {
-                    setShowWeekends(!showWeekends);
-                  }}
-                  size="sm"
-                  active={showWeekends}
-                >
-                  {showWeekends && <Check />}
-                  {!showWeekends && <X />} Show Weekends
+                <Button onClick={exportCalendar} size="sm" color="success">
+                  <FileExport className="mr-2" />
+                  Export
                 </Button>
                 <Button
-                  active={courseInformationSidebar}
                   size="sm"
+                  color="warning"
                   onClick={() => {
-                    toggleCourseInformationSidebar(!courseInformationSidebar);
+                    setModifyCourseModal(true);
                   }}
                 >
-                  {courseInformationSidebar && <Check />}
-                  {!courseInformationSidebar && <X />} Basic Course Info?
+                  <PencilPlus className="mr-2" />
+                  Add Course
                 </Button>
-              </ButtonGroup>
+              </div>
+              <div className="lg:ml-2 lg:border-l-2 lg:border-black lg:pl-2">
+                <ButtonGroup>
+                  <Button
+                    onClick={() => {
+                      setShowWeekends(!showWeekends);
+                    }}
+                    size="sm"
+                    active={showWeekends}
+                  >
+                    {showWeekends && <Check />}
+                    {!showWeekends && <X />} Show Weekends
+                  </Button>
+                  <Button
+                    active={courseInformationSidebar}
+                    size="sm"
+                    onClick={() => {
+                      toggleCourseInformationSidebar(!courseInformationSidebar);
+                    }}
+                  >
+                    {courseInformationSidebar && <Check />}
+                    {!courseInformationSidebar && <X />} Basic Course Info?
+                  </Button>
+                </ButtonGroup>
+              </div>
             </div>
           </DashboardContentHeader>
           {currentRevisionSemesters.data != undefined && (

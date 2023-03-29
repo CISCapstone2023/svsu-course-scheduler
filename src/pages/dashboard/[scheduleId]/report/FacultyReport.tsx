@@ -45,6 +45,7 @@ interface FacultyReportProps {
       };
     }[];
     name: string;
+    email: string;
     totalCredits: number;
   };
 }
@@ -52,7 +53,6 @@ interface FacultyReportProps {
 const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
   //useState for caret Icon
   const [isCaretDown, setCaret] = useState(true);
-
   return (
     <div className="border-neutral-900 container mx-auto   flex-col  rounded-lg border-2 border-opacity-50 bg-stone-200 p-4">
       <div className="flex justify-between">
@@ -67,7 +67,12 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
             color="info"
             className="mr-2"
             onClick={() => {
-              alert("mail");
+              window.location.href =
+                "mailto:" +
+                faculty?.email +
+                "?subject=Proposed Calendar for Review&body=Hello " +
+                faculty?.name +
+                ",\n\nHere's the proposed schedule";
             }}
           >
             <Mail />

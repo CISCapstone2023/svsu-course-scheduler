@@ -50,6 +50,7 @@ export const reportRouter = createTRPCRouter({
         },
         select: {
           name: true,
+          email: true,
           department: true,
           to_courses: {
             select: {

@@ -1,52 +1,48 @@
-//React and NextJS
-import { useState } from "react";
 import type { NextPage } from "next";
-import Head from "next/head";
+import { useSession } from "next-auth/react";
 
-//Libraries
-import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
-import { CaretDown } from "tabler-icons-react";
-import AsyncSelect from "react-select/async";
+import { useCallback, useEffect, useState } from "react";
 
-//Components and APIS
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar, {
-  DashboardPages,
-} from "src/components/dashboard/DashboardSidebar";
+import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
+import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import { routeNeedsAuthSession } from "src/server/auth";
 import { prisma } from "src/server/db";
 import { api } from "src/utils/api";
 import FacultyReport from "./FacultyReport";
-import useSidebar from "src/hooks/useSidebar";
+import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
+import { CaretDown, Mail } from "tabler-icons-react";
 
-/**
- * Dashboard Properties Interface
- *
- * @author CIS 2023
- */
+import AsyncSelect from "react-select/async";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { debounce } from "lodash";
+import { ActionMeta, SingleValue } from "react-select";
+import Head from "next/head";
+
 interface DashboardProps {
-  scheduleId: string; //The ID of the schedule
-  name: string; //The name of the current revision
-  department: string; //The department of the user
+  scheduleId: string;
+  name: string;
 }
 
-/**
- * Department Select Interface
- *
- * This interface is used to define
- *
- * @author CIS 2023
- */
+// Creates a type for storing/using departments
 interface DepartmentSelect {
   label: string | null;
   value: string | null;
   name: string | null;
 }
 
-const Report: NextPage<DashboardProps> = ({ scheduleId, name, department }) => {
+const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
+  /**
+   * useSession
+   *
+   * A function provided by the NextJSAuth library which provides data about the user
+   * assuming they are successfully signed-in. If they are it will be null.
+   */
+  const {} = useSession();
+
   /**
    * Filter values
    * The value which will be searching that is set by the debouncing below
@@ -62,28 +58,14 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name, department }) => {
   const departmentMutation =
     api.department.getAllDepartmentAutofill.useMutation();
 
-  // Duplicate copy of the filter, but not in an object form
-  const [departmentFilter, setDepartmentFilter] = useState<string | null>(
-    department
-  );
-
-  // Filter faculty members by department (for the select)
+  // Filter faculty members by department
+  const [departmentFilter, setDepartmentFilter] = useState<string | null>(null);
   const [departmentValue, setDepartmentValue] = useState<DepartmentSelect>({
-    label: department,
-    value: department,
-    name: department,
+    label: null,
+    value: null,
+    name: null,
   });
 
-  /**
-   * Faculties Query
-   *
-   * Retrieves the factulies members with the provided filters
-   * - Fall, Winter, Spring, or Summer semester
-   * - Department
-   * - Search (not in use)
-   * - Revision for tuid
-   * @author CIS 2023
-   */
   const faculties = api.report.getAllReports.useQuery({
     semester_fall: filterFallSemester,
     semester_spring: filterSpringSemester,
@@ -99,19 +81,14 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name, department }) => {
     a.department > b.department ? 1 : b.department > a.department ? -1 : 0
   );
 
-  //Add sidebar toggle
-  const [showSidebar, toggleSidebar] = useSidebar();
   return (
     <DashboardLayout>
       <Head>
         <title>{name.substring(0, 30)} | SVSU Course Scheduler | Report</title>
       </Head>
-      {showSidebar && <DashboardSidebar page={DashboardPages.REPORT} />}
+      <DashboardSidebar />
       <DashboardContent>
-        <DashboardContentHeader
-          title={`Report | ${name}`}
-          onMenuClick={toggleSidebar}
-        />
+        <DashboardContentHeader title="Report" />
         <div className="m-2 h-full overflow-auto">
           <div className="flex">
             <Dropdown>
@@ -252,15 +229,6 @@ export const getServerSideProps = routeNeedsAuthSession(
     //Grab schedule id from query parameter
     const scheduleId = query.scheduleId || "";
 
-    if (session == undefined) {
-      return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
-      };
-    }
-
     //Check to make sure its a string
     if (typeof scheduleId === "string") {
       //Make sure we have owenrship of said revision
@@ -294,23 +262,10 @@ export const getServerSideProps = routeNeedsAuthSession(
       },
     });
 
-    //Get the user also so we can grab the departments for the filter automaitcally
-    const user = await prisma.user.findFirst({
-      where: {
-        id: session?.user?.id,
-      },
-      select: {
-        department: true,
-      },
-    });
-
     return {
       props: {
         scheduleId,
-        //Pass the name to the page
         name: revision!.name,
-        //Pass department to the page
-        department: user?.department,
       },
     };
   }

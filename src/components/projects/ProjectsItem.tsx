@@ -41,7 +41,7 @@ const ProjectItem = ({
 
       //If its true, that's a good!
       if (response) {
-        toast.success(`Succesfully Remove Revision`, {
+        toast.success(`Succesfully Removed Revision`, {
           position: toast.POSITION.TOP_RIGHT,
         }); //Then after two seconds redirect the user via the router
         if (onDelete != undefined) onDelete();

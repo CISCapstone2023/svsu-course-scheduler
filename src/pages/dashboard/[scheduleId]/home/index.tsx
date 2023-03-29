@@ -4,13 +4,17 @@ import { useSession } from "next-auth/react";
 import { prisma } from "src/server/db";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
+import DashboardSidebar, {
+  DashboardPages,
+} from "src/components/dashboard/DashboardSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import { routeNeedsAuthSession } from "src/server/auth";
 import Head from "next/head";
+import { useState } from "react";
+import useSidebar from "src/hooks/useSidebar";
 
 interface HomeProps {
   scheduleId: string;
@@ -18,22 +22,21 @@ interface HomeProps {
 }
 
 const Dashboard: NextPage<HomeProps> = ({ scheduleId, name }) => {
-  /**
-   * useSession
-   *
-   * A function provided by the NextJSAuth library which provides data about the user
-   * assuming they are successfully signed-in. If they are it will be null.
-   */
-  const {} = useSession();
+  //Make a state to toggle the sidebar
+
+  const [showSidebar, toggleSidebar] = useSidebar();
 
   return (
     <DashboardLayout>
       <Head>
         <title>{name.substring(0, 30)} | SVSU Course Scheduler | Home</title>
       </Head>
-      <DashboardSidebar />
+      {showSidebar && <DashboardSidebar page={DashboardPages.HOME} />}
       <DashboardContent>
-        <DashboardContentHeader title="Home"></DashboardContentHeader>
+        <DashboardContentHeader
+          onMenuClick={toggleSidebar}
+          title={`Home | ${name}`}
+        ></DashboardContentHeader>
         <DashboardHomeTabs tuid={scheduleId} />
       </DashboardContent>
     </DashboardLayout>

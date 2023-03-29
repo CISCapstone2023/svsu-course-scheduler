@@ -3,15 +3,7 @@ import React, { useEffect, useState } from "react";
 import AsyncSelect from "react-select/async";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import {
-  Button,
-  Checkbox,
-  Input,
-  Modal,
-  Radio,
-  Select,
-  Textarea,
-} from "react-daisyui";
+import { Button, Checkbox, Input, Modal, Radio, Textarea } from "react-daisyui";
 
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,27 +18,50 @@ import {
 import TimeInput from "./TimeInput";
 import { api } from "src/utils/api";
 import { toast } from "react-toastify";
-import { Edit, Trash } from "tabler-icons-react";
+import { Trash } from "tabler-icons-react";
 import AnimatedSpinner from "src/components/AnimatedSpinner";
 import { CourseState } from "@prisma/client";
-import { isDirty } from "zod";
-import { ICourseSchemaWithMetadata } from "src/server/api/routers/calendar";
+import { type ICourseSchemaWithMetadata } from "src/server/api/routers/calendar";
 
-//Modal
+/**
+ * Create Course Modal Properties
+ *
+ * Default properties for this component
+ *
+ */
 interface CreateCourseModalProps {
   children?: React.ReactNode;
-  open: boolean;
-  revisionTuid: string;
-  edit: string | null;
-  copy: string | null;
-  onClose: () => void;
-  onSuccess: () => void;
+  open: boolean; //Is the modal open?
+  revisionTuid: string; //The tuid of the current revision
+  edit: string | null; //The state of editing by an id
+  copy: string | null; //The state of copying by an id
+  onClose: () => void; //onClose closure
+  onSuccess: () => void; //onSuccess closure
 }
 
 //Used for debugging
 const seen: any[] = [];
 
-//Component
+/**
+ * Create Course Modal Component
+ *
+ * This component defines a modal for creating, editing, and copying
+ * course information. It provides a form that's binded to a react-form-hook
+ * form, which uses validation from the validation folder for the calendar.
+ *
+ * The editing and copying properties allow for allocation of modes depending on
+ * how this component is loaded. If an id of an editing course occurs, it will
+ * be fetched from the backend API and loaded into the form.
+ *
+ * As for copying, the course is fetched by id from the database and then removes
+ * the data that needs to be unique for a new course on said current revision.
+ *
+ * Any saving or adding is done based on the provided `revisionTuid`.
+ *
+ * @params CreateCourseModalProps
+ * @returns
+ * @author Brendan Fuller
+ */
 const CreateCourseModal = ({
   revisionTuid,
   onSuccess,
@@ -70,49 +85,106 @@ const CreateCourseModal = ({
   //API to get all faculty lists from backend
   const facultyMutation = api.faculty.getRevisionCourseFaculty.useMutation();
 
+  /**
+   * Department Mutation
+   *
+   * Gets a list of all of the departments for the dropdown autofill select
+   */
+  const departmentMutation =
+    api.department.getAllDepartmentAutofill.useMutation();
+
+  /**
+   * Subject Mutation
+   *
+   * Gets a list of all of the departments for the dropdown autofill select
+   */
+  const subjectMutation = api.subjects.getAllSubjectsAutofill.useMutation();
+
+  /**
+   * Building Mutation
+   *
+   * Gets a list of all of the departments for the dropdown autofill select
+   */
   const buildingMutation = api.buildings.getBuildingsList.useMutation();
 
-  //API to add course to database for revision
+  /**
+   * Add Course Mutation
+   *
+   * When a course is adding state, this mutation will be called
+   */
   const addCourseMutation = api.calendar.addCourseToRevision.useMutation();
 
+  /**
+   * Update Course Mutation
+   *
+   * When an update on a course occurs, this mutation is called
+   */
   const updateCourseMutation = api.calendar.updateRevisionCourse.useMutation();
 
+  /**
+   * Delete (soft) Course Mutation
+   *
+   * When an soft delete on a course occurs, this mutation is called.
+   * Also this is used to recover said soft delete as its inverted in
+   * the API code.
+   */
   const removeCourseMutation = api.calendar.removeCourse.useMutation();
 
+  /**
+   * Edit Course Mutation
+   *
+   * The mutation to be called only when editing/copying a course.
+   * as we want to get the information about said course.
+   */
   const getEditCourseMutation = api.calendar.getCourse.useMutation();
+
+  /**
+   * On Mount Event (useEffect)
+   *
+   *
+   */
   useEffect(() => {
+    //Make an async function to await for the backend API
     const getEditedCourse = async () => {
       const result = await getEditCourseMutation.mutateAsync({
         tuid: edit!,
       });
 
+      //If we have a result, then reset the form to the values
       if (result != undefined) {
         reset(result);
-        console.log(result);
+        //Set editing mode to said result (course)
         setCourseEditing(result);
       }
     };
+
+    //Only run editing mode if we have an id passed to said modal
     if (edit != null) {
       getEditedCourse();
     }
 
     const getCopiedCourse = async () => {
+      //Get the result of copying but force all types to not be required
       const result = (await getEditCourseMutation.mutateAsync({
         tuid: copy!,
       })) as Partial<ICourseSchemaWithMetadata>;
-      console.log({ result });
+
+      //If said course is valid and found
       if (result != undefined) {
         //Reset the values for copy
         result.section_id = null;
 
+        //This is only possible because of said partial
         result.faculty = undefined;
         result.start_date = undefined;
         result.end_date = undefined;
+
+        //Now update the form with said values
         reset(result);
-        //setCourseEditing(result as ICourseSchemaWithMetadata);
       }
     };
 
+    //Only run copying mode if we have an id passed to said modal
     if (copy != null) {
       getCopiedCourse();
     }
@@ -389,12 +461,47 @@ const CreateCourseModal = ({
                       <p>Department</p>
                     </div>
                     <div>
-                      {/* Department */}
-                      <Input
-                        type="text"
-                        className="w-full"
-                        size="sm"
-                        {...courseAddForm.register("department")}
+                      <Controller
+                        name="department"
+                        control={courseAddForm.control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange, ref } }) => (
+                          <AsyncSelect
+                            isClearable
+                            defaultOptions
+                            className="w-[150px]"
+                            placeholder={"Enter Department"}
+                            blurInputOnSelect={true}
+                            loadOptions={(search, callback) => {
+                              //Create promise for the current options being loadded
+                              new Promise<any>(async (resolve) => {
+                                //Now call the mutation to find any faculty by the search value
+                                const data =
+                                  await departmentMutation.mutateAsync({
+                                    search: search.toLowerCase(),
+                                  });
+
+                                //If we do have data, set it to the callback,
+                                //which is basaically an update function
+                                if (data != undefined) {
+                                  callback(data);
+                                  resolve(true);
+                                } else {
+                                  //Else instead just set it to nothing
+                                  callback([]);
+                                  resolve(true);
+                                }
+                              });
+                            }}
+                            //Manually pass in the props with values
+                            value={value}
+                            ref={ref}
+                            onChange={(event) => {
+                              onChange(event);
+                            }}
+                            //styles={customStyles}
+                          />
+                        )}
                       />
 
                       {/* Error message thrown when zod detects a problem */}
@@ -416,11 +523,45 @@ const CreateCourseModal = ({
                     </div>
                     <div>
                       {/* Department */}
-                      <Input
-                        type="text"
-                        className="w-full"
-                        size="sm"
-                        {...courseAddForm.register("subject")}
+                      <Controller
+                        name="subject"
+                        control={courseAddForm.control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange, ref } }) => (
+                          <AsyncSelect
+                            isClearable
+                            defaultOptions
+                            className="w-[150px]"
+                            placeholder={"Enter Subject"}
+                            blurInputOnSelect={true}
+                            loadOptions={(search, callback) => {
+                              //Create promise for the current options being loadded
+                              new Promise<any>(async (resolve) => {
+                                //Now call the mutation to find any faculty by the search value
+                                const data =
+                                  await subjectMutation.mutateAsync();
+
+                                //If we do have data, set it to the callback,
+                                //which is basaically an update function
+                                if (data != undefined) {
+                                  callback(data);
+                                  resolve(true);
+                                } else {
+                                  //Else instead just set it to nothing
+                                  callback([]);
+                                  resolve(true);
+                                }
+                              });
+                            }}
+                            //Manually pass in the props with values
+                            value={value}
+                            ref={ref}
+                            onChange={(event) => {
+                              onChange(event);
+                            }}
+                            //styles={customStyles}
+                          />
+                        )}
                       />
 
                       {/* Error message thrown when zod detects a problem */}
@@ -512,8 +653,16 @@ const CreateCourseModal = ({
                               //Create promise for the current options being loadded
                               new Promise<any>(async (resolve) => {
                                 //Now call the mutation to find any faculty by the search value
+
+                                console.log({
+                                  department:
+                                    courseAddForm.getValues("department.name"),
+                                });
+
                                 const data = await facultyMutation.mutateAsync({
                                   search: search.toLowerCase(),
+                                  department:
+                                    courseAddForm.getValues("department.name"),
                                 });
 
                                 //If we do have data, set it to the callback,

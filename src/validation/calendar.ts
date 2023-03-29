@@ -130,14 +130,36 @@ export const calendarCourseSchema = z
       })
       .default(Semesters.FALL),
     div: z.string().optional().default("SC"),
-    department: z
-      .string()
-      .min(2, { message: "Department should be at least 2 characters" })
-      .max(6, { message: "Department can't be more than 6 characters" }),
-    subject: z
-      .string()
-      .min(2, { message: "Subject should be at least 2 characters" })
-      .max(6, { message: "Subject can't be more than 6 characters" }),
+    department: z.object(
+      {
+        name: z.string(),
+        value: z
+          .string()
+          .min(2, { message: "Department should be at least 2 characters" })
+          .max(6, { message: "Department can't be more than 6 characters" }),
+        label: z.string(),
+      },
+      {
+        errorMap: (issue, ctx) => {
+          return { message: "Select a department" };
+        },
+      }
+    ),
+    subject: z.object(
+      {
+        name: z.string(),
+        value: z
+          .string()
+          .min(2, { message: "Subject should be at least 2 characters" })
+          .max(6, { message: "Subject can't be more than 6 characters" }),
+        label: z.string(),
+      },
+      {
+        errorMap: (issue, ctx) => {
+          return { message: "Select a subject" };
+        },
+      }
+    ),
     course_number: z.string().regex(courseIdRegex, {
       message:
         "Course must be 3 numbers, ending in an optional letter and/or optional '!'",

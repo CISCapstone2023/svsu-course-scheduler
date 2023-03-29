@@ -62,6 +62,7 @@ model User {
   emailVerified   DateTime?
   password        String
   image           String?
+  department      String?            @default("CSIS")
   owned_revisions ScheduleRevision[]
   schedules       SchedulesOnUsers[]
   accounts        Account[]

@@ -1,7 +1,6 @@
 import { signUpSchema } from "src/validation/auth";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 
-import { hash } from "bcrypt";
 import { z } from "zod";
 
 export const dashboardRouter = createTRPCRouter({

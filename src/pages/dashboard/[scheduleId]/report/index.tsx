@@ -1,34 +1,45 @@
+//React and NextJS
+import { useState } from "react";
 import type { NextPage } from "next";
-import { useSession } from "next-auth/react";
+import Head from "next/head";
 
-import { useCallback, useEffect, useState } from "react";
+//Libraries
+import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
+import { CaretDown } from "tabler-icons-react";
+import AsyncSelect from "react-select/async";
 
+//Components and APIS
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashboardSidebar";
+import DashboardSidebar, {
+  DashboardPages,
+} from "src/components/dashboard/DashboardSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
-import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import { routeNeedsAuthSession } from "src/server/auth";
 import { prisma } from "src/server/db";
 import { api } from "src/utils/api";
 import FacultyReport from "./FacultyReport";
-import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
-import { CaretDown } from "tabler-icons-react";
+import useSidebar from "src/hooks/useSidebar";
 
-import AsyncSelect from "react-select/async";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { debounce } from "lodash";
-import { ActionMeta, SingleValue } from "react-select";
-import Head from "next/head";
-
+/**
+ * Dashboard Properties Interface
+ *
+ * @author CIS 2023
+ */
 interface DashboardProps {
-  scheduleId: string;
-  name: string;
-  department: string;
+  scheduleId: string; //The ID of the schedule
+  name: string; //The name of the current revision
+  department: string; //The department of the user
 }
 
-// Creates a type for storing/using departments
+/**
+ * Department Select Interface
+ *
+ * This interface is used to define
+ *
+ * @author CIS 2023
+ */
 interface DepartmentSelect {
   label: string | null;
   value: string | null;
@@ -36,24 +47,6 @@ interface DepartmentSelect {
 }
 
 const Report: NextPage<DashboardProps> = ({ scheduleId, name, department }) => {
-  /**
-   * useSession
-   *
-   * A function provided by the NextJSAuth library which provides data about the user
-   * assuming they are successfully signed-in. If they are it will be null.
-   */
-
-  // const user = api.auth.getUser.useQuery();
-
-  // useEffect(() => {
-  //   if (user.data != null) {
-  //     const value = user.data?.department;
-
-  //     setDepartmentValue({ value: value, label: value, name: value });
-  //     setDepartmentFilter(value);
-  //   }
-  // }, [user]);
-
   /**
    * Filter values
    * The value which will be searching that is set by the debouncing below
@@ -69,16 +62,28 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name, department }) => {
   const departmentMutation =
     api.department.getAllDepartmentAutofill.useMutation();
 
-  // Filter faculty members by department
+  // Duplicate copy of the filter, but not in an object form
   const [departmentFilter, setDepartmentFilter] = useState<string | null>(
     department
   );
+
+  // Filter faculty members by department (for the select)
   const [departmentValue, setDepartmentValue] = useState<DepartmentSelect>({
     label: department,
     value: department,
     name: department,
   });
 
+  /**
+   * Faculties Query
+   *
+   * Retrieves the factulies members with the provided filters
+   * - Fall, Winter, Spring, or Summer semester
+   * - Department
+   * - Search (not in use)
+   * - Revision for tuid
+   * @author CIS 2023
+   */
   const faculties = api.report.getAllReports.useQuery({
     semester_fall: filterFallSemester,
     semester_spring: filterSpringSemester,
@@ -94,14 +99,19 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name, department }) => {
     a.department > b.department ? 1 : b.department > a.department ? -1 : 0
   );
 
+  //Add sidebar toggle
+  const [showSidebar, toggleSidebar] = useSidebar();
   return (
     <DashboardLayout>
       <Head>
         <title>{name.substring(0, 30)} | SVSU Course Scheduler | Report</title>
       </Head>
-      <DashboardSidebar />
+      {showSidebar && <DashboardSidebar page={DashboardPages.REPORT} />}
       <DashboardContent>
-        <DashboardContentHeader title="Report" />
+        <DashboardContentHeader
+          title={`Report | ${name}`}
+          onMenuClick={toggleSidebar}
+        />
         <div className="m-2 h-full overflow-auto">
           <div className="flex">
             <Dropdown>

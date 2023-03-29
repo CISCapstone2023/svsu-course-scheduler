@@ -1,14 +1,27 @@
 import React from "react";
 import militaryToTime from "src/utils/time";
-import { IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
+import { type IScheduleCourseWithTimes } from "./calendar/CalendarCourseListing";
 
+/**
+ * Course Information Properties
+ *
+ * Default properties for this component
+ *
+ * @author Brendan Fuller
+ */
 interface CourseInformationSidebarProps {
-  children?: React.ReactNode;
   course: IScheduleCourseWithTimes | null | undefined;
 }
 
+/**
+ * CourseInformationSidebar
+ *
+ * This component shows information about a course when hovered.
+ *
+ * @param couse (IScheduleCourseWithTimes)
+ * @returns
+ */
 const CourseInformationSidebar = ({
-  children,
   course,
 }: CourseInformationSidebarProps) => {
   return (
@@ -64,11 +77,14 @@ const CourseInformationSidebar = ({
                     -
                     <div className="ml-1">
                       {location.rooms.map((room, index) => {
-                        return (
-                          <span key={index}>
-                            {room.building.name}, {room.room},{" "}
-                          </span>
-                        );
+                        if (room.building != undefined) {
+                          return (
+                            <span key={index}>
+                              {room.building.name}, {room.room},{" "}
+                            </span>
+                          );
+                        }
+                        return null;
                       })}
                       {location.is_online ? "Online, " : ""}
                       {location.day_monday ? "M" : ""}
@@ -80,9 +96,15 @@ const CourseInformationSidebar = ({
                       {location.day_sunday ? " SUN" : ""}
                       <br />
                       <p>
-                        {start_time.anteMeridiemHour}:{start_time.minute}{" "}
+                        {start_time.anteMeridiemHour}:
+                        {start_time.minute < 10
+                          ? "0" + start_time.minute
+                          : start_time.minute}{" "}
                         {start_time.period} to {end_time.anteMeridiemHour}:
-                        {end_time.minute} {end_time.period}
+                        {end_time.minute < 10
+                          ? "0" + end_time.minute
+                          : end_time.minute}{" "}
+                        {end_time.period}
                       </p>
                     </div>
                   </li>

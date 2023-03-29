@@ -3,19 +3,34 @@ import { useRouter } from "next/router";
 import React from "react";
 import { Divider, Menu } from "react-daisyui";
 import { api } from "src/utils/api";
-import {
-  Assembly,
-  Calendar,
-  CaretLeft,
-  ChartBar,
-  Home,
-} from "tabler-icons-react";
+import { Calendar, CaretLeft, ChartBar, Home } from "tabler-icons-react";
 import DashboardSidebarItem from "./DashboardSidebarItem";
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 import Image from "next/image";
 
+/**
+ * Dashboard Sidebar Properties
+ *
+ * Default properties for this component
+ *
+ * @author CIS 2023
+ */
 interface DashboardSidebarProps {
-  children?: React.ReactNode;
+  children?: React.ReactNode; //Optional React Children Nodes
+  page: DashboardPages; //The page type as an enum
+}
+
+/**
+ * Dashboard Pages Enum
+ *
+ * Provides a list of enums
+ *
+ * @author Brendan Fuller
+ */
+export enum DashboardPages {
+  HOME,
+  SCHEDULER,
+  REPORT,
 }
 
 /**
@@ -24,16 +39,14 @@ interface DashboardSidebarProps {
  * @Author Saturn
  * @return
  */
-const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
+const DashboardSidebar = ({ page }: DashboardSidebarProps) => {
+  //Use the router hook from nextjs to grab an instance of the router
   const router = useRouter();
+  //Use said router query params with deconstructoring to grab the id
   const { scheduleId } = router.query;
 
-  const name = api.dashboard.getRevisionName.useQuery({
-    revision_tuid: scheduleId as string,
-  });
-
   return (
-    <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
+    <div className="flex h-full min-w-[200px] flex-col bg-base-200 pt-4">
       <Menu>
         {/* Adds SVSU logo and course scheduler name to sidebar */}
         <div className="flex flex-row justify-center pl-4">
@@ -56,10 +69,9 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
             <CaretLeft width={40} height={40} />
           </DashboardSidebarItem>
         </Link>
-        <Divider />
 
         {/* Displays name of project youre on */}
-        <div className="flex w-full pl-4">
+        {/* <div className="flex w-full pl-4">
           <p className="font-bold">Current Project</p>
         </div>
         <Link href={`/dashboard/${scheduleId}/home`}>
@@ -67,7 +79,7 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
             title={name.data != undefined ? name.data.name : "Loading..."}
             bold={true}
           />
-        </Link>
+        </Link> */}
 
         <Divider />
 
@@ -78,21 +90,30 @@ const DashboardSidebar = ({ children }: DashboardSidebarProps) => {
 
         {/* Redirects to home page when clicked */}
         <Link href={`/dashboard/${scheduleId}/home`}>
-          <DashboardSidebarItem title="Home">
+          <DashboardSidebarItem
+            title="Home"
+            active={page == DashboardPages.HOME}
+          >
             <Home width={40} height={40} />
           </DashboardSidebarItem>
         </Link>
 
         {/* Redirects to schedule page when clicked */}
         <Link href={`/dashboard/${scheduleId}/schedule`}>
-          <DashboardSidebarItem title="Schedule">
+          <DashboardSidebarItem
+            title="Schedule"
+            active={page == DashboardPages.SCHEDULER}
+          >
             <Calendar width={40} height={40} />
           </DashboardSidebarItem>
         </Link>
 
         {/* Redirects to report page when clicked */}
         <Link href={`/dashboard/${scheduleId}/report`}>
-          <DashboardSidebarItem title="Report">
+          <DashboardSidebarItem
+            title="Report"
+            active={page == DashboardPages.REPORT}
+          >
             <ChartBar width={40} height={40} />
           </DashboardSidebarItem>
         </Link>

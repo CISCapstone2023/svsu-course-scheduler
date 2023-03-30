@@ -25,7 +25,7 @@ const useSidebar = () => {
   useEffect(() => {
     //Local the value (its a string..., so just check if true is a string)
     const value = localStorage.getItem("dashboard/sidebar");
-    setShowSidebar(value == "true");
+    setShowSidebar(!(value == "false"));
   }, []);
 
   //Return the values as tuple with specified data types

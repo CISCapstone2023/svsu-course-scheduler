@@ -868,11 +868,18 @@ const exportExcelFileToStorage = async (tuid: string) => {
         console.log({ outRow, rows });
 
         const mergedRow = outRow.map((col, index) => {
+          //Is the column undefined
           if (col == undefined) {
-            return rows[0]![index];
-          } else {
-            return col;
+            //Do we have th row
+            if (rows[0] != undefined) {
+              //Do we have said column in said row?
+              if (rows[0][index] != undefined) {
+                return rows[0]![index]; //If so apply said value to said row
+              }
+            }
           }
+          //If not return the current value of the column
+          return col;
         });
 
         return mergedRow as unknown as (string | undefined)[];
@@ -920,6 +927,14 @@ const exportExcelFileToStorage = async (tuid: string) => {
               revision.organizedColumns as IProjectOrganizedColumnRowNumerical
             );
           }
+        } else {
+          columns.push(
+            await mapCourseToRow(
+              [[]],
+              course,
+              revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+            )
+          );
         }
       }
 

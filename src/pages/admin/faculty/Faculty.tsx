@@ -251,7 +251,11 @@ const Faculty = () => {
     <>
       <div className="m-2 flex justify-between ">
         <div className="flex">
-          <Input onChange={onSearch} placeholder="Search" />
+          <Input
+            onChange={onSearch}
+            placeholder="Search"
+            className="h-[39px] w-[200px]"
+          />
 
           <AsyncSelect
             isClearable

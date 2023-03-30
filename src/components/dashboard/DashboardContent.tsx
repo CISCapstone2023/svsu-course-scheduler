@@ -6,6 +6,12 @@ interface DashboardContentProps {
   className?: string;
 }
 
+/**
+ * DashboardContent
+ * Assigns flex layout to children
+ * @Author Saturn
+ * @returns
+ */
 const DashboardContent = ({
   children,
   className,

@@ -21,3 +21,44 @@ body {
   height: inherit;
   width: inherit;
 }
+
+.bg-checkerboard {
+  background: repeating-conic-gradient(#f0eaea 0% 25%, transparent 0% 50%) 50% /
+    20px 20px;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.justify {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.paragraph {
+  word-wrap: normal;
+  display: block;
+  font-weight: 600;
+  border-radius: 50%;
+
+  padding: 2px;
+
+  display: flex;
+  align-items: center;
+}
+
+/* print styles */
+@media print {
+  #course-main {
+    margin: 2em;
+  }
+  #course-root {
+    background-color: white !important;
+  }
+}

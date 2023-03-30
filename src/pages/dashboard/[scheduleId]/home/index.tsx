@@ -1,34 +1,43 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
-import { Button } from "react-daisyui";
-import { useState } from "react";
+
+import { prisma } from "src/server/db";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
-import DashboardSidebar from "src/components/dashboard/DashbaordSidebar";
+import DashboardSidebar, {
+  DashboardPages,
+} from "src/components/dashboard/DashboardSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
 import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
-import useRestUpload from "src/hooks/upload/useUpload";
 import { routeNeedsAuthSession } from "src/server/auth";
-import ProjectsUpload from "src/components/projects/ProjectsUpload";
-const Dashboard: NextPage = () => {
-  /**
-   * useSession
-   *
-   * A function provided by the NextJSAuth library which provides data about the user
-   * assuming they are successfully signed-in. If they are it will be null.
-   */
-  const {} = useSession();
+import Head from "next/head";
+import { useState } from "react";
+import useSidebar from "src/hooks/useSidebar";
+
+interface HomeProps {
+  scheduleId: string;
+  name: string;
+}
+
+const Dashboard: NextPage<HomeProps> = ({ scheduleId, name }) => {
+  //Make a state to toggle the sidebar
+
+  const [showSidebar, toggleSidebar] = useSidebar();
 
   return (
     <DashboardLayout>
-      <DashboardSidebar />
+      <Head>
+        <title>{name.substring(0, 30)} | SVSU Course Scheduler | Home</title>
+      </Head>
+      {showSidebar && <DashboardSidebar page={DashboardPages.HOME} />}
       <DashboardContent>
-        <DashboardContentHeader title="Home">
-          <Button>Example Button</Button>
-        </DashboardContentHeader>
-        <DashboardHomeTabs />
+        <DashboardContentHeader
+          onMenuClick={toggleSidebar}
+          title={`Home | ${name}`}
+        ></DashboardContentHeader>
+        <DashboardHomeTabs tuid={scheduleId} />
       </DashboardContent>
     </DashboardLayout>
   );
@@ -54,9 +63,49 @@ export default Dashboard;
  *
  */
 
-export const getServerSideProps = routeNeedsAuthSession(async () => {
-  //NOTE: Passing the entire session to the NextPage will error,
-  //which is likely due to undefined values.
-  //Ideally just hook with "useSession" in the page
-  return { props: {} };
-});
+export const getServerSideProps = routeNeedsAuthSession(
+  async ({ query }, session) => {
+    //Grab schedule id from query parameter
+    const scheduleId = query.scheduleId || "";
+
+    //Check to make sure its a string
+    if (typeof scheduleId === "string") {
+      //Make sure we have owenrship of said revision
+      const hasRevision =
+        (await prisma.scheduleRevision.count({
+          where: {
+            tuid: query.scheduleId as string,
+            creator_tuid: session?.user?.id,
+          },
+        })) == 1;
+
+      //And if we DO NOT, redirect them back to the main page
+      if (!hasRevision) {
+        return {
+          redirect: {
+            destination: "/projects", //Path to the Login Screen
+            permanent: false,
+          },
+        };
+      }
+    }
+
+    //Now get the revision and get the name so we can use it in the title
+    const revision = await prisma.scheduleRevision.findFirst({
+      where: {
+        tuid: query.scheduleId as string,
+        creator_tuid: session?.user?.id,
+      },
+      select: {
+        name: true,
+      },
+    });
+
+    return {
+      props: {
+        scheduleId,
+        name: revision!.name,
+      },
+    };
+  }
+);

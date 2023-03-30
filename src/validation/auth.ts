@@ -25,6 +25,7 @@ export const signInSchema = z.object({
  * which is username.
  */
 export const signUpSchema = signInSchema.extend({
+  department: z.string().nullable(),
   username: z
     .string()
     .min(4, { message: "Username must be at least 4 characters" })

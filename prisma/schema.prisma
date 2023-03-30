@@ -55,27 +55,28 @@ model Session {
 }
 
 model User {
-  id            String       @id @default(cuid())
-  name          String?
-  username      String
-  email         String?      @unique
-  emailVerified DateTime?
-  password      String
-  image         String?
+  id              String             @id @default(cuid())
+  name            String?
+  username        String
+  email           String?            @unique
+  emailVerified   DateTime?
+  password        String
+  image           String?
+  department      String?            @default("CSIS")
   owned_revisions ScheduleRevision[]
-  schedules     SchedulesOnUsers[]
-  accounts      Account[]
-  sessions      Session[]
-  permissions   Permission[]
+  schedules       SchedulesOnUsers[]
+  accounts        Account[]
+  sessions        Session[]
+  permissions     Permission[]
 }
 
 model SchedulesOnUsers {
-  user       User     @relation(fields: [user_tuid], references: [id])
-  user_tuid  String // relation scalar field (used in the `@relation` attribute above)
-  schedule   Schedule @relation(fields: [schedule_tuid], references: [tuid])
+  user          User     @relation(fields: [user_tuid], references: [id])
+  user_tuid     String // relation scalar field (used in the `@relation` attribute above)
+  schedule      Schedule @relation(fields: [schedule_tuid], references: [tuid])
   schedule_tuid String // relation scalar field (used in the `@relation` attribute above)
-  assignedAt DateTime @default(now())
-  assignedBy String
+  assignedAt    DateTime @default(now())
+  assignedBy    String
 
   @@id([user_tuid, schedule_tuid])
 }
@@ -100,8 +101,9 @@ model Permission {
 //Course model
 model Course {
   tuid               String                      @id @default(cuid())
+  excelRow                Int                         @default(-1)
   type               String
-  section_id         Int
+  section_id         Int?
   revision_tuid      String
   term               Int
   semester_summer    Boolean                     @default(false)
@@ -115,15 +117,15 @@ model Course {
   section            String
   start_date         DateTime
   end_date           DateTime
+  start_time Int
+  end_time Int
   credits            Int
-  title              String                      @db.VarChar(30)
+  title              String                      @db.VarChar(100)
   status             String                      @default("Active")
-  faculty_tuid       String
   instruction_method String                      @default("LEC") @db.VarChar(3)
   capacity           Int
   original_state     CourseState
   state              CourseState
-  location           String
   createdAt          DateTime                    @default(now())
   updatedAt          DateTime                    @updatedAt
   //Relationships
@@ -136,31 +138,35 @@ model Course {
 model Schedule {
   tuid      String             @id @default(cuid())
   //Relationships
-  users SchedulesOnUsers[]
+  users     SchedulesOnUsers[]
   revisions ScheduleRevision[]
 }
 
 model ScheduleRevision {
   tuid          String   @id @default(cuid())
   name          String
-  file          Bytes?    @db.Blob
-  schedule_tuid String?   @map("schedule")
+  file          Bytes?   @db.Blob
+  schedule_tuid String?  @map("schedule")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   onboarding    Boolean  @default(true)
-  creator_tuid String    @map("user")
+  creator_tuid  String   @map("user")
+
+  exported_file Bytes?    @db.Blob
+  exportedAt DateTime? 
+  organizedColumns Json @default("{}")
 
   //Relationships
-  schedule      Schedule? @relation(fields: [schedule_tuid], references: [tuid])
-  courses       Course[]
-  
+  schedule Schedule? @relation(fields: [schedule_tuid], references: [tuid])
+  courses  Course[]
+
   user User @relation(fields: [creator_tuid], references: [id])
 }
 
 model CourseLocation {
   tuid          String   @id @default(cuid())
-  start_time    DateTime
-  end_time      DateTime
+  start_time    Int
+  end_time      Int
   day_monday    Boolean
   day_tuesday   Boolean
   day_wednesday Boolean
@@ -178,8 +184,8 @@ model CourseLocation {
 model GuidelinesFaculty {
   tuid       String                      @id @default(cuid())
   suffix     String
-  last_name  String
-  first_name String
+  department String                 @default("CSIS")
+  name       String
   email      String
   is_adjunct Boolean
   //Relationships
@@ -213,10 +219,10 @@ model GuidelinesCourses {
 model GuidelinesCoursesTimes {
   tuid         String            @id @default(cuid())
   guideline_id String
-  start_time   DateTime
-  end_time     DateTime
+  start_time Int
+  end_time Int
   //Relation to relate times to course guidelines
-  guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+  guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid])
 }
 
 //Table of course guideline days
@@ -231,7 +237,7 @@ model GuidelinesCoursesDays {
   day_saturday  Boolean
   day_sunday    Boolean
   //Relation to relate days to course guidelines
-  guideline     GuidelinesCourses @relation(fields: [guideline_id], references: [tuid], onDelete: Cascade)
+  guideline     GuidelinesCourses @relation(fields: [guideline_id], references: [tuid])
 }
 
 model CourseNote {
@@ -270,6 +276,16 @@ model Room {
   //Relationships
   building      GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
   location      CourseLocation    @relation(fields: [location_tuid], references: [tuid], onDelete: Cascade)
+}
+
+model Subject{
+  tuid          String        @id @default(cuid())
+  name          String
+}
+
+model Department{
+  tuid          String        @id @default(cuid())
+  name          String
 }
 
 // Permissions list 

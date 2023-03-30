@@ -1,23 +1,153 @@
 import { z } from "zod";
 
+//Import Prisma (type object reference)
+import { Prisma, PrismaClient } from "@prisma/client";
+
+//Import Prisma for indirect access that's not by the TRPC context
+import { prisma } from "src/server/db";
+//Import all required information for TRPC for making APIs
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
-import { Prisma } from "@prisma/client";
-//import validation next
+
+//Import all validation for creating revision, onboarding, etc
+import {
+  organizeColumnRows,
+  createRevisionOnboarding,
+  createRevisionSchemaTUID,
+  type IProjectOrganizedColumnRow,
+  type IProjectsExcelCourseSchema,
+  excelCourseSchema,
+} from "src/validation/projects";
+
+import { type IProjectOrganizedColumnRowNumerical } from "src/validation/projects.frontend";
+
+//Import Node-XLSX for manupulating excel files (reading, and writing)
+import xlsx from "node-xlsx";
+
+import ExcelJS from "exceljs";
+import { ICalendarCourseSchema } from "src/validation/calendar";
+import { IScheduleCourse, RevisionWithCourses } from "./calendar";
+import militaryToTime from "src/utils/time";
+import { Readable } from "stream";
+
+/**
+ * ExcelDataColumns
+ * The data provided by excel. As the node-xlsx library
+ * does not provide typed information we will assume the multidimensional
+ * array will contain a string representation of a value or undefined if no
+ * value is found. This would not be null as no value should no be represented
+ * and either fail to check.
+ */
+type ExcelDataColumns = Array<Array<string | undefined>>;
+
 const scheduleWithRevisions = Prisma.validator<Prisma.ScheduleArgs>()({
   include: { revisions: true },
 });
+
+/**
+ * ScheduleWithRevisions
+ *
+ * Create a type from Prisma that contains the schedule with its revision as
+ * a union type based on the payload from Prisma
+ */
 type ScheduleWithRevisions = Prisma.ScheduleGetPayload<
   typeof scheduleWithRevisions
 >;
+
+/**
+ *
+ */
+
+interface InvertedObject {
+  [key: string]: string;
+}
+
+/**
+ * Projects Router
+ *
+ * This is the router from the projects screen.
+ * - Allows projects to be view
+ * - Allows projects to be created, via uploading excel and organizing columns
+ * - Allows projects to be deleted*
+ * - Allows projects to be uploaded with revisions like above*
+ */
 export const projectsRouter = createTRPCRouter({
   // ScheduleRevision -------------------------------------------------------------------------------------
 
-  //Get all ScheduleRevisions and display list of schedule revisions sorted by time, desecnding
-  getAllScheduleRevisions: protectedProcedure
+  exportScheduleRevision: protectedProcedure
     .input(
       z.object({
-        search: z.string(),
-        page: z.number().default(0),
+        tuid: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const columns = await exportExcelFileToStorage(input.tuid);
+      return columns;
+    }),
+  getMainSchedule: protectedProcedure.query(async ({ ctx }) => {
+    const scheduleResult = await ctx.prisma.schedule.findMany({
+      where: {
+        revisions: {
+          every: { creator_tuid: ctx.session.user.id },
+        },
+      },
+      include: {
+        revisions: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
+
+    const result = scheduleResult
+      .filter((result) => {
+        const revisions = result.revisions;
+        //make sure we have revision
+        if (revisions.length === 0) {
+          return false;
+        }
+        return true;
+      })
+      .map((result) => {
+        //Grab the top latest revision
+        const latestRev = result.revisions[0]!;
+        //return the obj to front-end select box
+        return { value: result.tuid, label: latestRev.name };
+      });
+
+    return result;
+  }),
+
+  //delete schedule revision
+  deleteScheduleRevision: protectedProcedure
+    .input(createRevisionSchemaTUID)
+    //async mutation to handle the deletion
+    .mutation(async ({ ctx, input }) => {
+      const hasRevision = await ctx.prisma.scheduleRevision.count({
+        //check based on the client input of tuid
+        where: {
+          creator_tuid: ctx.session.user.id,
+          tuid: input.tuid,
+        },
+      });
+      if (hasRevision == 1) {
+        await ctx.prisma.scheduleRevision.delete({
+          where: {
+            tuid: input.tuid,
+          },
+        });
+        return true;
+      }
+      return false;
+    }),
+
+  //Get all ScheduleRevisions and display list of schedule revisions sorted by time, desecnding
+  getAllScheduleRevisions: protectedProcedure
+    // getAllScheduleRevisions: publicProcedure
+    .input(
+      z.object({
+        search: z.string().optional(),
+        // page: z.number().default(0),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -28,25 +158,32 @@ export const projectsRouter = createTRPCRouter({
       if (input.search != "") {
         scheduleResult = await ctx.prisma.schedule.findMany({
           //We want 10
-          take: 10,
-          //We start at 0
-          skip: input.page * 10,
+          // take: 10,
+          // //We start at 0
+          // skip: (input.page - 1) * 10,
           where: {
             revisions: {
               every: { name: { contains: input.search } },
             },
           },
           include: {
-            revisions: true,
+            revisions: {
+              orderBy: {
+                updatedAt: "desc",
+              },
+            },
           },
         });
       } else {
         //If we don't have a search query don't worry about the filter
         scheduleResult = await ctx.prisma.schedule.findMany({
           //We want 10
-          take: 10,
-          //We start at 0
-          skip: input.page * 10,
+          // take: 10,
+          // //We start at 0
+          // skip: input.page * 10,
+          where: {
+            revisions: { some: { creator_tuid: ctx.session.user.id } },
+          },
           include: {
             revisions: {
               orderBy: {
@@ -59,11 +196,1146 @@ export const projectsRouter = createTRPCRouter({
 
       //Return the data
       return {
-        result: scheduleResult.map((s) => {
+        result: scheduleResult.reverse().map((s) => {
           const [main, ...revisions] = s.revisions;
-          return { main, revisions };
+          return {
+            main: {
+              name: main?.name,
+              tuid: main?.tuid,
+              updatedAt: main?.updatedAt,
+            },
+            revisions: revisions.map((revision) => {
+              return {
+                name: revision?.name,
+                tuid: revision?.tuid,
+                updatedAt: revision?.updatedAt,
+              };
+            }),
+          };
         }),
-        page: input.page,
       };
     }),
+
+  // verifyOrganizedColumns: protectedProcedure
+  //   .input(organizeColumnRows)
+  //   .mutation(async ({ ctx, input }) => {
+  //     //Create a list of campuses from the type generated by prisma
+  //     //input.organizeColumns.
+
+  //     console.log({ input });
+  //     const count = await ctx.prisma.scheduleRevision.count({
+  //       where: { tuid: input.tuid },
+  //     });
+
+  //     let verifyColumns = false;
+  //     //Check if we have some count
+  //     if (count >= 1) {
+  //       //Grab the revision from the database
+  //       const revision = await ctx.prisma.scheduleRevision.findUnique({
+  //         where: { tuid: input.tuid },
+  //       });
+  //       //Parse the excel file from the database
+  //       //TODO: Make sure this doesn't error out. NOTE: This should be check in the uploadExcel api ideally.
+  //       const results = xlsx.parse(revision?.file);
+  //       console.log(results[0]?.data);
+  //       //Check if we have the sheet from the file
+  //       if (results[0] != undefined) {
+  //         const sheet = results[0];
+  //         const columns = sheet?.data as ExcelDataColumns;
+
+  //         //console.log({ invertedNestedOrganizedColumns });
+
+  //         const formattedColumns = await invertedNestedOrganizedColumns(
+  //           columns,
+  //           input.columns
+  //         );
+
+  //         let valid = true;
+  //         let errors: z.ZodError;
+  //         for (const row of formattedColumns) {
+  //           if (row != undefined) {
+  //             const result = await excelCourseSchema.safeParseAsync(row, {
+  //               errorMap: excelErrorMap,
+  //             });
+
+  //             //console.log({ result, row, json: JSON.stringify(row) });
+  //             if (result.success == false) {
+  //               valid = false;
+  //               errors = result.error;
+  //               return { success: false, errors: errors.flatten() };
+  //               break;
+  //             }
+  //           }
+  //         }
+  //         verifyColumns = valid;
+  //       }
+  //     }
+  //     //Do we have a search query
+
+  //     return { success: verifyColumns, errors: [] };
+  //   }),
+
+  createScheduleRevision: protectedProcedure
+    .input(createRevisionOnboarding)
+    .mutation(async ({ ctx, input }) => {
+      //Create a list of campuses from the type generated by prisma
+
+      const count = await ctx.prisma.scheduleRevision.count({
+        where: { tuid: input.tuid },
+      });
+
+      //Check if we have some count
+      if (count >= 1) {
+        //Grab the revision from the database
+        const revision = await ctx.prisma.scheduleRevision.findUnique({
+          where: { tuid: input.tuid },
+        });
+        //Parse the excel file from the database
+        //TODO: Make sure this doesn't error out. NOTE: This should be check in the uploadExcel api ideally.
+        const results = xlsx.parse(revision?.file);
+
+        //Check if we have the sheet from the file
+        if (results[0] != undefined) {
+          const sheet = results[0];
+          const columns = sheet?.data as ExcelDataColumns;
+
+          //console.log({ invertedNestedOrganizedColumns });
+
+          const formattedColumns = await invertedNestedOrganizedColumns(
+            columns,
+            input.columns,
+            ctx.prisma
+          );
+
+          let valid = true;
+          let errors: z.ZodError;
+
+          //Make sure every single course row is safely parsed
+          for (const row of formattedColumns) {
+            //console.log(row);
+            if (row != undefined) {
+              const result = await excelCourseSchema.safeParseAsync(row);
+              //console.log({ result, row, json: JSON.stringify(row) });
+              if (result.success == false) {
+                valid = false;
+                errors = result.error;
+                return { success: false, errors: errors.flatten() };
+              }
+            }
+          }
+          //TODO: Validate the input tuid for the Revision, also do we already have courses on this revision?
+          //Don't want to add any extra course
+          //Make sure all are valid before we actually enter them all into the database
+          if (valid) {
+            if (input.schedule != null) {
+              const [revision, ...courses] = await ctx.prisma.$transaction([
+                //Update the name of the revision and make them
+                //no longer onboaridng
+                ctx.prisma.scheduleRevision.update({
+                  where: {
+                    tuid: input.tuid,
+                  },
+                  data: {
+                    schedule: {
+                      connect: {
+                        tuid: input.schedule,
+                      },
+                    },
+                    name: input.name,
+                    onboarding: false,
+                    organizedColumns: input.columns,
+                  },
+                }),
+                //Add all courses in the current transaction
+                ...(
+                  formattedColumns as Required<IProjectsExcelCourseSchema>[]
+                ).map((row, index) => {
+                  return ctx.prisma.course.create(
+                    createCourseSchema(row, input)
+                  );
+                }),
+              ]);
+              //Its a valid course!
+              if (courses != undefined) {
+                return { success: true, errors: [] };
+              }
+            } else {
+              const [scheduele, revision, ...courses] =
+                await ctx.prisma.$transaction([
+                  //Also add a schedule to the page
+                  ctx.prisma.schedule.create({
+                    data: {
+                      revisions: {
+                        connect: {
+                          tuid: input.tuid,
+                        },
+                      },
+                    },
+                  }),
+                  //Update the name of the revision and make them
+                  //no longer onboaridng
+                  ctx.prisma.scheduleRevision.update({
+                    where: {
+                      tuid: input.tuid,
+                    },
+                    data: {
+                      name: input.name,
+                      onboarding: false,
+                      organizedColumns: input.columns,
+                    },
+                  }),
+                  //Add all courses in the current transaction
+                  ...(
+                    formattedColumns as Required<IProjectsExcelCourseSchema>[]
+                  ).map((row, index) => {
+                    return ctx.prisma.course.create(
+                      createCourseSchema(row, input)
+                    );
+                  }),
+                ]);
+              //Its a valid course!
+              if (scheduele != undefined && courses != undefined) {
+                return { success: true, errors: [] };
+              }
+            }
+          }
+        }
+      }
+      //Do we have a search query
+      return { success: false, errrors: ["Somthing went wrong..."] };
+    }),
 });
+
+const excelErrorMap: z.ZodErrorMap = (error, ctx) => {
+  /*
+  This is where you override the various error codes
+  */
+  switch (error.code) {
+    case z.ZodIssueCode.custom:
+      // produce a custom message using error.params
+      // error.params won't be set unless you passed
+      // a `params` arguments into a custom validator
+      const params = error.params || {};
+      console.log("Custom error?");
+      if (params.myField) {
+        return { message: `Bad input: ${params.myField}` };
+      }
+      break;
+  }
+
+  // fall back to default message!
+  return { message: ctx.defaultError };
+};
+
+export const createCourseSchema = (
+  row: Required<IProjectsExcelCourseSchema>,
+  input: { tuid: string }
+) => {
+  return {
+    data: {
+      excelRow: row.excelRow,
+      capacity: row.capacity,
+      course_number: row.course_number,
+      credits: row.credits,
+      department: row.department,
+      div: row.div,
+      end_date: row.end_date,
+      end_time: 0,
+      original_state: "UNMODIFIED",
+      section: row.section + "",
+      section_id: row.section_id,
+      start_date: row.start_date,
+      state: "UNMODIFIED",
+      start_time: 0,
+      subject: row.subject,
+      term: row.term,
+      title: row.title.substring(0, 100),
+      type: row.type,
+      semester_fall: row.semester_fall,
+      semester_winter: row.semester_winter,
+      semester_spring: row.semester_spring,
+      semester_summer: row.semester_summer,
+      status: "",
+      instruction_method: row.instruction_method,
+      faculty: {
+        //now create the many-to-many-relationships which connect faculty
+        create: [
+          ...row.faculty.map((faculty) => {
+            return {
+              faculty: {
+                connect: {
+                  tuid: faculty.faculty_tuid,
+                },
+              },
+            };
+          }),
+        ],
+      },
+      locations: {
+        create: [
+          ...row.locations.map((location) => {
+            return {
+              day_friday: location.day_friday,
+              day_monday: location.day_monday,
+              day_saturday: location.day_saturday,
+              day_sunday: location.day_sunday,
+              day_thursday: location.day_thursday,
+              day_tuesday: location.day_tuesday,
+              day_wednesday: location.day_wednesday,
+              end_time: location.end_time,
+              is_online: location.is_online,
+              start_time: location.start_time,
+              rooms: {
+                create: [
+                  ...location.rooms.map((room) => {
+                    return {
+                      building: {
+                        connect: {
+                          tuid: room.building_tuid,
+                        },
+                      },
+                      room: room.room,
+                    };
+                  }),
+                ],
+              },
+            };
+          }),
+        ],
+      },
+      revision: {
+        connect: {
+          tuid: input.tuid,
+        },
+      },
+      notes: {
+        create: [
+          ...row.notes.map((row) => {
+            return {
+              note: row.note != undefined ? row.note : "",
+              type: row.type,
+            };
+          }),
+        ],
+      },
+    },
+    include: {
+      faculty: true,
+      locations: true,
+      notes: true,
+    },
+  } as Prisma.CourseCreateArgs;
+};
+
+const exportExcelFileToStorage = async (tuid: string) => {
+  const count = await prisma.scheduleRevision.count({
+    where: { tuid: tuid },
+  });
+
+  //Check if we have some count
+  if (count >= 1) {
+    //Grab the revision from the database
+    const revision = await prisma.scheduleRevision.findUnique({
+      where: { tuid: tuid },
+      select: {
+        file: true,
+        name: true,
+        organizedColumns: true,
+        courses: {
+          include: {
+            faculty: {
+              include: {
+                faculty: true,
+              },
+            },
+            locations: {
+              include: {
+                rooms: {
+                  include: {
+                    building: {
+                      include: {
+                        campus: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            notes: true,
+          },
+          where: {
+            OR: [
+              {
+                state: "MODIFIED",
+              },
+              {
+                state: "ADDED",
+              },
+              {
+                state: "REMOVED",
+              },
+            ],
+          },
+        },
+      },
+    });
+    //Parse the excel file from the database
+    //TODO: Make sure this doesn't error out. NOTE: This should be check in the uploadExcel api ideally.
+    const results = xlsx.parse(revision?.file);
+
+    //console.log(results);
+    //Check if we have the sheet from the file
+    if (results[0] != undefined && revision != undefined) {
+      if (revision.organizedColumns == null) {
+        return false;
+      }
+      const sheet = results[0];
+      const columns = sheet?.data as ExcelDataColumns;
+      //console.log(columns);
+      const addedCourses = revision.courses.filter(
+        (course) => course.state == "ADDED"
+      );
+      const modifiedCourses = revision.courses.filter(
+        (course) => course.state == "MODIFIED"
+      );
+      const removedCourses = revision.courses.filter(
+        (course) => course.state == "REMOVED"
+      );
+
+      const mapCourseToRow = (
+        rows: (string | undefined)[][],
+        course: IScheduleCourse,
+        columns: IProjectOrganizedColumnRowNumerical
+      ) => {
+        const dateToExcel = (date: Date) => {
+          return Math.ceil(
+            25569.0 +
+              (date.getTime() - date.getTimezoneOffset() * 60 * 1000) /
+                (1000 * 60 * 60 * 24)
+          );
+        };
+
+        //Make a date to a normal date object
+        const dateToNormal = (date: Date) => {
+          return (
+            date.getMonth() +
+            1 +
+            "/" +
+            (date.getDate() > 9 ? date.getDate() : "0" + date.getDate()) +
+            "/" +
+            date.getFullYear()
+          );
+        };
+
+        //Get the max row of data from the list of organized columns
+        const [object, maxRow] = Object.entries(
+          revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+        ).reduce((prev, current) => (prev[1] > current[1] ? prev : current));
+
+        //Map the data back to excel
+        const outRow = Array(maxRow)
+          .fill(0)
+          .map((_, arrayIndex) => {
+            //Grab the index by 0 not 1
+            const index = arrayIndex - 1;
+
+            //Get the value of the excel rows
+            const value = rows[index];
+
+            if (columns.section_id == index) {
+              //Map Section ID
+              return course.section_id;
+            } else if (columns.term == index) {
+              //Map Semester
+              let semester = "";
+              if (course.semester_fall) semester = "FA";
+              if (course.semester_winter) semester = "WI";
+              if (course.semester_spring) semester = "SP";
+              if (course.semester_summer) semester = "SU";
+              return `${course.term}/${semester}`;
+            } else if (columns.div == index) {
+              //TODO: Verify this actually works
+              return "SC";
+            } else if (columns.department == index) {
+              //Map Department
+              return course.department;
+            } else if (columns.subject == index) {
+              //Mape Subject
+              return course.subject;
+            } else if (columns.course_number == index) {
+              //Map Course Number
+              try {
+                return parseInt(course.course_number);
+              } catch {
+                return course.course_number;
+              }
+            } else if (columns.section == index) {
+              //Map Section
+              try {
+                return parseInt(course.section);
+              } catch {
+                return course.section;
+              }
+            } else if (columns.start_date == index) {
+              //Map Start Date
+              return dateToNormal(course.start_date);
+            } else if (columns.end_date == index) {
+              //Map End Date
+              return dateToNormal(course.end_date);
+            } else if (columns.credits == index) {
+              //Map Credits
+              return course.credits;
+            } else if (columns.title == index) {
+              return course.title;
+            } else if (columns.faculty == index) {
+              //Get the name of faculty members, seperate by a newline
+              return course.faculty
+                .map((faculty) => {
+                  return faculty.faculty.name;
+                })
+                .join("\n");
+            } else if (columns.building == index) {
+              //Loop all the location which are binded to room, which has a building
+              //Return buildings seperated by newlines
+              return course.locations
+                .map((location) => {
+                  return location.rooms
+                    .map((room) => {
+                      return room.building.prefix;
+                    })
+                    .join("\n");
+                })
+                .join("\n");
+            } else if (columns.instruction_method == index) {
+              //Map instruction method
+              return course.instruction_method;
+            } else if (columns.capacity == index) {
+              //Map Capacity
+              try {
+                return course.capacity;
+              } catch {
+                return course.capacity + "";
+              }
+            } else if (columns.campus == index) {
+              //Map Course Locations
+              return course.locations
+                .map((location) => {
+                  return location.rooms
+                    .map((room) => {
+                      return room.building.campus.name;
+                    })
+                    .join("\n");
+                })
+                .join("\n");
+            } else if (columns.start_time == index) {
+              //Mape start time to courses
+              return course.locations
+                .map((location) => {
+                  const time = militaryToTime(location.start_time);
+                  return `${time.hour}:${time.minute} ${time.period}`;
+                })
+                .join("\n");
+            } else if (columns.end_time == index) {
+              //Map end time to courses
+              return course.locations
+                .map((location) => {
+                  const time = militaryToTime(location.end_time);
+                  return `${time.hour}:${time.minute} ${time.period}`;
+                })
+                .join("\n");
+            } else if (columns.room == index) {
+              //Map rooms to courses
+              return course.locations
+                .map((location) => {
+                  return location.rooms
+                    .map((room) => {
+                      try {
+                        return parseInt(room.room);
+                      } catch {
+                        return room.room;
+                      }
+                    })
+                    .join("\n");
+                })
+                .join("\n");
+            } else if (columns.days == index) {
+              //map days to courses
+              return course.locations
+                .map((location) => {
+                  let days = "";
+                  days += location.day_monday
+                    ? "M" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_tuesday
+                    ? "T" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_wednesday
+                    ? "W" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_thursday
+                    ? "R" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_friday
+                    ? "F" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_saturday
+                    ? "SAT" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  days += location.day_sunday
+                    ? "SUN" + (days.length == 0 ? "\n" : "")
+                    : "";
+                  return days;
+                })
+                .join("\n");
+            } else if (columns.course_method == index) {
+              //Generate course method/method2
+              //Check if we have online courses
+              const hasOnline = course.locations.some(
+                (location) => location.is_online
+              );
+
+              //Check if we have in person courses
+              const hasInPerson = course.locations.some(
+                (location) => !location.is_online
+              );
+
+              //Check if they are hybrid
+              if (hasInPerson && hasOnline) return "HYB";
+              else if (hasInPerson && !hasOnline) return "LEC";
+              else if (!hasInPerson && hasOnline) return "ONL";
+            } else if (columns.course_start_date == index) {
+              //Return the same date for N amount of locations
+              const dates = course.locations.map(() => {
+                //If we only have one date grab the excel one, otherwise grab the other one
+                return dateToNormal(course.start_date);
+              });
+              //Make sure if we have more than 1 date
+              if (course.locations.length > 1) {
+                return dates.join("\n");
+              } else {
+                //Return said dates (or day)
+                return dates[0];
+              }
+            } else if (columns.course_end_date == index) {
+              //Return the same date for N amount of locations
+              const dates = course.locations.map(() => {
+                //If we only have one date grab the excel one, otherwise grab the other one
+                return dateToNormal(course.end_date);
+              });
+              //Make sure if we have more than 1 date
+              if (course.locations.length > 1) {
+                return dates.join("\n");
+              } else {
+                //Return said dates (or day)
+                return dates[0];
+              }
+            } else if (columns.noteWhatHasChanged == index) {
+              //Map notes but also dynmically make notes for adding courses
+              if (course.state == "ADDED") {
+                return "Added Course";
+              } else if (course.state == "MODIFIED") {
+                return "Updated Course";
+              } else if (course.state == "REMOVED") {
+                return "Removed Course";
+              } else {
+                return (
+                  course.notes.filter((note) => note.type == "CHANGES")[0]
+                    ?.note ?? ""
+                );
+              }
+            } else if (columns.notePrintedComments == index) {
+              //Map deparment notes
+              return (
+                course.notes.filter((note) => note.type == "DEPARTMENT")[0]
+                  ?.note ?? ""
+              );
+            } else if (columns.noteAcademicAffairs == index) {
+              //make provost notes
+              return (
+                course.notes.filter(
+                  (note) => note.type == "ACAMDEMIC_AFFAIRS"
+                )[0]?.note ?? ""
+              );
+            }
+
+            //Return the values
+            return value;
+          });
+
+        //Remove the array from the already array of array?
+        outRow!.splice(0, 1);
+
+        return outRow as unknown as (string | undefined)[];
+      };
+
+      /**
+       * Removed Courses
+       */
+      for (const course of removedCourses) {
+        //node-xlsx
+        const row = columns.splice(course.excelRow, 1);
+        columns.push(
+          await mapCourseToRow(
+            row,
+            course,
+            revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+          )
+        );
+      }
+
+      /**
+       * Modified Courses
+       */
+      for (const course of modifiedCourses) {
+        const row = columns.splice(course.excelRow, 1);
+        columns.push(
+          await mapCourseToRow(
+            row,
+            course,
+            revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+          )
+        );
+      }
+
+      /**
+       * Added Courses
+       */
+      for (const course of addedCourses) {
+        if (course.excelRow != -1) {
+          const row = columns.splice(course.excelRow, 1);
+          if (row.length > 0) {
+            columns[course.excelRow] = await mapCourseToRow(
+              row,
+              course,
+              revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+            );
+          }
+        }
+      }
+
+      //Build the new file from the data
+      const buffer = xlsx.build([
+        {
+          name: revision.name,
+          data: columns,
+          options: {},
+        },
+      ]);
+
+      //Update the file in prisma so it can be downloaded
+      await prisma.scheduleRevision.update({
+        where: {
+          tuid: tuid,
+        },
+        data: {
+          exported_file: buffer,
+          exportedAt: new Date(),
+        },
+      });
+    }
+    //Let trpc know that it worked
+    return true;
+  }
+};
+
+const invertedNestedOrganizedColumns = async (
+  columns: ExcelDataColumns,
+  organizedColumns: IProjectOrganizedColumnRowNumerical,
+  ctxPrima: PrismaClient
+) => {
+  //Inverts columns, really handy
+  const invertOrganizedColumns = Object.entries(organizedColumns).reduce(
+    (a, [k, v]) => ({ ...a, [v]: k }),
+    {}
+  ) as InvertedObject;
+
+  const getIndexFromOrganizedColumns = (index: number): string => {
+    //Have to set type 'unknown as string' so that TS will not error out
+    //as its assuming that the type could be a possible undefined, which is true
+    //but said value but that's discarded later on, so it doesn't affect the outcome
+    const indexKey = invertOrganizedColumns[index] as unknown as string;
+    return indexKey == undefined ? "_" : indexKey;
+  };
+
+  /**
+   * invertedOrganizedColumns
+   * Converts the columns from the inverted key: value to value: key
+   * based on the rows provided by the client as a lookup table
+   */
+  const invertedOrganizedColumns = columns
+    .splice(1)
+    .map(
+      (c) =>
+        //Reduce each row by adding a new key to each row
+        c.reduce(
+          (obj, item, index) => ({
+            ...obj,
+            //get the name of the key and set it to the value of the item
+            [getIndexFromOrganizedColumns(index)]: `${item}`,
+          }),
+          {}
+        )
+      //make sure the type of this is defined
+    )
+    .filter((ele) => {
+      return ele.constructor === Object && Object.keys(ele).length > 0;
+    }) as IProjectOrganizedColumnRow[];
+
+  console.log(JSON.stringify(invertedOrganizedColumns));
+
+  //Do we have all of the columns?
+  //TODO: Do we need to use this?
+  const hasAllColumns = invertedOrganizedColumns.every((row) => {
+    return (
+      row.noteWhatHasChanged &&
+      row.section_id &&
+      row.term &&
+      row.div &&
+      row.department &&
+      row.subject &&
+      row.course_number &&
+      row.section &&
+      row.title &&
+      row.instruction_method &&
+      row.faculty &&
+      row.campus &&
+      row.credits &&
+      row.capacity &&
+      row.start_date &&
+      row.end_date &&
+      row.building &&
+      row.room &&
+      row.start_time &&
+      row.end_time &&
+      row.days &&
+      row.noteAcademicAffairs &&
+      row.notePrintedComments
+    );
+  });
+
+  //Now query all of the columns with its inverted values and well validate them all!
+  const invertedNestedOrganizedColumns = await Promise.all(
+    invertedOrganizedColumns.map(async (c, rowIndex) => {
+      //Spread all the data we want to split
+      const {
+        _, //Yes its an underscore. Just removing the key
+        //Make sure we get the rest of the data at the end
+        ...data
+      } = c as IProjectOrganizedColumnRow & { _: string }; //A wonderful unioned type
+
+      console.log({ c });
+
+      //Get the building
+      const updatedBuilding =
+        data.building != undefined ? data.building.split(/\r\n|\n|\r/) : [];
+      const updatedRoom =
+        data.room != undefined ? data.room.split(/\r\n|\n|\r/) : [];
+      //Start time
+      const updatedStart_time =
+        data.start_time != undefined
+          ? data.start_time.split(/\r\n|\n|\r/).map((c) => c.trim())
+          : [];
+
+      console.log({ updatedStart_time });
+
+      //End time
+      const updatedEnd_time =
+        data.end_time != undefined
+          ? data.end_time.split(/\r\n|\n|\r/).map((c) => c.trim())
+          : [];
+
+      //Days
+      const updatedDays =
+        data.days != undefined
+          ? data.days.split(/\r\n|\n|\r/).map((c) => c.toLowerCase().split(""))
+          : [];
+      console.log({ updatedDays });
+      //Faculty
+      const updateFaculty =
+        data.faculty != undefined
+          ? data.faculty.trim().split(/\r\n|\n|\r/)
+          : [];
+
+      const courseMethods =
+        data.course_method != undefined
+          ? data.course_method.trim().split(/\r\n|\n|\r/)
+          : [];
+
+      console.log({ courseMethods });
+
+      //TODO: Do we need the course global times?
+      let start_time_updated = 0;
+      let end_time_updated = 0;
+
+      //Converts the time (provided by the excel sheet) into time!
+      const convertTimeToMilitary = (value: string) => {
+        if (value == undefined) {
+          return 0;
+        }
+
+        //Start with a string for miltary joinment
+        let time = "0";
+        //Seperate mins and hours and numiercal
+        let minute = 0;
+        let hour = 0;
+
+        //Split the time
+        const splittedTime = value.split(":");
+
+        //make sure the splitted time isn't undefined or the length has two parts
+        if (splittedTime != undefined && splittedTime.length == 2) {
+          //Attempt to parse said time. If time can't be parsed, it defaults to 0 then
+          try {
+            hour = parseInt(splittedTime[0] as string);
+            if (value.includes("PM") && hour != 12) {
+              hour += 12;
+            }
+            minute = parseInt(
+              //We also cehck to make sure wre only have XX minutes or X minutes based on the length
+              //TODO: Check again if this is 100% working still
+              splittedTime[1]!.length > 1
+                ? (splittedTime[1]?.substring(0, 2) as string)
+                : (splittedTime[1]?.substring(0, 1) as string)
+            );
+          } catch (err) {
+            return 0;
+          } finally {
+            //Merge the time back in
+            time = `${hour}${minute == 0 ? "00" : minute}`;
+          }
+        }
+        //Convert it back to a number (because we have too)
+        return parseInt(time);
+      };
+
+      //Gets the term year based on its seperated slash "/"
+      const getTermYear = (term: string) => {
+        console.log("Did we error at term?");
+        return term.split("/")[0]?.toString();
+      };
+
+      //Get the semster and return all of them back because its easier
+      const getTermSemester = (term: string) => {
+        console.log("Did we error at term year?");
+        const semester = term.split("/")[1]?.toString().trim();
+
+        return {
+          semester_summer: semester === "SU",
+          semester_fall: semester === "FA",
+          semester_winter: semester === "WI",
+          semester_spring: semester === "SP",
+        };
+      };
+
+      //Get all of the locations with the times and rooms
+      const locations = async () => {
+        //Loop over all of the possible building for said course
+        //NOTE: Ths has to be done asyncronously to allow for database calls
+
+        const value = await Promise.all(
+          courseMethods.map(async (method, index) => {
+            //Get the times, which are in an object as they could be possible be use for the root of the object (course)
+            console.log({ courseMethods: "here" });
+            const item = updatedBuilding[index];
+
+            if (item == undefined) {
+              return {
+                building: null,
+                rooms: [],
+                //Add the times
+                start_time: 0,
+                end_time: 0,
+                //Because item (this current map we are in) is the building we can check for if its ONL
+                is_online: true,
+                //Days basically
+                day_monday: false,
+                day_tuesday: false,
+                day_wednesday: false,
+                day_thursday: false,
+                day_friday: false,
+                day_saturday: false,
+                day_sunday: false,
+              };
+            }
+
+            const times = {
+              start_time:
+                updatedStart_time != undefined
+                  ? convertTimeToMilitary(
+                      updatedStart_time[index]?.trim() as string
+                    )
+                  : 0,
+              end_time:
+                updatedEnd_time != undefined
+                  ? convertTimeToMilitary(
+                      updatedEnd_time[index]?.trim() as string
+                    )
+                  : 0,
+            };
+
+            //TODO: Do we need to give the parent the times?
+
+            start_time_updated = times.start_time;
+            end_time_updated = times.end_time;
+
+            //See if the building is a valid building.
+            //TODO: Also query by location from the root node
+            const buildingResult = await prisma.guidelineBuilding.findFirst({
+              where: {
+                prefix: item,
+              },
+            });
+
+            //Return the data with the awful online object "building" check,
+            //because someone had to put ONL for a building smh
+            return {
+              building: item,
+              rooms: [
+                ...(item != "ONL"
+                  ? [
+                      {
+                        room: updatedRoom[index],
+                        building_tuid:
+                          buildingResult?.tuid != undefined
+                            ? buildingResult?.tuid
+                            : item,
+                      },
+                    ]
+                  : []),
+              ],
+              //Add the times
+              ...times,
+              //Because item (this current map we are in) is the building we can check for if its ONL
+              is_online: item === "ONL",
+              //Days basically
+              day_monday:
+                updatedDays[index] != undefined
+                  ? updatedDays[index]!.includes("m")
+                  : false,
+              day_tuesday:
+                updatedDays[index] != undefined
+                  ? updatedDays[index]!.includes("t")
+                  : false,
+              day_wednesday:
+                updatedDays[index] != undefined
+                  ? updatedDays[index]!.includes("w")
+                  : false,
+              day_thursday:
+                updatedDays[index] != undefined
+                  ? updatedDays[index]!.includes("r") ||
+                    updatedDays[index]!.includes("th")
+                  : false,
+              day_friday:
+                updatedDays[index] != undefined
+                  ? updatedDays[index]!.includes("f")
+                  : false,
+              day_saturday:
+                updatedDays[index] != undefined
+                  ? updatedDays[index]!.includes("sat")
+                  : false,
+              day_sunday:
+                updatedDays[index] != undefined
+                  ? updatedDays[index]!.includes("sun")
+                  : false,
+            };
+          }, {})
+        );
+        //Return the locations back for merged parent
+        return value;
+      };
+
+      //Now we do faculty members
+      const faculty = async () => {
+        //Again we want to do some prisma querying, so make it async for all calls
+        const value = await Promise.all(
+          updateFaculty.map(async (faculty) => {
+            //Check the faculty member by name (lowercase)
+            const resultFaculty = await prisma.guidelinesFaculty.findFirst({
+              where: {
+                name: faculty.toLowerCase(),
+              },
+            });
+            //That's it, faculty member has been check. Will be null if can't be found and the validation doesn't allow it.
+            return {
+              faculty_tuid:
+                resultFaculty?.tuid != undefined
+                  ? resultFaculty?.tuid
+                  : faculty,
+            };
+          })
+        );
+        return value;
+      };
+
+      //The merged ouput of the course
+      const mergedCourseOutput = {
+        excelRow: rowIndex + 1,
+        section_id:
+          data.section_id == undefined ? null : parseInt(data.section_id),
+        type: "Unknown", //TODO: Figure out what type was supposed to be again
+        //Term as a date
+        term: parseInt(getTermYear(data.term) || new Date().getFullYear() + ""),
+        ...getTermSemester(data.term),
+        div: data.div,
+        department: data.department,
+        subject: data.subject,
+        course_number: data.course_number,
+        section: parseInt(data.section) || data.section,
+        //The "excel time" to js time
+        start_date: new Date(
+          Date.UTC(0, 0, (parseInt(data.start_date) || 0) - 1)
+        ),
+        //The "excel time" to js time
+        end_date: new Date(Date.UTC(0, 0, (parseInt(data.end_date) || 0) - 1)),
+        credits: parseInt(data.credits) || 0,
+        title: data.title,
+        capacity: parseInt(data.capacity) || 0,
+        //Add faculty and locations
+        faculty: [...(await faculty())],
+        locations: [
+          ...(await locations()),
+          // {
+          //   end_time: 1020,
+          //   start_time: 830,
+          //   is_online: false,
+          //   day_monday: false,
+          //   day_tuesday: false,
+          //   day_wednesday: false,
+          //   day_thursday: false,
+          //   day_friday: false,
+          //   day_saturday: false,
+          //   day_sunday: false,
+          //   rooms: [
+          //     {
+          //       room: "100",
+          //     },
+          //   ],
+          // },
+        ],
+        //The notes
+        notes: [
+          {
+            note: data.noteAcademicAffairs,
+            type: "ACAMDEMIC_AFFAIRS",
+          },
+          {
+            note: data.notePrintedComments,
+            type: "DEPARTMENT",
+          },
+          {
+            note: data.noteWhatHasChanged,
+            type: "CHANGES",
+          },
+        ],
+      } as Partial<IProjectsExcelCourseSchema>;
+
+      //Return each course output
+      return mergedCourseOutput;
+    })
+  );
+  //Return all course output
+
+  JSON.stringify(invertOrganizedColumns);
+
+  return invertedNestedOrganizedColumns;
+};

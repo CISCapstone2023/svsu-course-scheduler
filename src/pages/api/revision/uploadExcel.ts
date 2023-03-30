@@ -55,10 +55,10 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
 
           //This is how to iterate through the excel file column headers
           const dataColumns = result[0]?.data as ExcelDataColumns;
-          console.log("column headers");
+          //console.log("column headers");
           if (dataColumns[0]) {
             dataColumns[0].forEach((c) => {
-              console.log(c);
+              //console.log(c);
             });
           }
           res.json({

@@ -865,7 +865,24 @@ const exportExcelFileToStorage = async (tuid: string) => {
         //Remove the array from the already array of array?
         outRow!.splice(0, 1);
 
-        return outRow as unknown as (string | undefined)[];
+        console.log({ outRow, rows });
+
+        const mergedRow = outRow.map((col, index) => {
+          //Is the column undefined
+          if (col == undefined) {
+            //Do we have th row
+            if (rows[0] != undefined) {
+              //Do we have said column in said row?
+              if (rows[0][index] != undefined) {
+                return rows[0]![index]; //If so apply said value to said row
+              }
+            }
+          }
+          //If not return the current value of the column
+          return col;
+        });
+
+        return mergedRow as unknown as (string | undefined)[];
       };
 
       /**
@@ -910,6 +927,14 @@ const exportExcelFileToStorage = async (tuid: string) => {
               revision.organizedColumns as IProjectOrganizedColumnRowNumerical
             );
           }
+        } else {
+          columns.push(
+            await mapCourseToRow(
+              [[]],
+              course,
+              revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+            )
+          );
         }
       }
 
@@ -981,7 +1006,7 @@ const invertedNestedOrganizedColumns = async (
       return ele.constructor === Object && Object.keys(ele).length > 0;
     }) as IProjectOrganizedColumnRow[];
 
-  console.log(JSON.stringify(invertedOrganizedColumns));
+  //console.log(JSON.stringify(invertedOrganizedColumns));
 
   //Do we have all of the columns?
   //TODO: Do we need to use this?
@@ -1023,7 +1048,7 @@ const invertedNestedOrganizedColumns = async (
         ...data
       } = c as IProjectOrganizedColumnRow & { _: string }; //A wonderful unioned type
 
-      console.log({ c });
+      //console.log({ c });
 
       //Get the building
       const updatedBuilding =
@@ -1036,7 +1061,7 @@ const invertedNestedOrganizedColumns = async (
           ? data.start_time.split(/\r\n|\n|\r/).map((c) => c.trim())
           : [];
 
-      console.log({ updatedStart_time });
+      //console.log({ updatedStart_time });
 
       //End time
       const updatedEnd_time =
@@ -1049,7 +1074,7 @@ const invertedNestedOrganizedColumns = async (
         data.days != undefined
           ? data.days.split(/\r\n|\n|\r/).map((c) => c.toLowerCase().split(""))
           : [];
-      console.log({ updatedDays });
+      //console.log({ updatedDays });
       //Faculty
       const updateFaculty =
         data.faculty != undefined
@@ -1061,7 +1086,7 @@ const invertedNestedOrganizedColumns = async (
           ? data.course_method.trim().split(/\r\n|\n|\r/)
           : [];
 
-      console.log({ courseMethods });
+      //console.log({ courseMethods });
 
       //TODO: Do we need the course global times?
       let start_time_updated = 0;
@@ -1110,13 +1135,13 @@ const invertedNestedOrganizedColumns = async (
 
       //Gets the term year based on its seperated slash "/"
       const getTermYear = (term: string) => {
-        console.log("Did we error at term?");
+        //console.log("Did we error at term?");
         return term.split("/")[0]?.toString();
       };
 
       //Get the semster and return all of them back because its easier
       const getTermSemester = (term: string) => {
-        console.log("Did we error at term year?");
+        //console.log("Did we error at term year?");
         const semester = term.split("/")[1]?.toString().trim();
 
         return {
@@ -1135,7 +1160,7 @@ const invertedNestedOrganizedColumns = async (
         const value = await Promise.all(
           courseMethods.map(async (method, index) => {
             //Get the times, which are in an object as they could be possible be use for the root of the object (course)
-            console.log({ courseMethods: "here" });
+            //console.log({ courseMethods: "here" });
             const item = updatedBuilding[index];
 
             if (item == undefined) {

@@ -59,7 +59,7 @@ model User {
   name            String?
   username        String
   email           String?            @unique
-  emailVerified   DateTime?
+  emailVerified   DateTime?         
   password        String
   image           String?
   department      String?            @default("CSIS")

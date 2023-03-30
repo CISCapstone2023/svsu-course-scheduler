@@ -111,7 +111,7 @@ const FacultyReport = ({
                 let locations = "";
                 data.course.locations.map((loc) => {
                   {
-                    locations += space + "• ";
+                    locations += space + "- ";
                     loc.rooms.map((value) => {
                       locations += value.building.name + " " + value.room;
                     });
@@ -138,7 +138,7 @@ const FacultyReport = ({
                       militaryToTime(loc.end_time).period;
                   }
 
-                  locations += "[ ";
+                  locations += " [ ";
                   if (loc.day_monday) locations += "MON ";
                   if (loc.day_tuesday) locations += "TUES ";
                   if (loc.day_wednesday) locations += "WED ";

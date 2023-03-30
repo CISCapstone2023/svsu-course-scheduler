@@ -240,6 +240,7 @@ const Scheduler: NextPage<ScheduleCalendar> = ({ scheduleId, name }) => {
                   size="sm"
                   color="warning"
                   onClick={() => {
+                    setCourseToEdit(null);
                     setModifyCourseModal(true);
                   }}
                 >

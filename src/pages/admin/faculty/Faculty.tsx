@@ -37,6 +37,9 @@ interface DepartmentSelect {
   name: string | null;
 }
 
+//Constant for the position of the toast notifications
+const NOTIFICATION_POSITION = toast.POSITION.BOTTOM_LEFT;
+
 const Faculty = () => {
   /**
    * Search Value
@@ -179,16 +182,24 @@ const Faculty = () => {
       });
 
       if (result) {
-        toast.info(`Updated '${data.name}'`);
+        toast.info(`Updated '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       } else {
-        toast.error(`Failed to add faculty '${data.name}'`);
+        toast.error(`Failed to add faculty '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       }
     } else {
       const result = await facultyAddMutation.mutateAsync(data);
       if (result) {
-        toast.success(`Added new faculty '${data.name}'`);
+        toast.success(`Added new faculty '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       } else {
-        toast.error(`Failed to add faculty '${data.name}'`);
+        toast.error(`Failed to add faculty '${data.name}'`, {
+          position: NOTIFICATION_POSITION,
+        });
       }
     }
 
@@ -214,12 +225,12 @@ const Faculty = () => {
       //If its true, that's a good!
       if (response) {
         toast.success(`Succesfully deleted '${facultyDeleteValue?.name}'`, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: NOTIFICATION_POSITION,
         });
         //Else its an error
       } else {
         toast.error(`Failed to delete '${facultyDeleteValue?.name}'`, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: NOTIFICATION_POSITION,
         });
       }
     }
@@ -240,7 +251,11 @@ const Faculty = () => {
     <>
       <div className="m-2 flex justify-between ">
         <div className="flex">
-          <Input onChange={onSearch} placeholder="Search" />
+          <Input
+            onChange={onSearch}
+            placeholder="Search"
+            className="h-[39px] w-[200px]"
+          />
 
           <AsyncSelect
             isClearable

@@ -586,7 +586,7 @@ const CreateCourseModal = ({
                       {/* Course */}
                       <Input
                         type="text"
-                        className="w-full"
+                        className="h-[38px] w-full"
                         size="sm"
                         {...courseAddForm.register("course_number")}
                       />
@@ -612,7 +612,7 @@ const CreateCourseModal = ({
                       {/* section info */}
                       <Input
                         type="number"
-                        className="w-full"
+                        className="h-[38px] w-full"
                         size="sm"
                         min="0"
                         max="100"
@@ -1086,13 +1086,13 @@ const CreateCourseModal = ({
 
                           <div className="w-full flex-col">
                             <div className="w-50 flex h-8 items-center">
-                              <p>Room Number</p>
+                              <p>Room</p>
                             </div>
                             <div>
-                              {/* Section id */}
+                              {/* Room Number */}
                               <Input
                                 type="number"
-                                className="w-full"
+                                className="w-16"
                                 size="sm"
                                 {...courseAddForm.register(
                                   `locations.${index}.rooms.room`

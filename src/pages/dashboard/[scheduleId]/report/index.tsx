@@ -23,6 +23,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import { ActionMeta, SingleValue } from "react-select";
 import Head from "next/head";
+import { toast } from "react-toastify";
 
 interface DashboardProps {
   scheduleId: string;
@@ -55,7 +56,24 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
   const [filterWinterSemester, setFilterWinterSemester] = useState(true);
   const [filterSpringSemester, setFilterSpringSemester] = useState(true);
   const [filterSummerSemester, setFilterSummerSemester] = useState(true);
+  const exportMutation = api.projects.exportScheduleRevision.useMutation();
 
+  const exportCalendar = async () => {
+    const result = await exportMutation.mutateAsync({
+      tuid: scheduleId,
+    });
+    if (result) {
+      window.open("/api/revision/" + scheduleId + "/downloadReport", "_blank");
+      toast.success("Please attatch the exported Excel sheet to the email! ", {
+        position: "top-center",
+      });
+    } else {
+      toast.error(
+        "Could not export to excel. \n This is likely from an older revision, which is not supported. ",
+        { position: "top-center" }
+      );
+    }
+  };
   // Get a list of departments
   const departmentMutation =
     api.department.getAllDepartmentAutofill.useMutation();
@@ -187,7 +205,28 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
               color="info"
               className="ml-2"
               onClick={() => {
-                alert("mail");
+                const nl = "%0D%0A";
+                const space = "     ";
+                let listOfFaculty = "";
+                if (faculties.data != undefined)
+                  faculties.data.faculties.map((faculty) => {
+                    listOfFaculty += faculty.email + ",";
+                  });
+                console.log(listOfFaculty);
+                exportCalendar();
+                window.location.href =
+                  "mailto:" +
+                  listOfFaculty +
+                  "?subject=Proposed Calendar for Review&body=Hello All," +
+                  nl +
+                  nl +
+                  "Here's the proposed schedule that is attatched to this email" +
+                  nl +
+                  nl +
+                  "Please review and email back, " +
+                  nl +
+                  nl +
+                  "SVSU Course Scheduler";
               }}
             >
               <Mail /> Email to All
@@ -195,9 +234,18 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
           </div>
 
           <div className="container mx-auto mt-5 space-y-3 px-4">
+            <span>
+              <i>*Please attatch the exported Excel sheet to the email!</i>
+            </span>
             {faculties.data != undefined &&
               faculties.data.faculties.map((faculty, index) => {
-                return <FacultyReport key={index} faculty={faculty} />;
+                return (
+                  <FacultyReport
+                    key={index}
+                    faculty={faculty}
+                    scheduleId={scheduleId}
+                  />
+                );
               })}
           </div>
         </div>

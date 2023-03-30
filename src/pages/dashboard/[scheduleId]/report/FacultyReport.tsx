@@ -1,11 +1,14 @@
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 import { Button, ButtonGroup } from "react-daisyui";
+import { toast } from "react-toastify";
+import { api } from "src/utils/api";
 import militaryToTime from "src/utils/time";
 import { CaretDown, CaretUp, Mail } from "tabler-icons-react";
 
 interface FacultyReportProps {
   children?: React.ReactNode;
+  scheduleId: string;
   faculty?: {
     to_courses: {
       course: {
@@ -50,21 +53,38 @@ interface FacultyReportProps {
   };
 }
 
-const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
+const FacultyReport = ({
+  children,
+  faculty,
+  scheduleId,
+}: FacultyReportProps) => {
   //useState for caret Icon
   const [isCaretDown, setCaret] = useState(true);
+  const exportMutation = api.projects.exportScheduleRevision.useMutation();
+
+  const exportCalendar = async () => {
+    const result = await exportMutation.mutateAsync({
+      tuid: scheduleId,
+    });
+    if (result) {
+      window.open("/api/revision/" + scheduleId + "/downloadReport", "_blank");
+      toast.success("Please attatch the exported Excel sheet to the email! ", {
+        position: "top-center",
+      });
+    } else {
+      toast.error(
+        "Could not export to excel. \n This is likely from an older revision, which is not supported. ",
+        { position: "top-center" }
+      );
+    }
+  };
   return (
     <div className="border-neutral-900 container mx-auto   flex-col  rounded-lg border-2 border-opacity-50 bg-stone-200 p-4">
       <div className="flex justify-between">
-        <strong
-          className=" cursor-pointer "
-          onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
-        >
-          {faculty?.name}
-        </strong>
         <div className="flex">
           <Button
             color="info"
+            size="sm"
             className="mr-2"
             onClick={() => {
               const nl = "%0D%0A";
@@ -138,7 +158,7 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
                   locations +
                   nl;
               });
-
+              exportCalendar();
               window.location.href =
                 "mailto:" +
                 faculty?.email +
@@ -147,7 +167,7 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
                 "," +
                 nl +
                 nl +
-                "Here's the proposed schedule with " +
+                "Here's the proposed schedule (see attatchment for more detail) with " +
                 faculty?.totalCredits +
                 " credits that you will be teaching. Here is the list:" +
                 nl +
@@ -162,6 +182,15 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
           >
             <Mail />
           </Button>
+          <strong
+            className=" cursor-pointer "
+            onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
+          >
+            {faculty?.name}
+          </strong>
+        </div>
+
+        <div className="flex">
           <span
             className="mr-3 cursor-pointer"
             onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}

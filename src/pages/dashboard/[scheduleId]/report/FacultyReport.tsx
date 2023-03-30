@@ -117,19 +117,27 @@ const FacultyReport = ({
                     });
                     locations +=
                       " FROM " +
-                      militaryToTime(loc.start_time).hour +
+                      (militaryToTime(loc.start_time).hour < 10
+                        ? "0" + militaryToTime(loc.start_time).hour.toString()
+                        : militaryToTime(loc.start_time).hour) +
                       ":" +
-                      militaryToTime(loc.start_time).minute +
+                      (militaryToTime(loc.start_time).minute < 10
+                        ? "0" + militaryToTime(loc.start_time).minute.toString()
+                        : militaryToTime(loc.start_time).minute) +
                       " " +
                       militaryToTime(loc.start_time).period +
                       " TO " +
-                      militaryToTime(loc.end_time).hour +
+                      (militaryToTime(loc.end_time).hour < 10
+                        ? "0" + militaryToTime(loc.end_time).hour.toString()
+                        : militaryToTime(loc.end_time).hour) +
                       ":" +
-                      militaryToTime(loc.end_time).minute +
+                      (militaryToTime(loc.end_time).minute < 10
+                        ? "0" + militaryToTime(loc.end_time).minute.toString()
+                        : militaryToTime(loc.end_time).minute) +
                       " " +
-                      militaryToTime(loc.end_time).period +
-                      "  ";
+                      militaryToTime(loc.end_time).period;
                   }
+
                   locations += "[ ";
                   if (loc.day_monday) locations += "MON ";
                   if (loc.day_tuesday) locations += "TUES ";
@@ -190,11 +198,11 @@ const FacultyReport = ({
           </strong>
         </div>
 
-        <div className="flex">
-          <span
-            className="mr-3 cursor-pointer"
-            onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
-          >
+        <div
+          className="flex cursor-pointer"
+          onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
+        >
+          <span className="mr-3 ">
             with <strong>{faculty?.totalCredits}</strong> credits teaching in
           </span>
 
@@ -249,15 +257,27 @@ const FacultyReport = ({
                             return value.building.name + " " + value.room;
                           }) +
                             " FROM " +
-                            militaryToTime(loc.start_time).hour +
+                            (militaryToTime(loc.start_time).hour < 10
+                              ? "0" +
+                                militaryToTime(loc.start_time).hour.toString()
+                              : militaryToTime(loc.start_time).hour) +
                             ":" +
-                            militaryToTime(loc.start_time).minute +
+                            (militaryToTime(loc.start_time).minute < 10
+                              ? "0" +
+                                militaryToTime(loc.start_time).minute.toString()
+                              : militaryToTime(loc.start_time).minute) +
                             " " +
                             militaryToTime(loc.start_time).period +
                             " TO " +
-                            militaryToTime(loc.end_time).hour +
+                            (militaryToTime(loc.end_time).hour < 10
+                              ? "0" +
+                                militaryToTime(loc.end_time).hour.toString()
+                              : militaryToTime(loc.end_time).hour) +
                             ":" +
-                            militaryToTime(loc.end_time).minute +
+                            (militaryToTime(loc.end_time).minute < 10
+                              ? "0" +
+                                militaryToTime(loc.end_time).minute.toString()
+                              : militaryToTime(loc.end_time).minute) +
                             " " +
                             militaryToTime(loc.end_time).period}
                         </span>

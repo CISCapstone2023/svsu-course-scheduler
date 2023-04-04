@@ -6,7 +6,6 @@ import {
   createFacultySchemaTUID,
 } from "src/validation/faculty";
 import type { GuidelinesFaculty } from "@prisma/client";
-import { any, object } from "zod/lib";
 
 //faculty router that will add, delete, update, and get faculty from database
 export const facultyRouter = createTRPCRouter({

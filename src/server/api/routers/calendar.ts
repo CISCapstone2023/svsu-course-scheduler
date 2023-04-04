@@ -191,7 +191,7 @@ export const calendarRouter = createTRPCRouter({
         revision: RevisionWithCourses | null
       ) => {
         if (revision == null) {
-          console.log(revision);
+          //console.log(revision);
         }
         const out = await Promise.all(
           revision!.courses.map(async (course) => {
@@ -249,7 +249,7 @@ export const calendarRouter = createTRPCRouter({
               .reduce((sum, value) => {
                 return sum + value;
               }, 0);
-            console.log({ totalMeetings });
+            //console.log({ totalMeetings });
             //Query each course to the guidelines course model
             const result = await ctx.prisma.guidelinesCourses.count({
               where: {
@@ -348,7 +348,7 @@ export const calendarRouter = createTRPCRouter({
         ),
       };
 
-      console.log(out);
+      //console.log(out);
       return out;
     }),
 
@@ -562,10 +562,6 @@ export const calendarRouter = createTRPCRouter({
       });
 
       const allCourses = revisionWithCourses?.courses;
-
-      allCourses?.forEach((course) => {
-        console.log(course.course_number);
-      });
 
       return allCourses;
     }),

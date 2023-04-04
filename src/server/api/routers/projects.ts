@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import XlsxPopulate from "xlsx-populate";
+
 //Import Prisma (type object reference)
 import { Prisma, PrismaClient } from "@prisma/client";
 
@@ -7,6 +11,10 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "src/server/db";
 //Import all required information for TRPC for making APIs
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
+
+import FormData from "form-data";
+import axios from "axios";
+import fs from "fs/promises";
 
 //Import all validation for creating revision, onboarding, etc
 import {
@@ -914,13 +922,51 @@ const exportExcelFileToStorage = async (tuid: string) => {
       }
 
       //Build the new file from the data
-      const buffer = xlsx.build([
+      let buffer = xlsx.build([
         {
           name: revision.name,
           data: columns,
           options: {},
         },
       ]);
+
+      const workbook = await XlsxPopulate.fromDataAsync(buffer);
+      const sheetWorkbook = workbook.sheet(0);
+      const row = sheetWorkbook.row(1);
+      row.style("fill", "00ff00"); // set the fill color to red
+
+      const getChanged = (
+        revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+      ).noteWhatHasChanged;
+      columns.map((row, index) => {
+        if (row[getChanged] != undefined) {
+          const value = row[getChanged]!.toLowerCase();
+          if (value.includes("deleted") || value.includes("removed")) {
+            const row = sheetWorkbook.row(index);
+            row.style("fill", "ff0000"); // set the fill color to red
+          } else if (value.includes("added")) {
+            const row = sheetWorkbook.row(index);
+            row.style("fill", "00ff00"); // set the fill color to red
+          } else if (value.includes("updated")) {
+            const row = sheetWorkbook.row(index);
+            row.style("fill", "ffff00"); // set the fill color to red
+          }
+        }
+      });
+
+      buffer = await workbook.outputAsync(); // save the workbook to a buffer
+
+      // const form = new FormData();
+      // form.append("excel", buffer, "file.xlsx");
+      // const value = (
+      //   revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+      // ).noteWhatHasChanged.toString();
+
+      // const response = await axios.post("http://0.0.0.0:8007/files", form, {
+      //   headers: {
+      //     "Content-Type": "multipart/form-data",
+      //   },
+      // });
 
       //Update the file in prisma so it can be downloaded
       await prisma.scheduleRevision.update({
@@ -981,7 +1027,7 @@ const invertedNestedOrganizedColumns = async (
       return ele.constructor === Object && Object.keys(ele).length > 0;
     }) as IProjectOrganizedColumnRow[];
 
-  console.log(JSON.stringify(invertedOrganizedColumns));
+  //console.log(JSON.stringify(invertedOrganizedColumns));
 
   //Do we have all of the columns?
   //TODO: Do we need to use this?
@@ -1023,7 +1069,7 @@ const invertedNestedOrganizedColumns = async (
         ...data
       } = c as IProjectOrganizedColumnRow & { _: string }; //A wonderful unioned type
 
-      console.log({ c });
+      //console.log({ c });
 
       //Get the building
       const updatedBuilding =
@@ -1036,7 +1082,7 @@ const invertedNestedOrganizedColumns = async (
           ? data.start_time.split(/\r\n|\n|\r/).map((c) => c.trim())
           : [];
 
-      console.log({ updatedStart_time });
+      //console.log({ updatedStart_time });
 
       //End time
       const updatedEnd_time =
@@ -1049,7 +1095,7 @@ const invertedNestedOrganizedColumns = async (
         data.days != undefined
           ? data.days.split(/\r\n|\n|\r/).map((c) => c.toLowerCase().split(""))
           : [];
-      console.log({ updatedDays });
+      //console.log({ updatedDays });
       //Faculty
       const updateFaculty =
         data.faculty != undefined
@@ -1061,7 +1107,7 @@ const invertedNestedOrganizedColumns = async (
           ? data.course_method.trim().split(/\r\n|\n|\r/)
           : [];
 
-      console.log({ courseMethods });
+      //console.log({ courseMethods });
 
       //TODO: Do we need the course global times?
       let start_time_updated = 0;

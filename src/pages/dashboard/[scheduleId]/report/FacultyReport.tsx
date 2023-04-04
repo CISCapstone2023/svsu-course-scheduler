@@ -1,11 +1,14 @@
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 import { Button, ButtonGroup } from "react-daisyui";
+import { toast } from "react-toastify";
+import { api } from "src/utils/api";
 import militaryToTime from "src/utils/time";
-import { CaretDown, CaretUp } from "tabler-icons-react";
+import { CaretDown, CaretUp, Mail } from "tabler-icons-react";
 
 interface FacultyReportProps {
   children?: React.ReactNode;
+  scheduleId: string;
   faculty?: {
     to_courses: {
       course: {
@@ -45,23 +48,174 @@ interface FacultyReportProps {
       };
     }[];
     name: string;
+    email: string;
     totalCredits: number;
   };
 }
 
-const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
+const FacultyReport = ({
+  children,
+  faculty,
+  scheduleId,
+}: FacultyReportProps) => {
   //useState for caret Icon
   const [isCaretDown, setCaret] = useState(true);
+  const exportMutation = api.projects.exportScheduleRevision.useMutation();
 
+  const exportCalendar = async () => {
+    const result = await exportMutation.mutateAsync({
+      tuid: scheduleId,
+    });
+    if (result) {
+      window.open("/api/revision/" + scheduleId + "/downloadReport", "_blank");
+      toast.success("Please attatch the exported Excel sheet to the email! ", {
+        position: "top-center",
+      });
+    } else {
+      toast.error(
+        "Could not export to excel. \n This is likely from an older revision, which is not supported. ",
+        { position: "top-center" }
+      );
+    }
+  };
   return (
     <div className="border-neutral-900 container mx-auto   flex-col  rounded-lg border-2 border-opacity-50 bg-stone-200 p-4">
-      <div
-        className="flex cursor-pointer justify-between"
-        onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
-      >
-        <strong>{faculty?.name}</strong>
+      <div className="flex justify-between">
         <div className="flex">
-          <span className="mr-3">
+          <Button
+            color="info"
+            size="sm"
+            className="mr-2"
+            onClick={() => {
+              const nl = "%0D%0A";
+              const space = "     ";
+              let courses = "";
+              //loop through the list of course of that profesor will be teaching in that revision
+              faculty?.to_courses.map((data) => {
+                //Check if we have online courses
+                const hasOnline = data.course.locations.some(
+                  (location) => location.is_online
+                );
+
+                //Check if we have in person courses
+                const hasInPerson = data.course.locations.some(
+                  (location) => !location.is_online
+                );
+                let lecType = "ONL";
+                //Check if they are hybrid
+                if (hasInPerson && hasOnline) lecType = "HYB";
+                else if (hasInPerson && !hasOnline) lecType = "LEC";
+                else if (!hasInPerson && hasOnline) lecType = "ONL";
+
+                //print course location
+                let locations = "";
+                data.course.locations.map((loc) => {
+                  {
+                    locations += space + "- ";
+                    loc.rooms.map((value) => {
+                      locations += value.building.name + " " + value.room;
+                    });
+                    locations +=
+                      //inline function add 0 in front when time less than 10
+                      " FROM " +
+                      (militaryToTime(loc.start_time).hour < 10
+                        ? "0" + militaryToTime(loc.start_time).hour.toString()
+                        : militaryToTime(loc.start_time).hour) +
+                      ":" +
+                      (militaryToTime(loc.start_time).minute < 10
+                        ? "0" + militaryToTime(loc.start_time).minute.toString()
+                        : militaryToTime(loc.start_time).minute) +
+                      " " +
+                      militaryToTime(loc.start_time).period +
+                      " TO " +
+                      (militaryToTime(loc.end_time).hour < 10
+                        ? "0" + militaryToTime(loc.end_time).hour.toString()
+                        : militaryToTime(loc.end_time).hour) +
+                      ":" +
+                      (militaryToTime(loc.end_time).minute < 10
+                        ? "0" + militaryToTime(loc.end_time).minute.toString()
+                        : militaryToTime(loc.end_time).minute) +
+                      " " +
+                      militaryToTime(loc.end_time).period;
+                  }
+
+                  locations += " [ ";
+                  if (loc.day_monday) locations += "MON ";
+                  if (loc.day_tuesday) locations += "TUES ";
+                  if (loc.day_wednesday) locations += "WED ";
+                  if (loc.day_thursday) locations += "THURS ";
+                  if (loc.day_friday) locations += "FRI ";
+                  if (loc.day_saturday) locations += "SAT ";
+                  if (loc.day_sunday) locations += "SUN ";
+
+                  if (
+                    !(
+                      locations.includes("MON") ||
+                      locations.includes("TUES") ||
+                      locations.includes("WED") ||
+                      locations.includes("THURS") ||
+                      locations.includes("FRI") ||
+                      locations.includes("SAT") ||
+                      locations.includes("SUN")
+                    ) &&
+                    (lecType.includes("ONL") || lecType.includes("HYB"))
+                  )
+                    locations += "ONLINE ";
+                  locations += "]" + nl;
+                });
+
+                //combining all the information for individual course
+                courses +=
+                  data.course.subject +
+                  data.course.course_number +
+                  "*" +
+                  data.course.section +
+                  " - " +
+                  data.course.credits +
+                  " CREDITS - " +
+                  lecType +
+                  nl +
+                  data.course.title.replace("&", "AND").toUpperCase() +
+                  nl +
+                  locations +
+                  nl;
+              });
+              exportCalendar();
+              window.location.href =
+                "mailto:" +
+                faculty?.email +
+                "?subject=Proposed Calendar for Review&body=Hello " +
+                faculty?.name +
+                "," +
+                nl +
+                nl +
+                "Here's the proposed schedule (see attatchment for more detail) with " +
+                faculty?.totalCredits +
+                " credits that you will be teaching. Here is the list:" +
+                nl +
+                nl +
+                courses +
+                "Please review and email back, " +
+                nl +
+                nl +
+                "SVSU Course Scheduler";
+            }}
+          >
+            <Mail />
+          </Button>
+          <strong
+            className=" cursor-pointer "
+            onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
+          >
+            {faculty?.name}
+          </strong>
+        </div>
+
+        <div
+          className="flex cursor-pointer"
+          onClick={(isCaretDown) => setCaret((isCaretDown) => !isCaretDown)}
+        >
+          <span className="mr-3 ">
             with <strong>{faculty?.totalCredits}</strong> credits teaching in
           </span>
 
@@ -112,19 +266,32 @@ const FacultyReport = ({ children, faculty }: FacultyReportProps) => {
                       >
                         <span className="grow">
                           •{" "}
+                          {/* inline function add 0 in front when time less than 10 */}
                           {loc.rooms.map((value) => {
                             return value.building.name + " " + value.room;
                           }) +
                             " FROM " +
-                            militaryToTime(loc.start_time).hour +
+                            (militaryToTime(loc.start_time).hour < 10
+                              ? "0" +
+                                militaryToTime(loc.start_time).hour.toString()
+                              : militaryToTime(loc.start_time).hour) +
                             ":" +
-                            militaryToTime(loc.start_time).minute +
+                            (militaryToTime(loc.start_time).minute < 10
+                              ? "0" +
+                                militaryToTime(loc.start_time).minute.toString()
+                              : militaryToTime(loc.start_time).minute) +
                             " " +
                             militaryToTime(loc.start_time).period +
                             " TO " +
-                            militaryToTime(loc.end_time).hour +
+                            (militaryToTime(loc.end_time).hour < 10
+                              ? "0" +
+                                militaryToTime(loc.end_time).hour.toString()
+                              : militaryToTime(loc.end_time).hour) +
                             ":" +
-                            militaryToTime(loc.end_time).minute +
+                            (militaryToTime(loc.end_time).minute < 10
+                              ? "0" +
+                                militaryToTime(loc.end_time).minute.toString()
+                              : militaryToTime(loc.end_time).minute) +
                             " " +
                             militaryToTime(loc.end_time).period}
                         </span>

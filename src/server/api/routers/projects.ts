@@ -873,7 +873,24 @@ const exportExcelFileToStorage = async (tuid: string) => {
         //Remove the array from the already array of array?
         outRow!.splice(0, 1);
 
-        return outRow as unknown as (string | undefined)[];
+        console.log({ outRow, rows });
+
+        const mergedRow = outRow.map((col, index) => {
+          //Is the column undefined
+          if (col == undefined) {
+            //Do we have th row
+            if (rows[0] != undefined) {
+              //Do we have said column in said row?
+              if (rows[0][index] != undefined) {
+                return rows[0]![index]; //If so apply said value to said row
+              }
+            }
+          }
+          //If not return the current value of the column
+          return col;
+        });
+
+        return mergedRow as unknown as (string | undefined)[];
       };
 
       /**
@@ -918,6 +935,14 @@ const exportExcelFileToStorage = async (tuid: string) => {
               revision.organizedColumns as IProjectOrganizedColumnRowNumerical
             );
           }
+        } else {
+          columns.push(
+            await mapCourseToRow(
+              [[]],
+              course,
+              revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+            )
+          );
         }
       }
 
@@ -1156,13 +1181,13 @@ const invertedNestedOrganizedColumns = async (
 
       //Gets the term year based on its seperated slash "/"
       const getTermYear = (term: string) => {
-        console.log("Did we error at term?");
+        //console.log("Did we error at term?");
         return term.split("/")[0]?.toString();
       };
 
       //Get the semster and return all of them back because its easier
       const getTermSemester = (term: string) => {
-        console.log("Did we error at term year?");
+        //console.log("Did we error at term year?");
         const semester = term.split("/")[1]?.toString().trim();
 
         return {
@@ -1181,7 +1206,7 @@ const invertedNestedOrganizedColumns = async (
         const value = await Promise.all(
           courseMethods.map(async (method, index) => {
             //Get the times, which are in an object as they could be possible be use for the root of the object (course)
-            console.log({ courseMethods: "here" });
+            //console.log({ courseMethods: "here" });
             const item = updatedBuilding[index];
 
             if (item == undefined) {

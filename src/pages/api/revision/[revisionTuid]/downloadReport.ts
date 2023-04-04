@@ -58,7 +58,7 @@ const UploadExcelFile = async (req: NextApiRequest, res: NextApiResponse) => {
       try {
         res.setHeader(
           "Content-Disposition",
-          `attachment; filename=${revision.name}.xlsx`
+          `attachment; filename=${revision.name.replace(/(^\&)[]|,/g, "")}.xlsx`
         );
         res.setHeader(
           "Content-Type",

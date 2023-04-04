@@ -6,11 +6,16 @@ import {
   createFacultySchemaTUID,
 } from "src/validation/faculty";
 import type { GuidelinesFaculty } from "@prisma/client";
-import { any, object } from "zod/lib";
 
-//faculty router that will add, delete, update, and get faculty from database
+/**
+ * Faculty router that will add, delete, update, and get faculty from database
+ * @author Chris Bellefeuille
+ */
 export const facultyRouter = createTRPCRouter({
-  //add faculty protected procedure to add one faculty member
+  /**
+   * Add faculty protected procedure to add a single faculty member to the database
+   * @author Chris Bellefeuille
+   */
   addFaculty: protectedProcedure
     //use the zod object schema from validation/faculty
     .input(createFacultySchema)
@@ -31,7 +36,10 @@ export const facultyRouter = createTRPCRouter({
       return true;
     }),
 
-  //delete one faculty protected procedure to delete a single faculty memeber
+  /**
+   * Delete one faculty protected procedure to delete a single faculty memeber with the given TUID
+   * @author Chris Bellefeuille
+   */
   deleteOneFaculty: protectedProcedure
     //here we will take in just the tuid as an input from client
     .input(createFacultySchemaTUID)
@@ -69,7 +77,10 @@ export const facultyRouter = createTRPCRouter({
       return false;
     }),
 
-  //get all faculty protected procedure to retrieve and return all faculty members
+  /**
+   * Get all faculty protected procedure to retrieve and return all faculty members
+   * @author Chris Bellefeuille
+   */
   getAllFaculty: protectedProcedure
     .input(
       z.object({
@@ -158,7 +169,10 @@ export const facultyRouter = createTRPCRouter({
       };
     }),
 
-  //get one faculty protected procedure to retrieve and return a single faculty member
+  /**
+   * Get one faculty protected procedure to retrieve and return a single faculty member based on a given TUID
+   * @author Chris Bellefeuille
+   */
   getOneFaculty: protectedProcedure
     .input(createFacultySchemaTUID)
     .query(async ({ ctx, input }) => {
@@ -172,8 +186,11 @@ export const facultyRouter = createTRPCRouter({
       return data;
     }),
 
-  //updated faculty protected procedure to update a single faculty member retrieved from
-  //the client and return the updated faculty member
+  /**
+   * Update faculty protected procedure to update a single faculty member retrieved from
+   * the client and return the updated faculty member
+   * @author Chris Bellefeuille
+   */
   updateFaculty: protectedProcedure
     //grab client input using the withTuid schema found in validation/faculty.ts
     .input(createFacultySchemaWithTUID)
@@ -198,6 +215,11 @@ export const facultyRouter = createTRPCRouter({
       return updatedFaculty;
     }),
 
+  /**
+   * Protected procedure that will find a faculty member based on the search and department fields on the front-end
+   * and will then return a list of faculty found matching said criteria
+   * @author Chris Bellefeuille
+   */
   getRevisionCourseFaculty: protectedProcedure
     .input(
       z.object({

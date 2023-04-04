@@ -111,11 +111,12 @@ const FacultyReport = ({
                 let locations = "";
                 data.course.locations.map((loc) => {
                   {
-                    locations += space + "• ";
+                    locations += space + "- ";
                     loc.rooms.map((value) => {
                       locations += value.building.name + " " + value.room;
                     });
                     locations +=
+                      //inline function add 0 in front when time less than 10
                       " FROM " +
                       (militaryToTime(loc.start_time).hour < 10
                         ? "0" + militaryToTime(loc.start_time).hour.toString()
@@ -138,7 +139,7 @@ const FacultyReport = ({
                       militaryToTime(loc.end_time).period;
                   }
 
-                  locations += "[ ";
+                  locations += " [ ";
                   if (loc.day_monday) locations += "MON ";
                   if (loc.day_tuesday) locations += "TUES ";
                   if (loc.day_wednesday) locations += "WED ";
@@ -147,6 +148,19 @@ const FacultyReport = ({
                   if (loc.day_saturday) locations += "SAT ";
                   if (loc.day_sunday) locations += "SUN ";
 
+                  if (
+                    !(
+                      locations.includes("MON") ||
+                      locations.includes("TUES") ||
+                      locations.includes("WED") ||
+                      locations.includes("THURS") ||
+                      locations.includes("FRI") ||
+                      locations.includes("SAT") ||
+                      locations.includes("SUN")
+                    ) &&
+                    (lecType.includes("ONL") || lecType.includes("HYB"))
+                  )
+                    locations += "ONLINE ";
                   locations += "]" + nl;
                 });
 
@@ -181,7 +195,6 @@ const FacultyReport = ({
                 nl +
                 nl +
                 courses +
-                nl +
                 "Please review and email back, " +
                 nl +
                 nl +
@@ -253,6 +266,7 @@ const FacultyReport = ({
                       >
                         <span className="grow">
                           •{" "}
+                          {/* inline function add 0 in front when time less than 10 */}
                           {loc.rooms.map((value) => {
                             return value.building.name + " " + value.room;
                           }) +

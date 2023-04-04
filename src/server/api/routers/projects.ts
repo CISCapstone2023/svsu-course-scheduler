@@ -957,8 +957,8 @@ const exportExcelFileToStorage = async (tuid: string) => {
 
       const workbook = await XlsxPopulate.fromDataAsync(buffer);
       const sheetWorkbook = workbook.sheet(0);
-      const row = sheetWorkbook.row(1);
-      row.style("fill", "00ff00"); // set the fill color to red
+      // const row = sheetWorkbook.row(1);
+      // row.style("fill", "00ff00"); // set the fill color to red
 
       const getChanged = (
         revision.organizedColumns as IProjectOrganizedColumnRowNumerical
@@ -967,13 +967,13 @@ const exportExcelFileToStorage = async (tuid: string) => {
         if (row[getChanged] != undefined) {
           const value = row[getChanged]!.toLowerCase();
           if (value.includes("deleted") || value.includes("removed")) {
-            const row = sheetWorkbook.row(index);
+            const row = sheetWorkbook.row(index + 1);
             row.style("fill", "ff0000"); // set the fill color to red
           } else if (value.includes("added")) {
-            const row = sheetWorkbook.row(index);
+            const row = sheetWorkbook.row(index + 1);
             row.style("fill", "00ff00"); // set the fill color to red
           } else if (value.includes("updated")) {
-            const row = sheetWorkbook.row(index);
+            const row = sheetWorkbook.row(index + 1);
             row.style("fill", "ffff00"); // set the fill color to red
           }
         }

@@ -103,13 +103,15 @@ const ProjectDataTableEdit = ({
             <tr className="sticky top-0">
               <span />
               {uploaded[0] !== undefined &&
-                uploaded[0].map((columnName, index) => {
+                uploaded.length !== null &&
+                uploaded[0]?.map((columnName, index) => {
+                  console.log(columnName);
                   return (
                     <th
                       className="top-0 w-[200px] justify-center border border-slate-600"
                       key={index}
                     >
-                      {columnName.length > 20
+                      {columnName != null && columnName.length > 20
                         ? `${columnName.substring(0, 20)}...`
                         : columnName}
                       <br />
@@ -142,7 +144,22 @@ const ProjectDataTableEdit = ({
                         className=" w-1/3 border border-slate-600 p-1"
                         key={index}
                       >
-                        {value}
+                        {/* if the item in the block has a new line, put a <br> tag to have a new line */}
+                        {value != undefined &&
+                        value.toString().includes("\n") ? (
+                          <>
+                            {value.split("\n").map((val) => {
+                              return (
+                                <>
+                                  <span>{val}</span>
+                                  <br />
+                                </>
+                              );
+                            })}
+                          </>
+                        ) : (
+                          value
+                        )}
                       </td>
                     );
                   })}
@@ -155,6 +172,8 @@ const ProjectDataTableEdit = ({
         <span className="font-bold ">
           <NoteOff size={48} strokeWidth={0.5} color={"#000000"} /> NO DATA WAS
           FOUND IN THE FILE!
+          <br />
+          <i>Try to Reupload an Approriate File</i>
         </span>
       )}
     </div>

@@ -109,7 +109,7 @@ const DashboardHomeTabs = ({ tuid }: DashboardHomeTabsProps) => {
           {/* this shows a message to alert the user that no courses have been added, modified or removed */}
           {courses.data != undefined && getCourses(tabValue)?.length == 0 && (
             <div className="flex h-32 items-center justify-center text-center text-lg font-semibold">
-              This schedule currenlty has no courses that meets this criteria
+              This schedule currently has no courses that meets this criteria
             </div>
           )}
         </div>

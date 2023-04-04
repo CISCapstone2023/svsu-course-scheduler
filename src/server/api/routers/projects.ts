@@ -598,7 +598,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
         return false;
       }
       const sheet = results[0];
-      const columns = sheet?.data as ExcelDataColumns;
+      const rows = sheet?.data as ExcelDataColumns;
       //console.log(columns);
       const addedCourses = revision.courses.filter(
         (course) => course.state == "ADDED"
@@ -898,8 +898,8 @@ const exportExcelFileToStorage = async (tuid: string) => {
        */
       for (const course of removedCourses) {
         //node-xlsx
-        const row = columns.splice(course.excelRow, 1);
-        columns.push(
+        const row = rows.splice(course.excelRow, 1);
+        rows.push(
           await mapCourseToRow(
             row,
             course,
@@ -912,8 +912,8 @@ const exportExcelFileToStorage = async (tuid: string) => {
        * Modified Courses
        */
       for (const course of modifiedCourses) {
-        const row = columns.splice(course.excelRow, 1);
-        columns.push(
+        const row = rows.splice(course.excelRow, 1);
+        rows.push(
           await mapCourseToRow(
             row,
             course,
@@ -927,16 +927,16 @@ const exportExcelFileToStorage = async (tuid: string) => {
        */
       for (const course of addedCourses) {
         if (course.excelRow != -1) {
-          const row = columns.splice(course.excelRow, 1);
+          const row = rows.splice(course.excelRow, 1);
           if (row.length > 0) {
-            columns[course.excelRow] = await mapCourseToRow(
+            rows[course.excelRow] = await mapCourseToRow(
               row,
               course,
               revision.organizedColumns as IProjectOrganizedColumnRowNumerical
             );
           }
         } else {
-          columns.push(
+          rows.push(
             await mapCourseToRow(
               [[]],
               course,
@@ -950,36 +950,44 @@ const exportExcelFileToStorage = async (tuid: string) => {
       let buffer = xlsx.build([
         {
           name: revision.name,
-          data: columns,
+          data: rows,
           options: {},
         },
       ]);
 
+      //Now open the excel file with a different library
       const workbook = await XlsxPopulate.fromDataAsync(buffer);
       const sheetWorkbook = workbook.sheet(0);
-      // const row = sheetWorkbook.row(1);
-      // row.style("fill", "00ff00"); // set the fill color to red
 
+      //Get the column which has changed
       const getChanged = (
         revision.organizedColumns as IProjectOrganizedColumnRowNumerical
       ).noteWhatHasChanged;
-      columns.map((row, index) => {
+
+      //Loop all rows which has a row
+      rows.map((row, index) => {
+        //Do we have the changed row?
         if (row[getChanged] != undefined) {
+          //Get the calue from lowercase
           const value = row[getChanged]!.toLowerCase();
+
+          //Now check if its deleted
           if (value.includes("deleted") || value.includes("removed")) {
             const row = sheetWorkbook.row(index + 1);
             row.style("fill", "ff0000"); // set the fill color to red
           } else if (value.includes("added")) {
+            //Check if its added
             const row = sheetWorkbook.row(index + 1);
-            row.style("fill", "00ff00"); // set the fill color to red
+            row.style("fill", "00ff00"); // set the fill color to green
           } else if (value.includes("updated")) {
+            //Check if its updated
             const row = sheetWorkbook.row(index + 1);
-            row.style("fill", "ffff00"); // set the fill color to red
+            row.style("fill", "ffff00"); // set the fill color to orange
           }
         }
       });
 
-      buffer = await workbook.outputAsync(); // save the workbook to a buffer
+      buffer = await workbook.outputAsync(); // save the workbook to the same buffer
 
       // const form = new FormData();
       // form.append("excel", buffer, "file.xlsx");

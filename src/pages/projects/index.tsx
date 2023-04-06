@@ -77,7 +77,7 @@ const DEFAULT_ORGANIZED_COLUMNS = {
  * In reality a project and a schedule mean the same thing but they just have many revisions.
  *
  * This page allows us to select a scheudle/project and also upload new files to mange other projects if needed.
- *
+ *@author Binh Dang
  * @returns nothing
  */
 const Projects: NextPage = () => {

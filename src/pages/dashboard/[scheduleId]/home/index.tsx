@@ -23,7 +23,6 @@ interface HomeProps {
 
 const Dashboard: NextPage<HomeProps> = ({ scheduleId, name }) => {
   //Make a state to toggle the sidebar
-
   const [showSidebar, toggleSidebar] = useSidebar();
 
   return (

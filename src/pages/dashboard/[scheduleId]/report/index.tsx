@@ -24,6 +24,7 @@ import { debounce } from "lodash";
 import { ActionMeta, SingleValue } from "react-select";
 import Head from "next/head";
 import { toast } from "react-toastify";
+import useSidebar from "src/hooks/useSidebar";
 
 interface DashboardProps {
   scheduleId: string;
@@ -61,6 +62,9 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
   const [filterSpringSemester, setFilterSpringSemester] = useState(true);
   const [filterSummerSemester, setFilterSummerSemester] = useState(true);
   const exportMutation = api.projects.exportScheduleRevision.useMutation();
+
+  //Make a state to toggle the sidebar
+  const [showSidebar, toggleSidebar] = useSidebar();
 
   const exportCalendar = async () => {
     const result = await exportMutation.mutateAsync({
@@ -110,9 +114,12 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
       <Head>
         <title>{name.substring(0, 30)} | SVSU Course Scheduler | Report</title>
       </Head>
-      <DashboardSidebar page={DashboardPages.REPORT} />
+      {showSidebar && <DashboardSidebar page={DashboardPages.REPORT} />}
       <DashboardContent>
-        <DashboardContentHeader title="Report" />
+        <DashboardContentHeader
+          title={"Report | " + name}
+          onMenuClick={toggleSidebar}
+        />
         <div className="m-2 h-full overflow-auto">
           <div className="flex">
             <Dropdown>

@@ -9,6 +9,12 @@ const goToProject = (id: string) => {
   const urlProject: string = "/dashboard/" + id + "/home";
   router.push(urlProject);
 };
+
+/**
+ * ProjectItemProps
+ * Generates a project main item
+ * @Author Binh Dang
+ */
 interface ProjectItemProps {
   children?: React.ReactNode;
   strTitle?: string;

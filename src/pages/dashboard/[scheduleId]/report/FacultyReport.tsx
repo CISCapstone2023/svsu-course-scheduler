@@ -52,7 +52,11 @@ interface FacultyReportProps {
     totalCredits: number;
   };
 }
-
+/**
+ * FacultyReport
+ * Generates the main content report page for one professor
+ * @Author Binh Dang
+ */
 const FacultyReport = ({
   children,
   faculty,
@@ -66,6 +70,7 @@ const FacultyReport = ({
     const result = await exportMutation.mutateAsync({
       tuid: scheduleId,
     });
+
     if (result) {
       window.open("/api/revision/" + scheduleId + "/downloadReport", "_blank");
       toast.success("Please attatch the exported Excel sheet to the email! ", {
@@ -92,93 +97,108 @@ const FacultyReport = ({
               let courses = "";
               //loop through the list of course of that profesor will be teaching in that revision
               faculty?.to_courses.map((data) => {
-                //Check if we have online courses
-                const hasOnline = data.course.locations.some(
-                  (location) => location.is_online
-                );
-
-                //Check if we have in person courses
-                const hasInPerson = data.course.locations.some(
-                  (location) => !location.is_online
-                );
-                let lecType = "ONL";
-                //Check if they are hybrid
-                if (hasInPerson && hasOnline) lecType = "HYB";
-                else if (hasInPerson && !hasOnline) lecType = "LEC";
-                else if (!hasInPerson && hasOnline) lecType = "ONL";
-
-                //print course location
-                let locations = "";
-                data.course.locations.map((loc) => {
-                  {
-                    locations += space + "- ";
-                    loc.rooms.map((value) => {
-                      locations += value.building.name + " " + value.room;
-                    });
-                    locations +=
-                      //inline function add 0 in front when time less than 10
-                      " FROM " +
-                      (militaryToTime(loc.start_time).hour < 10
-                        ? "0" + militaryToTime(loc.start_time).hour.toString()
-                        : militaryToTime(loc.start_time).hour) +
-                      ":" +
-                      (militaryToTime(loc.start_time).minute < 10
-                        ? "0" + militaryToTime(loc.start_time).minute.toString()
-                        : militaryToTime(loc.start_time).minute) +
-                      " " +
-                      militaryToTime(loc.start_time).period +
-                      " TO " +
-                      (militaryToTime(loc.end_time).hour < 10
-                        ? "0" + militaryToTime(loc.end_time).hour.toString()
-                        : militaryToTime(loc.end_time).hour) +
-                      ":" +
-                      (militaryToTime(loc.end_time).minute < 10
-                        ? "0" + militaryToTime(loc.end_time).minute.toString()
-                        : militaryToTime(loc.end_time).minute) +
-                      " " +
-                      militaryToTime(loc.end_time).period;
-                  }
-
-                  locations += " [ ";
-                  if (loc.day_monday) locations += "MON ";
-                  if (loc.day_tuesday) locations += "TUES ";
-                  if (loc.day_wednesday) locations += "WED ";
-                  if (loc.day_thursday) locations += "THURS ";
-                  if (loc.day_friday) locations += "FRI ";
-                  if (loc.day_saturday) locations += "SAT ";
-                  if (loc.day_sunday) locations += "SUN ";
-
+                //check if course exceed limit characters for mailto
+                //if exceed just add in the line.
+                if (courses.length > 1000) {
                   if (
-                    !(
-                      locations.includes("MON") ||
-                      locations.includes("TUES") ||
-                      locations.includes("WED") ||
-                      locations.includes("THURS") ||
-                      locations.includes("FRI") ||
-                      locations.includes("SAT") ||
-                      locations.includes("SUN")
-                    ) &&
-                    (lecType.includes("ONL") || lecType.includes("HYB"))
+                    !courses.includes(
+                      "...Please review the attatched sheet for more detail."
+                    )
                   )
-                    locations += "ONLINE ";
-                  locations += "]" + nl;
-                });
+                    courses +=
+                      "...Please review the attatched sheet for more detail." +
+                      nl +
+                      nl;
+                } else {
+                  //Check if we have online courses
+                  const hasOnline = data.course.locations.some(
+                    (location) => location.is_online
+                  );
 
-                //combining all the information for individual course
-                courses +=
-                  data.course.subject +
-                  data.course.course_number +
-                  "*" +
-                  data.course.section +
-                  " - " +
-                  data.course.credits +
-                  " CREDITS - " +
-                  lecType +
-                  nl +
-                  data.course.title.replace("&", "AND").toUpperCase() +
-                  nl +
-                  locations +
-                  nl;
+                  //Check if we have in person courses
+                  const hasInPerson = data.course.locations.some(
+                    (location) => !location.is_online
+                  );
+                  let lecType = "ONL";
+                  //Check if they are hybrid
+                  if (hasInPerson && hasOnline) lecType = "HYB";
+                  else if (hasInPerson && !hasOnline) lecType = "LEC";
+                  else if (!hasInPerson && hasOnline) lecType = "ONL";
+
+                  //print course location
+                  let locations = "";
+                  data.course.locations.map((loc) => {
+                    {
+                      locations += space + "- ";
+                      loc.rooms.map((value) => {
+                        locations += value.building.name + " " + value.room;
+                      });
+                      locations +=
+                        //inline function add 0 in front when time less than 10
+                        " FROM " +
+                        (militaryToTime(loc.start_time).hour < 10
+                          ? "0" + militaryToTime(loc.start_time).hour.toString()
+                          : militaryToTime(loc.start_time).hour) +
+                        ":" +
+                        (militaryToTime(loc.start_time).minute < 10
+                          ? "0" +
+                            militaryToTime(loc.start_time).minute.toString()
+                          : militaryToTime(loc.start_time).minute) +
+                        " " +
+                        militaryToTime(loc.start_time).period +
+                        " TO " +
+                        (militaryToTime(loc.end_time).hour < 10
+                          ? "0" + militaryToTime(loc.end_time).hour.toString()
+                          : militaryToTime(loc.end_time).hour) +
+                        ":" +
+                        (militaryToTime(loc.end_time).minute < 10
+                          ? "0" + militaryToTime(loc.end_time).minute.toString()
+                          : militaryToTime(loc.end_time).minute) +
+                        " " +
+                        militaryToTime(loc.end_time).period;
+                    }
+
+                    locations += " [ ";
+                    if (loc.day_monday) locations += "MON ";
+                    if (loc.day_tuesday) locations += "TUES ";
+                    if (loc.day_wednesday) locations += "WED ";
+                    if (loc.day_thursday) locations += "THURS ";
+                    if (loc.day_friday) locations += "FRI ";
+                    if (loc.day_saturday) locations += "SAT ";
+                    if (loc.day_sunday) locations += "SUN ";
+
+                    if (
+                      !(
+                        locations.includes("MON") ||
+                        locations.includes("TUES") ||
+                        locations.includes("WED") ||
+                        locations.includes("THURS") ||
+                        locations.includes("FRI") ||
+                        locations.includes("SAT") ||
+                        locations.includes("SUN")
+                      ) &&
+                      (lecType.includes("ONL") || lecType.includes("HYB"))
+                    )
+                      locations += "ONLINE ";
+                    locations += "]" + nl;
+                  });
+
+                  //combining all the information for individual course
+                  courses +=
+                    data.course.subject +
+                    data.course.course_number +
+                    "*" +
+                    data.course.section +
+                    " - " +
+                    data.course.credits +
+                    " CREDITS - " +
+                    lecType +
+                    nl +
+                    data.course.title.replace("&", "AND").toUpperCase() +
+                    nl +
+                    locations +
+                    nl;
+                }
               });
               exportCalendar();
               window.location.href =

@@ -36,7 +36,11 @@ interface DepartmentSelect {
   value: string | null;
   name: string | null;
 }
-
+/**
+ * Report
+ * Generates the main report page
+ * @Author Binh Dang
+ */
 const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
   /**
    * useSession

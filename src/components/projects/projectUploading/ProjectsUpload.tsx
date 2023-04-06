@@ -22,7 +22,11 @@ interface IOnboarding {
   tuid: string;
   table: Array<Array<string>>;
 }
-
+/**
+ * ProjectsUpload
+ * Generates the first stage elements
+ * @Author Binh Dang
+ */
 const ProjectsUpload = ({
   onFinish,
   resetForm,

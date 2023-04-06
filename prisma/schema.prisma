@@ -1,6 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// Prisma is an ORM, bridging to our MySQL database
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
@@ -15,19 +15,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model Event {
-//   id        String   @id @default(cuid())
-//   name      String
-//   location  String?  @db.Text
-//   startDate DateTime
-//   endDate   DateTime
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   authorId  String
-//   author    User?    @relation(fields: [authorId], references: [id])
-// }
-
-// Necessary for Next auth
+// Necessary for Next auth, (login authentication functionality)
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -45,7 +33,7 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
-
+// Provides session details for a user
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
@@ -53,7 +41,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
+//Users will own revisions of schedules, schedules themselves, sessions etc.
 model User {
   id              String             @id @default(cuid())
   name            String?
@@ -69,7 +57,7 @@ model User {
   sessions        Session[]
   permissions     Permission[]
 }
-
+// Will hold the relation of schedules that a user owns
 model SchedulesOnUsers {
   user          User     @relation(fields: [user_tuid], references: [id])
   user_tuid     String // relation scalar field (used in the `@relation` attribute above)
@@ -101,6 +89,7 @@ model Permission {
 //Course model
 model Course {
   tuid               String                      @id @default(cuid())
+  //Each course is mapped to a row in an inputted excel file. This holds an index that relates to a course
   excelRow                Int                         @default(-1)
   type               String
   section_id         Int?
@@ -134,14 +123,13 @@ model Course {
   notes              CourseNote[]
   locations          CourseLocation[]
 }
-
 model Schedule {
   tuid      String             @id @default(cuid())
   //Relationships
   users     SchedulesOnUsers[]
   revisions ScheduleRevision[]
 }
-
+// Multiple schedules can belong to a schedule Revision
 model ScheduleRevision {
   tuid          String   @id @default(cuid())
   name          String
@@ -151,7 +139,6 @@ model ScheduleRevision {
   updatedAt     DateTime @updatedAt
   onboarding    Boolean  @default(true)
   creator_tuid  String   @map("user")
-
   exported_file Bytes?    @db.Blob
   exportedAt DateTime? 
   organizedColumns Json @default("{}")
@@ -159,10 +146,8 @@ model ScheduleRevision {
   //Relationships
   schedule Schedule? @relation(fields: [schedule_tuid], references: [tuid])
   courses  Course[]
-
   user User @relation(fields: [creator_tuid], references: [id])
 }
-
 model CourseLocation {
   tuid          String   @id @default(cuid())
   start_time    Int
@@ -180,7 +165,7 @@ model CourseLocation {
   course        Course   @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
   rooms         Room[]
 }
-
+// This is how faculty members will stored in the db to be referenced in the system
 model GuidelinesFaculty {
   tuid       String                      @id @default(cuid())
   suffix     String
@@ -191,7 +176,7 @@ model GuidelinesFaculty {
   //Relationships
   to_courses GuidelinesFacultyToCourse[]
 }
-
+// Faculty members will be related to courses, as they teach them
 model GuidelinesFacultyToCourse {
   tuid         String            @id @default(cuid())
   faculty_tuid String
@@ -277,7 +262,8 @@ model Room {
   building      GuidelineBuilding @relation(fields: [building_tuid], references: [tuid], onDelete: Cascade)
   location      CourseLocation    @relation(fields: [location_tuid], references: [tuid], onDelete: Cascade)
 }
-
+// This will allow for filtering of Faculty by Subject and Department, in the case the system gets
+// rolled out to other colleges
 model Subject{
   tuid          String        @id @default(cuid())
   name          String
@@ -294,7 +280,8 @@ enum Permissions {
   ADMIN
   DEFAULT
 }
-
+// Course State Enums. Allows for the system to display courses if the state has been changed,
+// As well as coloring rows in exported excel spreadsheets, showing which classes have been modified
 enum CourseState {
   UNMODIFIED
   MODIFIED

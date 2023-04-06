@@ -9,19 +9,24 @@ interface TimeInputProps {
   ref: any;
   disabled?: boolean;
 }
-
+/**
+ * TimeInput Component
+ * @description a component for formatting and inputting time values
+ */
 const TimeInput = ({
+  // value: The current military time value (1430 for 2:30 PM)
   value,
   ref,
   onChange,
   disabled = false,
 }: TimeInputProps) => {
   const localRef = useRef<HTMLInputElement>(null);
-
+  // set variables to set hour, minute, and AM PM values
   const [hour, setHour] = useState(0);
   const [minutes, setMinutes] = useState(0);
   const [isPM, setIsPM] = useState(false);
 
+  // Hook to convert military time to normal time
   useEffect(() => {
     try {
       const time = militaryToTime(value);
@@ -37,16 +42,18 @@ const TimeInput = ({
 
   const onChangeLocally = () => {
     let tempHours = hour;
+    // Convert to 24-hour format if PM and not already 12 PM
     if (isPM == true && hour != 12) {
       tempHours += 12;
     }
-
+    // Convert the 'normal' time values to a military time value (1430 for 2:30)
     const military = parseInt(
       `${tempHours}${minutes < 10 ? "0" : ""}${minutes}`
     );
     onChange(military);
   };
 
+  //Render the time input
   return (
     <div className="flex rounded-lg border-[1px] border-gray-300 p-1" ref={ref}>
       <input

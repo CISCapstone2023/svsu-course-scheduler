@@ -3,7 +3,11 @@ import React, { useState } from "react";
 import { Table } from "react-daisyui";
 import Select from "react-select";
 import { AlertTriangle, NoteOff } from "tabler-icons-react";
-
+/**
+ * ProjectDataTableEditProps
+ * Generates a table when upload an Excel sheet
+ * @Author Binh Dang
+ */
 interface ProjectDataTableEditProps {
   uploaded: Array<Array<string>> | undefined;
   columns: Record<string, number | null>;
@@ -102,6 +106,7 @@ const ProjectDataTableEdit = ({
           <thead className="sticky top-0">
             <tr className="sticky top-0">
               <span />
+              {/* upload the header row */}
               {uploaded[0] !== undefined &&
                 uploaded.length !== null &&
                 uploaded[0]?.map((columnName, index) => {

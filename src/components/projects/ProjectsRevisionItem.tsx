@@ -18,6 +18,12 @@ const goToProject = (id: string) => {
   const urlProject: string = "/dashboard/" + id + "/home";
   router.push(urlProject);
 };
+
+/**
+ * ProjectRevisionItem
+ * Generates a child item under the main project
+ * @Author Binh Dang
+ */
 const ProjectRevisionItem = ({
   title,
   id,

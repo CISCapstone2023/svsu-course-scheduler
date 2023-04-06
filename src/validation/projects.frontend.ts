@@ -3,6 +3,9 @@ import { z } from "zod";
 export const finalizeProjectOnBoarding = z.object({
   name: z
     .string()
+    .regex(/^[^\s\\\/\?\*\[\]]+$/, {
+      message: "Project name cannot contain  / ? * [ ]",
+    })
     .min(5, { message: "Enter a name at least 5 characters long" }),
 });
 

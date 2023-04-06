@@ -136,9 +136,12 @@ const FacultyReport = ({
                       locations +=
                         //inline function add 0 in front when time less than 10
                         " FROM " +
-                        (militaryToTime(loc.start_time).hour < 10
-                          ? "0" + militaryToTime(loc.start_time).hour.toString()
-                          : militaryToTime(loc.start_time).hour) +
+                        (militaryToTime(loc.start_time).anteMeridiemHour < 10
+                          ? "0" +
+                            militaryToTime(
+                              loc.start_time
+                            ).anteMeridiemHour.toString()
+                          : militaryToTime(loc.start_time).anteMeridiemHour) +
                         ":" +
                         (militaryToTime(loc.start_time).minute < 10
                           ? "0" +
@@ -147,9 +150,12 @@ const FacultyReport = ({
                         " " +
                         militaryToTime(loc.start_time).period +
                         " TO " +
-                        (militaryToTime(loc.end_time).hour < 10
-                          ? "0" + militaryToTime(loc.end_time).hour.toString()
-                          : militaryToTime(loc.end_time).hour) +
+                        (militaryToTime(loc.end_time).anteMeridiemHour < 10
+                          ? "0" +
+                            militaryToTime(
+                              loc.end_time
+                            ).anteMeridiemHour.toString()
+                          : militaryToTime(loc.end_time).anteMeridiemHour) +
                         ":" +
                         (militaryToTime(loc.end_time).minute < 10
                           ? "0" + militaryToTime(loc.end_time).minute.toString()
@@ -185,7 +191,7 @@ const FacultyReport = ({
 
                   //combining all the information for individual course
                   courses +=
-                    data.course.subject +
+                    -data.course.subject +
                     data.course.course_number +
                     "*" +
                     data.course.section +
@@ -291,10 +297,14 @@ const FacultyReport = ({
                             return value.building.name + " " + value.room;
                           }) +
                             " FROM " +
-                            (militaryToTime(loc.start_time).hour < 10
+                            (militaryToTime(loc.start_time).anteMeridiemHour <
+                            10
                               ? "0" +
-                                militaryToTime(loc.start_time).hour.toString()
-                              : militaryToTime(loc.start_time).hour) +
+                                militaryToTime(
+                                  loc.start_time
+                                ).anteMeridiemHour.toString()
+                              : militaryToTime(loc.start_time)
+                                  .anteMeridiemHour) +
                             ":" +
                             (militaryToTime(loc.start_time).minute < 10
                               ? "0" +
@@ -303,10 +313,12 @@ const FacultyReport = ({
                             " " +
                             militaryToTime(loc.start_time).period +
                             " TO " +
-                            (militaryToTime(loc.end_time).hour < 10
+                            (militaryToTime(loc.end_time).anteMeridiemHour < 10
                               ? "0" +
-                                militaryToTime(loc.end_time).hour.toString()
-                              : militaryToTime(loc.end_time).hour) +
+                                militaryToTime(
+                                  loc.end_time
+                                ).anteMeridiemHour.toString()
+                              : militaryToTime(loc.end_time).anteMeridiemHour) +
                             ":" +
                             (militaryToTime(loc.end_time).minute < 10
                               ? "0" +

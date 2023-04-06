@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-//This regex ensures the user only enters alphabetical characters with no whitespaces
+/**
+ * This regex ensures the user only enters alphabetical characters with no whitespaces
+ * @author Chris Bellefeuille
+ */
 const regex = /^[a-zA-Z]+$/;
 
 /**
@@ -18,6 +21,10 @@ export const createDepartmentsSchema = z.object({
     .max(30),
 });
 
+/**
+ * Create the department schema that includes the TUID
+ * @author Christian Mallinger
+ */
 export const updateDepartmentsSchema = createDepartmentsSchema.extend({
   tuid: z.string(),
 });

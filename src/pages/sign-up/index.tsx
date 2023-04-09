@@ -24,7 +24,7 @@ const SignUp: NextPage = () => {
   const router = useRouter();
 
   //Form for handing the signup process
-  const { register, handleSubmit, formState } = useForm<ISignUp>({
+  const { register, handleSubmit, formState, setError } = useForm<ISignUp>({
     mode: "onBlur",
     resolver: zodResolver(signUpSchema),
   });
@@ -58,6 +58,9 @@ const SignUp: NextPage = () => {
       if (result.status === 201) {
         router.push("/");
       } else if ((result.status = 409)) {
+        if (result.message.toLowerCase().includes("email")) {
+          setError("email", { message: result.message });
+        }
       }
     },
     [mutateAsync, router]

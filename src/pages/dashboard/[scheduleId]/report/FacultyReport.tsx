@@ -191,7 +191,7 @@ const FacultyReport = ({
 
                   //combining all the information for individual course
                   courses +=
-                    -data.course.subject +
+                    data.course.subject +
                     data.course.course_number +
                     "*" +
                     data.course.section +

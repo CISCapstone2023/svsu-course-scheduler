@@ -294,7 +294,7 @@ const FacultyReport = ({
                         key={index}
                       >
                         <span className="grow">
-                          •{" "}
+                          • {}
                           {/* inline function add 0 in front when time less than 10 */}
                           {!loc.is_online
                             ? loc.rooms.map((value) => {
@@ -336,33 +336,29 @@ const FacultyReport = ({
                               militaryToTime(loc.end_time).period
                             : "Online Location"}
                         </span>
-                        {!loc.is_online ? (
-                          <ButtonGroup className="inset-y-0 right-0  ml-5 ">
-                            <Button size="xs" active={loc.day_monday}>
-                              M
-                            </Button>
-                            <Button size="xs" active={loc.day_tuesday}>
-                              T
-                            </Button>
-                            <Button size="xs" active={loc.day_wednesday}>
-                              W
-                            </Button>
-                            <Button size="xs" active={loc.day_thursday}>
-                              TH
-                            </Button>
-                            <Button size="xs" active={loc.day_friday}>
-                              F
-                            </Button>
-                            <Button size="xs" active={loc.day_saturday}>
-                              SAT
-                            </Button>
-                            <Button size="xs" active={loc.day_sunday}>
-                              SUN
-                            </Button>
-                          </ButtonGroup>
-                        ) : (
-                          <></>
-                        )}
+                        <ButtonGroup className="inset-y-0 right-0  ml-5 ">
+                          <Button size="xs" active={loc.day_monday}>
+                            M
+                          </Button>
+                          <Button size="xs" active={loc.day_tuesday}>
+                            T
+                          </Button>
+                          <Button size="xs" active={loc.day_wednesday}>
+                            W
+                          </Button>
+                          <Button size="xs" active={loc.day_thursday}>
+                            TH
+                          </Button>
+                          <Button size="xs" active={loc.day_friday}>
+                            F
+                          </Button>
+                          <Button size="xs" active={loc.day_saturday}>
+                            SAT
+                          </Button>
+                          <Button size="xs" active={loc.day_sunday}>
+                            SUN
+                          </Button>
+                        </ButtonGroup>
                       </div>
                     );
                   })}

@@ -291,7 +291,7 @@ const FacultyReport = ({
                         key={index}
                       >
                         <span className="grow">
-                          •{" "}
+                          • {}
                           {/* inline function add 0 in front when time less than 10 */}
                           {loc.rooms.map((value) => {
                             return value.building.name + " " + value.room;
@@ -327,7 +327,7 @@ const FacultyReport = ({
                             " " +
                             militaryToTime(loc.end_time).period}
                         </span>
-                        <ButtonGroup className="inset-y-0 right-0  ml-5 ">
+                        <ButtonGroup className={"inset-y-0 right-0  ml-5 "}>
                           <Button size="xs" active={loc.day_monday}>
                             M
                           </Button>

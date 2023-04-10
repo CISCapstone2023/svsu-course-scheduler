@@ -133,35 +133,38 @@ const FacultyReport = ({
                       loc.rooms.map((value) => {
                         locations += value.building.name + " " + value.room;
                       });
-                      locations +=
-                        //inline function add 0 in front when time less than 10
-                        " FROM " +
-                        (militaryToTime(loc.start_time).anteMeridiemHour < 10
-                          ? "0" +
-                            militaryToTime(
-                              loc.start_time
-                            ).anteMeridiemHour.toString()
-                          : militaryToTime(loc.start_time).anteMeridiemHour) +
-                        ":" +
-                        (militaryToTime(loc.start_time).minute < 10
-                          ? "0" +
-                            militaryToTime(loc.start_time).minute.toString()
-                          : militaryToTime(loc.start_time).minute) +
-                        " " +
-                        militaryToTime(loc.start_time).period +
-                        " TO " +
-                        (militaryToTime(loc.end_time).anteMeridiemHour < 10
-                          ? "0" +
-                            militaryToTime(
-                              loc.end_time
-                            ).anteMeridiemHour.toString()
-                          : militaryToTime(loc.end_time).anteMeridiemHour) +
-                        ":" +
-                        (militaryToTime(loc.end_time).minute < 10
-                          ? "0" + militaryToTime(loc.end_time).minute.toString()
-                          : militaryToTime(loc.end_time).minute) +
-                        " " +
-                        militaryToTime(loc.end_time).period;
+                      if (!loc.is_online) {
+                        locations +=
+                          //inline function add 0 in front when time less than 10
+                          " from " +
+                          (militaryToTime(loc.start_time).anteMeridiemHour < 10
+                            ? "0" +
+                              militaryToTime(
+                                loc.start_time
+                              ).anteMeridiemHour.toString()
+                            : militaryToTime(loc.start_time).anteMeridiemHour) +
+                          ":" +
+                          (militaryToTime(loc.start_time).minute < 10
+                            ? "0" +
+                              militaryToTime(loc.start_time).minute.toString()
+                            : militaryToTime(loc.start_time).minute) +
+                          " " +
+                          militaryToTime(loc.start_time).period +
+                          " to " +
+                          (militaryToTime(loc.end_time).anteMeridiemHour < 10
+                            ? "0" +
+                              militaryToTime(
+                                loc.end_time
+                              ).anteMeridiemHour.toString()
+                            : militaryToTime(loc.end_time).anteMeridiemHour) +
+                          ":" +
+                          (militaryToTime(loc.end_time).minute < 10
+                            ? "0" +
+                              militaryToTime(loc.end_time).minute.toString()
+                            : militaryToTime(loc.end_time).minute) +
+                          " " +
+                          militaryToTime(loc.end_time).period;
+                      }
                     }
 
                     locations += " [ ";
@@ -185,13 +188,13 @@ const FacultyReport = ({
                       ) &&
                       (lecType.includes("ONL") || lecType.includes("HYB"))
                     )
-                      locations += "ONLINE ";
+                      locations += "Online Location ";
                     locations += "]" + nl;
                   });
 
                   //combining all the information for individual course
                   courses +=
-                    -data.course.subject +
+                    data.course.subject +
                     data.course.course_number +
                     "*" +
                     data.course.section +
@@ -293,63 +296,73 @@ const FacultyReport = ({
                         <span className="grow">
                           •{" "}
                           {/* inline function add 0 in front when time less than 10 */}
-                          {loc.rooms.map((value) => {
-                            return value.building.name + " " + value.room;
-                          }) +
-                            " FROM " +
-                            (militaryToTime(loc.start_time).anteMeridiemHour <
-                            10
-                              ? "0" +
-                                militaryToTime(
-                                  loc.start_time
-                                ).anteMeridiemHour.toString()
-                              : militaryToTime(loc.start_time)
-                                  .anteMeridiemHour) +
-                            ":" +
-                            (militaryToTime(loc.start_time).minute < 10
-                              ? "0" +
-                                militaryToTime(loc.start_time).minute.toString()
-                              : militaryToTime(loc.start_time).minute) +
-                            " " +
-                            militaryToTime(loc.start_time).period +
-                            " TO " +
-                            (militaryToTime(loc.end_time).anteMeridiemHour < 10
-                              ? "0" +
-                                militaryToTime(
-                                  loc.end_time
-                                ).anteMeridiemHour.toString()
-                              : militaryToTime(loc.end_time).anteMeridiemHour) +
-                            ":" +
-                            (militaryToTime(loc.end_time).minute < 10
-                              ? "0" +
-                                militaryToTime(loc.end_time).minute.toString()
-                              : militaryToTime(loc.end_time).minute) +
-                            " " +
-                            militaryToTime(loc.end_time).period}
+                          {!loc.is_online
+                            ? loc.rooms.map((value) => {
+                                return value.building.name + " " + value.room;
+                              }) +
+                              " from " +
+                              (militaryToTime(loc.start_time).anteMeridiemHour <
+                              10
+                                ? "0" +
+                                  militaryToTime(
+                                    loc.start_time
+                                  ).anteMeridiemHour.toString()
+                                : militaryToTime(loc.start_time)
+                                    .anteMeridiemHour) +
+                              ":" +
+                              (militaryToTime(loc.start_time).minute < 10
+                                ? "0" +
+                                  militaryToTime(
+                                    loc.start_time
+                                  ).minute.toString()
+                                : militaryToTime(loc.start_time).minute) +
+                              " " +
+                              militaryToTime(loc.start_time).period +
+                              " to " +
+                              (militaryToTime(loc.end_time).anteMeridiemHour <
+                              10
+                                ? "0" +
+                                  militaryToTime(
+                                    loc.end_time
+                                  ).anteMeridiemHour.toString()
+                                : militaryToTime(loc.end_time)
+                                    .anteMeridiemHour) +
+                              ":" +
+                              (militaryToTime(loc.end_time).minute < 10
+                                ? "0" +
+                                  militaryToTime(loc.end_time).minute.toString()
+                                : militaryToTime(loc.end_time).minute) +
+                              " " +
+                              militaryToTime(loc.end_time).period
+                            : "Online Location"}
                         </span>
-                        <ButtonGroup className="inset-y-0 right-0  ml-5 ">
-                          <Button size="xs" active={loc.day_monday}>
-                            M
-                          </Button>
-                          <Button size="xs" active={loc.day_tuesday}>
-                            T
-                          </Button>
-                          <Button size="xs" active={loc.day_wednesday}>
-                            W
-                          </Button>
-                          <Button size="xs" active={loc.day_thursday}>
-                            TH
-                          </Button>
-                          <Button size="xs" active={loc.day_friday}>
-                            F
-                          </Button>
-                          <Button size="xs" active={loc.day_saturday}>
-                            SAT
-                          </Button>
-                          <Button size="xs" active={loc.day_sunday}>
-                            SUN
-                          </Button>
-                        </ButtonGroup>
+                        {!loc.is_online ? (
+                          <ButtonGroup className="inset-y-0 right-0  ml-5 ">
+                            <Button size="xs" active={loc.day_monday}>
+                              M
+                            </Button>
+                            <Button size="xs" active={loc.day_tuesday}>
+                              T
+                            </Button>
+                            <Button size="xs" active={loc.day_wednesday}>
+                              W
+                            </Button>
+                            <Button size="xs" active={loc.day_thursday}>
+                              TH
+                            </Button>
+                            <Button size="xs" active={loc.day_friday}>
+                              F
+                            </Button>
+                            <Button size="xs" active={loc.day_saturday}>
+                              SAT
+                            </Button>
+                            <Button size="xs" active={loc.day_sunday}>
+                              SUN
+                            </Button>
+                          </ButtonGroup>
+                        ) : (
+                          <></>
+                        )}
                       </div>
                     );
                   })}

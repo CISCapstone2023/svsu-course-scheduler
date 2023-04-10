@@ -421,7 +421,7 @@ const CreateCourseModal = ({
                   {/* Div end date */}
                   <div className="flex-col" id="courseAlign">
                     <div className="w-50  flex h-8 items-center">
-                      <p>End date</p>
+                      <p>End Date</p>
                     </div>
                     <div>
                       {/* end date */}

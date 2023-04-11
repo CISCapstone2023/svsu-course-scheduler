@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
 import { Divider, Menu } from "react-daisyui";
-import { api } from "src/utils/api";
 import { Calendar, CaretLeft, ChartBar, Home } from "tabler-icons-react";
 import DashboardSidebarItem from "./DashboardSidebarItem";
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";

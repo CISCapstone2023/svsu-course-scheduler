@@ -1,19 +1,23 @@
 import { useState } from "react";
 import axios from "axios";
 
-const defaults = {};
-
-const defaultOptions = {
-  getSignedUrlOptions: {
-    method: "get",
-  },
-  ...defaults,
-};
-
+//A list of key-value pairs
 interface UploadParameters {
   [name: string]: string;
 }
-
+/**
+ * useRestUpload
+ *
+ * Allows for uploading a file in react with the generic type
+ * which returns proper react state.
+ *
+ * This returns the upload information, progess amount,
+ * if we are uploading, a way to reset, and the data returned.
+ *
+ * @param url
+ * @author Brendan Fuller
+ * @returns upload, progress, uploading, reset, data
+ */
 const useRestUpload = <T>(url: string) => {
   //Progress and uploading state
   const [progress, setProgress] = useState(0);
@@ -59,12 +63,14 @@ const useRestUpload = <T>(url: string) => {
         setUploading(false);
         return res.data;
       } else {
+        //Reset progress and upload
         setData(res.data);
         setProgress(0);
         setUploading(false);
         return res.data;
       }
     } catch (error: any) {
+      //If an error fully reset the values
       setData(undefined);
       setProgress(0);
       setUploading(false);

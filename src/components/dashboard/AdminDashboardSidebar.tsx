@@ -1,15 +1,10 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
 import React from "react";
 import { Divider, Menu } from "react-daisyui";
 import { Apple, Book, Building, CaretLeft, User } from "tabler-icons-react";
 import DashboardSidebarItem from "./DashboardSidebarItem";
 import cardinalLogo from "src/pages/projects/cardinalLogo.png";
 import Image from "next/image";
-
-interface DashboardSidebarProps {
-  children?: React.ReactNode;
-}
 
 /**
  * AdminDashboardSidebar
@@ -18,7 +13,7 @@ interface DashboardSidebarProps {
  * @return
  */
 
-const AdminDashboardSidebar = ({ children }: DashboardSidebarProps) => {
+const AdminDashboardSidebar = () => {
   return (
     <div className="flex h-full w-[220px] flex-col bg-base-200 pt-4">
       <Menu>

@@ -296,6 +296,33 @@ export const coursesRouter = createTRPCRouter({
       return true;
     }),
 
+  forceDeleteCourse: protectedProcedure
+    .input(z.object({ tuid: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      //Counts the number of results in the course guidelines table based on the passed tuid
+      const hasCourse = await ctx.prisma.course.count({
+        where: {
+          tuid: input.tuid,
+        },
+      });
+
+      //Checks to see if the course  exists and if there is only 1
+      if (hasCourse == 1) {
+        //Delete all days associated with the one guideline
+        await ctx.prisma.course.delete({
+          //Where tuid  matches
+          where: {
+            tuid: input.tuid,
+          },
+        });
+
+        //Returns if the delete was successful
+        return true;
+      }
+      //Else returns false if the delete was not successful
+      return false;
+    }),
+
   deleteCourseGuideline: protectedProcedure
     .input(
       z.object({

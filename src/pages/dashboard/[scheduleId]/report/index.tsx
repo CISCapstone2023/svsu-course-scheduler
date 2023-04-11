@@ -1,7 +1,7 @@
 import type { NextPage } from "next";
 import { useSession } from "next-auth/react";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 import DashboardLayout from "src/components/dashboard/DashboardLayout";
 import DashboardSidebar, {
@@ -9,7 +9,6 @@ import DashboardSidebar, {
 } from "src/components/dashboard/DashboardSidebar";
 import DashboardContent from "src/components/dashboard/DashboardContent";
 import DashboardContentHeader from "src/components/dashboard/DashboardContentHeader";
-import DashboardHomeTabs from "src/components/dashboard/home/DashboardHomeTabs";
 
 import { routeNeedsAuthSession } from "src/server/auth";
 import { prisma } from "src/server/db";
@@ -19,12 +18,11 @@ import { Button, Card, Checkbox, Dropdown } from "react-daisyui";
 import { CaretDown, Mail } from "tabler-icons-react";
 
 import AsyncSelect from "react-select/async";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { debounce } from "lodash";
-import { ActionMeta, SingleValue } from "react-select";
+
 import Head from "next/head";
 import { toast } from "react-toastify";
 import useSidebar from "src/hooks/useSidebar";
+import AnimatedSpinner from "src/components/AnimatedSpinner";
 
 interface DashboardProps {
   scheduleId: string;
@@ -258,6 +256,13 @@ const Report: NextPage<DashboardProps> = ({ scheduleId, name }) => {
                   />
                 );
               })}
+            {/* Make a spinner show if we have no calendar data loaded */}
+            {faculties.data == undefined && (
+              <div className="flex h-[200px] w-full flex-col items-center justify-center">
+                <AnimatedSpinner />
+                <p>Loading...</p>
+              </div>
+            )}
           </div>
         </div>
       </DashboardContent>

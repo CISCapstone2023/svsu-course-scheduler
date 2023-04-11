@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 /**
+ * This regex ensures the user doesn't use any special characters within the name field
+ * @author Chris Bellefeuille
+ */
+const regex = /^[^(#@!$%^&*()<>|{}[\]=+~`"?\/\\:;]+$/;
+
+/**
  * Zod faculty schema that only grabs the faculty member's TUID
  * @author Chris Bellefeuille
  */
@@ -20,7 +26,8 @@ export const createFacultySchema = z.object({
     .min(2, { message: "Faculty's name must be at least 2 characters" })
     .max(50, {
       message: "Faculty's name must be no more than 50 characters",
-    }),
+    })
+    .regex(regex, "Faculty's name cannot contain unique special characters"),
   email: z
     .string()
     .email({ message: "Faculty's email field must be a valid email address" }),

@@ -1,4 +1,3 @@
-import { last, map } from "lodash";
 import React from "react";
 import { Button, Pagination } from "react-daisyui";
 import { ChevronLeft, ChevronRight } from "tabler-icons-react";

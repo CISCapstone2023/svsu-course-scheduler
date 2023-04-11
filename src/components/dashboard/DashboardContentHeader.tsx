@@ -1,6 +1,5 @@
 import React from "react";
-import { Breadcrumbs } from "react-daisyui";
-import { Menu, Menu2 } from "tabler-icons-react";
+import { Menu2 } from "tabler-icons-react";
 
 /**
  * Dashboard Content Header Properties

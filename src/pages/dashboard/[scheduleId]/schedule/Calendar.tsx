@@ -25,6 +25,8 @@ import {
 
 import CalendarWeekdayHeader from "./calendar/CalendarWeekdayHeader";
 import CalendarCourseOnline from "./calendar/CalenderCourseOnline";
+import { toast } from "react-toastify";
+import ConfirmDeleteModal from "src/components/ConfirmDeleteModal";
 
 /**
  * CalendarComponentProps
@@ -89,6 +91,37 @@ const ScheduleCalendar = ({
     semester_summer: semester == "SU",
     semester_spring: semester == "SP",
   });
+  //useState for deleteID course
+  const [DeleteConfirmation, setConfirmation] = useState(false);
+  const [DeleteID, setDeleteID] = useState("");
+  const forceDeleteCourse = api.courses.forceDeleteCourse.useMutation();
+  //delete revision
+  const DeleteACourse = async (DeletedTuid: string) => {
+    try {
+      const response = await forceDeleteCourse.mutateAsync({
+        tuid: DeletedTuid,
+      });
+
+      //If its true, that's a good!
+      if (response) {
+        toast.success(`Succesfully Remove Course`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+        result.refetch();
+        //Else its an error
+      } else {
+        toast.error(`Failed to Remove Course`, {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+      result.refetch();
+    } catch (error) {
+      // handle error
+      toast.error(`Failed to Connect Database`, {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
+  };
 
   const [sections, setOpenSections] = useState<Days>({
     monday: true,
@@ -168,12 +201,28 @@ const ScheduleCalendar = ({
           id="copy"
           className="text-red-400"
           onClick={({ id, event, props }) => {
-            alert("NOT IMPLEMENTED");
+            if (contextCourse != undefined) {
+              setDeleteID(contextCourse);
+              setConfirmation(true);
+            }
           }}
         >
           <Trash className="mr-2 text-red-400" /> Force Delete
         </Item>
       </Menu>
+      <ConfirmDeleteModal
+        open={DeleteConfirmation}
+        title="Force Delete Confirmation"
+        message="Are you sure to remove this course permanently?"
+        onConfirm={() => {
+          DeleteACourse(DeleteID);
+          setConfirmation(false);
+        }}
+        onClose={() => {
+          setDeleteID("");
+          setConfirmation(false);
+        }}
+      ></ConfirmDeleteModal>
       {result.data && result.data.online.length > 0 && (
         <>
           <p className="-2 font-bold">Asynchronous Online Courses</p>

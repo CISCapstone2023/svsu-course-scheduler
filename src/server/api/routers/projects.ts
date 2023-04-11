@@ -640,13 +640,16 @@ const exportExcelFileToStorage = async (tuid: string) => {
           revision.organizedColumns as IProjectOrganizedColumnRowNumerical
         ).reduce((prev, current) => (prev[1] > current[1] ? prev : current));
 
+        console.log({ maxRow, columns });
+
         //Map the data back to excel
-        const outRow = Array(maxRow)
+        const outRow = Array(maxRow + 2)
           .fill(0)
           .map((_, arrayIndex) => {
             //Grab the index by 0 not 1
             const index = arrayIndex - 1;
 
+            console.log(index);
             //Get the value of the excel rows
             const value = rows[index];
 
@@ -718,7 +721,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
               //Map instruction method
               return course.instruction_method;
             } else if (columns.capacity == index) {
-              //Map Capacity
+              console.log("CAPACITY");
               try {
                 return course.capacity;
               } catch {

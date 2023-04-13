@@ -751,7 +751,9 @@ const exportExcelFileToStorage = async (tuid: string) => {
               return course.locations
                 .map((location) => {
                   const time = militaryToTime(location.end_time);
-                  return `${time.hour}:${time.minute} ${time.period}`;
+                  return `${time.hour}:${
+                    time.minute < 9 ? `0${time.minute}` : time.minute
+                  } ${time.period}`;
                 })
                 .join("\n");
             } else if (columns.room == index) {

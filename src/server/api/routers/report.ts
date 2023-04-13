@@ -71,7 +71,7 @@ export const reportRouter = createTRPCRouter({
                   credits: true,
                   title: true,
                   section: true,
-
+                  state: true,
                   locations: {
                     select: {
                       day_monday: true,
@@ -188,7 +188,8 @@ export const reportRouter = createTRPCRouter({
             (to_course.course.semester_fall == input.semester_fall ||
               to_course.course.semester_spring == input.semester_spring ||
               to_course.course.semester_summer == input.semester_summer ||
-              to_course.course.semester_winter == input.semester_winter)
+              to_course.course.semester_winter == input.semester_winter) &&
+            to_course.course.state != "REMOVED"
           );
         });
 

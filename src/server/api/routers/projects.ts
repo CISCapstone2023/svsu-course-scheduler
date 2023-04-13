@@ -615,14 +615,6 @@ const exportExcelFileToStorage = async (tuid: string) => {
         course: IScheduleCourse,
         columns: IProjectOrganizedColumnRowNumerical
       ) => {
-        const dateToExcel = (date: Date) => {
-          return Math.ceil(
-            25569.0 +
-              (date.getTime() - date.getTimezoneOffset() * 60 * 1000) /
-                (1000 * 60 * 60 * 24)
-          );
-        };
-
         //Make a date to a normal date object
         const dateToNormal = (date: Date) => {
           return (

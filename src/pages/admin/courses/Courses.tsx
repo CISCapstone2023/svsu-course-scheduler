@@ -189,7 +189,7 @@ const Courses = () => {
       semester_winter: false,
     });
 
-    setCourseEditing(null);
+    setCourseEditing(undefined);
     openCourseCreateModal(!isCourseCreateModalOpen);
   };
 

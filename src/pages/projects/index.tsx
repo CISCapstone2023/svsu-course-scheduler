@@ -204,7 +204,7 @@ const Projects: NextPage = () => {
 
       //If its true, that's a good!
       if (response) {
-        toast.success(`Succesfully Remove Revision`, {
+        toast.success(`Succesfully Removed Revision`, {
           position: toast.POSITION.TOP_RIGHT,
         });
         result.refetch();
@@ -217,7 +217,7 @@ const Projects: NextPage = () => {
       result.refetch();
     } catch (error) {
       // handle error
-      toast.error(`Failed to Connect Database`, {
+      toast.error(`Failed to Connect to Database`, {
         position: toast.POSITION.TOP_RIGHT,
       });
     }

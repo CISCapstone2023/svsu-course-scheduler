@@ -1,10 +1,4 @@
-import React from "react";
-
-interface AnimatedSpinnerProps {
-  children?: React.ReactNode;
-}
-
-const AnimatedSpinner = ({ children }: AnimatedSpinnerProps) => {
+const AnimatedSpinner = () => {
   return (
     <div role="status">
       <svg

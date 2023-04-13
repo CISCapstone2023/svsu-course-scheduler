@@ -10,10 +10,9 @@ services:
       - .:/usr/app/
       - /usr/app/node_modules
     ports:
-      - "80:3000"
+      - "3000" #Tells docker to listen on internal port 3000
     depends_on:
-      - database
-
+      - database #Lets docker know this container depends on the database
     environment:
       - DATABASE_URL=mysql://root:wGJT3Psz@database:3306/cis_capstone_wi23
       - NEXTAUTH_SECRET=PGpzmn9Y6J+tD4BGTuY+PGjrk6rB1U5eneDSNvxbQaM=
@@ -22,9 +21,39 @@ services:
       - WAIT_HOSTS_TIMEOUT=300
       - WAIT_SLEEP_INTERVAL=30
       - WAIT_HOST_CONNECT_TIMEOUT=30
+    networks:
+      internal-net:
+        ipv4_address: 192.168.120.21 #Assigned container IP
+    restart: always
 
+  #Nginx proxy for the application to talk to
+  webproxy:
+    image: nginx:latest #Pulls latest nginx image to use
+    ports: #Tells docker to listen on ports 80 and 443
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - web #Lets docker know this container depends on web container
+    networks:
+      internal-net:
+        ipv4_address: 192.168.120.20 #Assigned container IP
+    restart: always #Sets container to restart on startup
+
+  #MySQL database to store application data
   database:
-    image: mysql:latest
-    environment:
+    image: mysql:latest #Pulls latest MySQL image
+    environment: #Sets environment information for MySQL to use
       MYSQL_ROOT_PASSWORD: "wGJT3Psz"
       MYSQL_DATABASE: "cis_capstone_wi23"
+    networks:
+      internal-net:
+        ipv4_address: 192.168.120.22 #Assigned container IP
+    restart: always #Sets the container to restart on startup
+
+#Internal network for the application containers
+networks:
+  internal-net:
+    ipam:
+      driver: default #Uses default network bridge
+      config:
+        - subnet: "192.168.120.0/24"

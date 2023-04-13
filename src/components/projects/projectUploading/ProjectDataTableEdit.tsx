@@ -47,6 +47,32 @@ export const columnLookupTable: readonly IColumnLookupTable[] = [
   { value: "notePrintedComments", label: "Printed Comments" },
 ];
 
+function ExcelDateToJSDate(serial: number) {
+  const utc_days = Math.floor(serial - 25569);
+  const utc_value = utc_days * 86400;
+  const date_info = new Date(utc_value * 1000);
+
+  const fractional_day = serial - Math.floor(serial) + 0.0000001;
+
+  let total_seconds = Math.floor(86400 * fractional_day);
+
+  const seconds = total_seconds % 60;
+
+  total_seconds -= seconds;
+
+  const hours = Math.floor(total_seconds / (60 * 60));
+  const minutes = Math.floor(total_seconds / 60) % 60;
+
+  return new Date(
+    date_info.getFullYear(),
+    date_info.getMonth(),
+    date_info.getDate(),
+    hours,
+    minutes,
+    seconds
+  );
+}
+
 const ProjectDataTableEdit = ({
   uploaded,
   columns,
@@ -59,6 +85,23 @@ const ProjectDataTableEdit = ({
   //     tableBody.push(uploaded[i]);
   //   }
   // }
+
+  const isExcelDate = (index: number, value: any) => {
+    try {
+      const excelSerialDate = parseInt(value);
+      if (excelSerialDate > 44_000) {
+        const out = new Date(Date.UTC(0, 0, excelSerialDate - 1));
+        if (out.getFullYear() > new Date().getFullYear() + 20) {
+          return value;
+        }
+        console.log({ out });
+        return out.toISOString().split("T")[0];
+      }
+      return value;
+    } catch {
+      return value;
+    }
+  };
 
   const getSelectValue = (index: number): IColumnLookupTable => {
     //Key is "default", which basically means its null
@@ -163,7 +206,7 @@ const ProjectDataTableEdit = ({
                             })}
                           </>
                         ) : (
-                          value
+                          isExcelDate(index, value)
                         )}
                       </td>
                     );

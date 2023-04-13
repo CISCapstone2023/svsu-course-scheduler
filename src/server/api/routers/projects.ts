@@ -969,6 +969,22 @@ const exportExcelFileToStorage = async (tuid: string) => {
         revision.organizedColumns as IProjectOrganizedColumnRowNumerical
       ).noteWhatHasChanged;
 
+      const end_date = (
+        revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+      ).end_date;
+
+      const start_date = (
+        revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+      ).start_date;
+
+      const course_end_date = (
+        revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+      ).course_end_date;
+
+      const course_start_date = (
+        revision.organizedColumns as IProjectOrganizedColumnRowNumerical
+      ).course_start_date;
+
       //Loop all rows which has a row
       rows.map((row, index) => {
         //Do we have the changed row?
@@ -991,6 +1007,15 @@ const exportExcelFileToStorage = async (tuid: string) => {
           }
         }
       });
+      //End date should be formatted?
+      sheetWorkbook.column(end_date + 1).style("numberFormat", "m/d/yyyy");
+      sheetWorkbook.column(start_date + 1).style("numberFormat", "m/d/yyyy");
+      sheetWorkbook
+        .column(course_end_date + 1)
+        .style("numberFormat", "m/d/yyyy");
+      sheetWorkbook
+        .column(course_start_date + 1)
+        .style("numberFormat", "m/d/yyyy");
 
       buffer = await workbook.outputAsync(); // save the workbook to the same buffer
 

@@ -275,8 +275,9 @@ export const coursesRouter = createTRPCRouter({
           semester_fall: input.semester_fall,
           semester_winter: input.semester_winter,
           semester_spring: input.semester_spring,
-          credits: input.credits,
-          meeting_amount: input.meeting_amount,
+          credits: input.credits == null ? 0 : input.credits,
+          meeting_amount:
+            input.meeting_amount == null ? 0 : input.meeting_amount,
           times: {
             create: [
               ...input.times.map((time) => ({
@@ -393,8 +394,9 @@ export const coursesRouter = createTRPCRouter({
             semester_fall: input.semester_fall,
             semester_winter: input.semester_winter,
             semester_spring: input.semester_spring,
-            credits: input.credits,
-            meeting_amount: input.meeting_amount,
+            credits: input.credits == null ? 0 : input.credits,
+            meeting_amount:
+              input.meeting_amount == null ? 0 : input.meeting_amount,
           },
         });
 

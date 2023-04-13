@@ -65,14 +65,24 @@ export const guidelineCourseAddSchemaBase = z.object({
   semester_spring: z.boolean().default(false),
 
   credits: z
-    .number()
+    .number({
+      errorMap: (issue, ctx) => {
+        return { message: "Enter a number." };
+      },
+    })
     .min(1)
-    .max(4, { message: "Credits must be between 1 and 4." }),
+    .max(4, { message: "Credits must be between 1 and 4." })
+    .nullable(),
 
   meeting_amount: z
-    .number()
+    .number({
+      errorMap: (issue, ctx) => {
+        return { message: "Enter a number." };
+      },
+    })
     .min(1)
-    .max(4, { message: "Meeting amount must be between 1 and 4." }),
+    .max(4, { message: "Meeting amount must be between 1 and 4." })
+    .nullable(),
 
   times: z
     .array(timesSchemaExtended)

@@ -13,7 +13,7 @@ import {
 import { toast } from "react-toastify";
 
 //Import icons
-import { CaretDown, Pencil, Plus, Trash } from "tabler-icons-react";
+import { CaretDown, Copy, Pencil, Plus, Trash } from "tabler-icons-react";
 
 //Import form information
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -471,6 +471,7 @@ const Courses = () => {
             <div>Times</div>
             <div>Days</div>
             <div>Edit</div>
+            <div>Copy</div>
             <div>Delete</div>
           </Table.Head>
           {/* course displaying infromation */}
@@ -547,6 +548,18 @@ const Courses = () => {
                       }}
                     >
                       <Pencil />
+                    </Button>
+                  </div>
+                  {/* button to toggle the deletion of a course modal */}
+                  <div className="hover:cursor-pointer">
+                    <Button
+                      onClick={() => {
+                        reset(course);
+                        openCourseCreateModal(true);
+                      }}
+                      color="info"
+                    >
+                      <Copy />
                     </Button>
                   </div>
                   {/* button to toggle the deletion of a course modal */}

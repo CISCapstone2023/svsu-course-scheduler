@@ -275,20 +275,24 @@ export const coursesRouter = createTRPCRouter({
           semester_fall: input.semester_fall,
           semester_winter: input.semester_winter,
           semester_spring: input.semester_spring,
-          credits: input.credits,
-          meeting_amount: input.meeting_amount,
+          credits: input.credits == null ? 0 : input.credits,
+          meeting_amount:
+            input.meeting_amount == null ? 0 : input.meeting_amount,
           times: {
             create: [
               ...input.times.map((time) => ({
-                tuid: time.tuid,
-                guideline_id: time.guideline_id,
                 start_time: time.start_time,
                 end_time: time.end_time,
               })),
             ],
           },
           days: {
-            create: [...input.days],
+            create: [
+              ...input.days.map((item) => {
+                const { tuid, guideline_id, ...all } = item;
+                return all;
+              }),
+            ],
           },
         },
       });
@@ -390,8 +394,9 @@ export const coursesRouter = createTRPCRouter({
             semester_fall: input.semester_fall,
             semester_winter: input.semester_winter,
             semester_spring: input.semester_spring,
-            credits: input.credits,
-            meeting_amount: input.meeting_amount,
+            credits: input.credits == null ? 0 : input.credits,
+            meeting_amount:
+              input.meeting_amount == null ? 0 : input.meeting_amount,
           },
         });
 

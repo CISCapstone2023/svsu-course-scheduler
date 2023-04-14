@@ -13,7 +13,7 @@ import {
 import { toast } from "react-toastify";
 
 //Import icons
-import { CaretDown, Pencil, Plus, Trash } from "tabler-icons-react";
+import { CaretDown, Copy, Pencil, Plus, Trash } from "tabler-icons-react";
 
 //Import form information
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -178,10 +178,19 @@ const Courses = () => {
 
   const toggleCourseModifyModal = () => {
     //Reset the form so we can add (or edit a new user)
-    reset({});
+    reset({
+      days: [],
+      times: [],
+      credits: null,
+      meeting_amount: null,
+      semester_fall: false,
+      semester_spring: false,
+      semester_summer: false,
+      semester_winter: false,
+    });
+
     setCourseEditing(undefined);
     openCourseCreateModal(!isCourseCreateModalOpen);
-    reset({});
   };
 
   //Grab the mutations from the backend for adding, updating, and deleting
@@ -201,16 +210,20 @@ const Courses = () => {
         ...data,
       });
       if (result) {
-        toast.info(`Updated Course Guideline`);
+        toast.info(`Updated Course Guideline`, { position: "bottom-left" });
       } else {
-        toast.error(`Failed to add Course Guideline`);
+        toast.error(`Failed to add Course Guideline`, {
+          position: "bottom-left",
+        });
       }
     } else {
       const result = await courseAddMutation.mutateAsync(data);
       if (result) {
-        toast.success(`Added new course guidline`);
+        toast.success(`Added new course guidline`, { position: "bottom-left" });
       } else {
-        toast.error(`Failed to add course guideline`);
+        toast.error(`Failed to add course guideline`, {
+          position: "bottom-left",
+        });
       }
     }
 
@@ -236,12 +249,12 @@ const Courses = () => {
       //If its true, that's a good!
       if (response) {
         toast.success(`Succesfully deleted `, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: toast.POSITION.BOTTOM_LEFT,
         });
         //Else its an error
       } else {
         toast.error(`Failed to delete`, {
-          position: toast.POSITION.TOP_RIGHT,
+          position: toast.POSITION.BOTTOM_LEFT,
         });
       }
     }
@@ -258,17 +271,18 @@ const Courses = () => {
    */
   const [isCourseEditing, setCourseEditing] = useState<IGuidelineCourseAdd>();
 
-  console.log(
-    JSON.stringify(courseForm.formState.errors, function (key, val) {
-      if (val != null && typeof val == "object") {
-        if (seen.indexOf(val) >= 0) {
-          return;
-        }
-        seen.push(val);
-      }
-      return val;
-    })
-  );
+  //This code is to debug errors from the main form state. Don't use in production.
+  // console.log(
+  //   JSON.stringify(courseForm.formState.errors, function (key, val) {
+  //     if (val != null && typeof val == "object") {
+  //       if (seen.indexOf(val) >= 0) {
+  //         return;
+  //       }
+  //       seen.push(val);
+  //     }
+  //     return val;
+  //   })
+  // );
 
   // function for splitting course times
   return (
@@ -471,6 +485,7 @@ const Courses = () => {
             <div>Times</div>
             <div>Days</div>
             <div>Edit</div>
+            <div>Copy</div>
             <div>Delete</div>
           </Table.Head>
           {/* course displaying infromation */}
@@ -547,6 +562,18 @@ const Courses = () => {
                       }}
                     >
                       <Pencil />
+                    </Button>
+                  </div>
+                  {/* button to toggle the deletion of a course modal */}
+                  <div className="hover:cursor-pointer">
+                    <Button
+                      onClick={() => {
+                        reset(course);
+                        openCourseCreateModal(true);
+                      }}
+                      color="info"
+                    >
+                      <Copy />
                     </Button>
                   </div>
                   {/* button to toggle the deletion of a course modal */}

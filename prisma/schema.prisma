@@ -6,6 +6,16 @@ generator client {
   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
 }
 
+
+generator erd {
+  provider                  = "prisma-erd-generator"
+  includeRelationFromFields = true
+  erdDebug                  = true
+    output = "../ERD.pdf"
+  mmdcPath                  = "node_modules/.bin"
+}
+
+
 datasource db {
   provider = "mysql"
   // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
@@ -15,19 +25,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model Event {
-//   id        String   @id @default(cuid())
-//   name      String
-//   location  String?  @db.Text
-//   startDate DateTime
-//   endDate   DateTime
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   authorId  String
-//   author    User?    @relation(fields: [authorId], references: [id])
-// }
-
-// Necessary for Next auth
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -59,7 +56,7 @@ model User {
   name            String?
   username        String
   email           String?            @unique
-  emailVerified   DateTime?         
+  emailVerified   DateTime?
   password        String
   image           String?
   department      String?            @default("CSIS")
@@ -101,7 +98,7 @@ model Permission {
 //Course model
 model Course {
   tuid               String                      @id @default(cuid())
-  excelRow                Int                         @default(-1)
+  excelRow           Int                         @default(-1)
   type               String
   section_id         Int?
   revision_tuid      String
@@ -117,8 +114,8 @@ model Course {
   section            String
   start_date         DateTime
   end_date           DateTime
-  start_time Int
-  end_time Int
+  start_time         Int
+  end_time           Int
   credits            Int
   title              String                      @db.VarChar(100)
   status             String                      @default("Active")
@@ -152,9 +149,9 @@ model ScheduleRevision {
   onboarding    Boolean  @default(true)
   creator_tuid  String   @map("user")
 
-  exported_file Bytes?    @db.Blob
-  exportedAt DateTime? 
-  organizedColumns Json @default("{}")
+  exported_file    Bytes?    @db.Blob
+  exportedAt       DateTime?
+  organizedColumns Json      @default("{}")
 
   //Relationships
   schedule Schedule? @relation(fields: [schedule_tuid], references: [tuid])
@@ -164,7 +161,7 @@ model ScheduleRevision {
 }
 
 model CourseLocation {
-  tuid          String   @id @default(cuid())
+  tuid          String  @id @default(cuid())
   start_time    Int
   end_time      Int
   day_monday    Boolean
@@ -177,14 +174,14 @@ model CourseLocation {
   is_online     Boolean
   course_tuid   String
   //Realtionships
-  course        Course   @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
+  course        Course  @relation(fields: [course_tuid], references: [tuid], onDelete: Cascade)
   rooms         Room[]
 }
 
 model GuidelinesFaculty {
   tuid       String                      @id @default(cuid())
   suffix     String
-  department String                 @default("CSIS")
+  department String                      @default("CSIS")
   name       String
   email      String
   is_adjunct Boolean
@@ -219,8 +216,8 @@ model GuidelinesCourses {
 model GuidelinesCoursesTimes {
   tuid         String            @id @default(cuid())
   guideline_id String
-  start_time Int
-  end_time Int
+  start_time   Int
+  end_time     Int
   //Relation to relate times to course guidelines
   guideline    GuidelinesCourses @relation(fields: [guideline_id], references: [tuid])
 }
@@ -278,14 +275,14 @@ model Room {
   location      CourseLocation    @relation(fields: [location_tuid], references: [tuid], onDelete: Cascade)
 }
 
-model Subject{
-  tuid          String        @id @default(cuid())
-  name          String
+model Subject {
+  tuid String @id @default(cuid())
+  name String
 }
 
-model Department{
-  tuid          String        @id @default(cuid())
-  name          String
+model Department {
+  tuid String @id @default(cuid())
+  name String
 }
 
 // Permissions list 
@@ -307,3 +304,4 @@ enum CourseNoteType {
   DEPARTMENT
   CHANGES
 }
+

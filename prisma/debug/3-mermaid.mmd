@@ -1,0 +1,280 @@
+erDiagram
+
+        Permissions {
+            DEPARTMENT_CHAIR DEPARTMENT_CHAIR
+ADMIN ADMIN
+DEFAULT DEFAULT
+        }
+    
+
+
+        CourseState {
+            UNMODIFIED UNMODIFIED
+MODIFIED MODIFIED
+ADDED ADDED
+REMOVED REMOVED
+        }
+    
+
+
+        CourseNoteType {
+            ACAMDEMIC_AFFAIRS ACAMDEMIC_AFFAIRS
+DEPARTMENT DEPARTMENT
+CHANGES CHANGES
+        }
+    
+  "Account" {
+    String id "🗝️"
+    String userId 
+    String type 
+    String provider 
+    String providerAccountId 
+    String refresh_token "❓"
+    String access_token "❓"
+    Int expires_at "❓"
+    String token_type "❓"
+    String scope "❓"
+    String id_token "❓"
+    String session_state "❓"
+    }
+  
+
+  "Session" {
+    String id "🗝️"
+    String sessionToken 
+    String userId 
+    DateTime expires 
+    }
+  
+
+  "User" {
+    String id "🗝️"
+    String name "❓"
+    String username 
+    String email "❓"
+    DateTime emailVerified "❓"
+    String password 
+    String image "❓"
+    String department "❓"
+    }
+  
+
+  "SchedulesOnUsers" {
+    String user_tuid "🗝️"
+    String schedule_tuid "🗝️"
+    DateTime assignedAt 
+    String assignedBy 
+    }
+  
+
+  "VerificationToken" {
+    String identifier 
+    String token 
+    DateTime expires 
+    }
+  
+
+  "Permission" {
+    String tuid "🗝️"
+    String user_tuid 
+    Permissions id 
+    }
+  
+
+  "Course" {
+    String tuid "🗝️"
+    Int excelRow 
+    String type 
+    Int section_id "❓"
+    String revision_tuid 
+    Int term 
+    Boolean semester_summer 
+    Boolean semester_fall 
+    Boolean semester_winter 
+    Boolean semester_spring 
+    String div 
+    String department 
+    String subject 
+    String course_number 
+    String section 
+    DateTime start_date 
+    DateTime end_date 
+    Int start_time 
+    Int end_time 
+    Int credits 
+    String title 
+    String status 
+    String instruction_method 
+    Int capacity 
+    CourseState original_state 
+    CourseState state 
+    DateTime createdAt 
+    DateTime updatedAt 
+    }
+  
+
+  "Schedule" {
+    String tuid "🗝️"
+    }
+  
+
+  "ScheduleRevision" {
+    String schedule "🗝️"
+    String name 
+    Bytes file "❓"
+    String schedule "❓"
+    DateTime createdAt 
+    DateTime updatedAt 
+    Boolean onboarding 
+    String user 
+    Bytes exported_file "❓"
+    DateTime exportedAt "❓"
+    Json organizedColumns 
+    }
+  
+
+  "CourseLocation" {
+    String tuid "🗝️"
+    Int start_time 
+    Int end_time 
+    Boolean day_monday 
+    Boolean day_tuesday 
+    Boolean day_wednesday 
+    Boolean day_thursday 
+    Boolean day_friday 
+    Boolean day_saturday 
+    Boolean day_sunday 
+    Boolean is_online 
+    String course_tuid 
+    }
+  
+
+  "GuidelinesFaculty" {
+    String tuid "🗝️"
+    String suffix 
+    String department 
+    String name 
+    String email 
+    Boolean is_adjunct 
+    }
+  
+
+  "GuidelinesFacultyToCourse" {
+    String tuid "🗝️"
+    String faculty_tuid 
+    String course_tuid 
+    }
+  
+
+  "GuidelinesCourses" {
+    String tuid "🗝️"
+    Boolean semester_summer 
+    Boolean semester_fall 
+    Boolean semester_winter 
+    Boolean semester_spring 
+    Int credits 
+    Int meeting_amount 
+    }
+  
+
+  "GuidelinesCoursesTimes" {
+    String tuid "🗝️"
+    String guideline_id 
+    Int start_time 
+    Int end_time 
+    }
+  
+
+  "GuidelinesCoursesDays" {
+    String tuid "🗝️"
+    String guideline_id 
+    Boolean day_monday 
+    Boolean day_tuesday 
+    Boolean day_wednesday 
+    Boolean day_thursday 
+    Boolean day_friday 
+    Boolean day_saturday 
+    Boolean day_sunday 
+    }
+  
+
+  "CourseNote" {
+    String tuid "🗝️"
+    String note 
+    CourseNoteType type 
+    String course_tuid 
+    }
+  
+
+  "GuidelineBuilding" {
+    String tuid "🗝️"
+    String name 
+    String prefix 
+    String campus_tuid 
+    String classrooms 
+    }
+  
+
+  "GuidelineCampus" {
+    String tuid "🗝️"
+    String name 
+    }
+  
+
+  "Room" {
+    String tuid "🗝️"
+    String room 
+    String building_tuid 
+    String location_tuid 
+    }
+  
+
+  "Subject" {
+    String tuid "🗝️"
+    String name 
+    }
+  
+
+  "Department" {
+    String tuid "🗝️"
+    String name 
+    }
+  
+    "Account" o|--|| "User" : "user"
+    "Session" o|--|| "User" : "user"
+    "User" o{--}o "ScheduleRevision" : "owned_revisions"
+    "User" o{--}o "SchedulesOnUsers" : "schedules"
+    "User" o{--}o "Account" : "accounts"
+    "User" o{--}o "Session" : "sessions"
+    "User" o{--}o "Permission" : "permissions"
+    "SchedulesOnUsers" o|--|| "User" : "user"
+    "SchedulesOnUsers" o|--|| "Schedule" : "schedule"
+    "Permission" o|--|| "Permissions" : "enum:id"
+    "Permission" o|--|| "User" : "user"
+    "Course" o|--|| "CourseState" : "enum:original_state"
+    "Course" o|--|| "CourseState" : "enum:state"
+    "Course" o{--}o "GuidelinesFacultyToCourse" : "faculty"
+    "Course" o|--|| "ScheduleRevision" : "revision"
+    "Course" o{--}o "CourseNote" : "notes"
+    "Course" o{--}o "CourseLocation" : "locations"
+    "Schedule" o{--}o "SchedulesOnUsers" : "users"
+    "Schedule" o{--}o "ScheduleRevision" : "revisions"
+    "ScheduleRevision" o|--|o "Schedule" : "schedule"
+    "ScheduleRevision" o{--}o "Course" : "courses"
+    "ScheduleRevision" o|--|| "User" : "user"
+    "CourseLocation" o|--|| "Course" : "course"
+    "CourseLocation" o{--}o "Room" : "rooms"
+    "GuidelinesFaculty" o{--}o "GuidelinesFacultyToCourse" : "to_courses"
+    "GuidelinesFacultyToCourse" o|--|| "GuidelinesFaculty" : "faculty"
+    "GuidelinesFacultyToCourse" o|--|| "Course" : "course"
+    "GuidelinesCourses" o{--}o "GuidelinesCoursesTimes" : "times"
+    "GuidelinesCourses" o{--}o "GuidelinesCoursesDays" : "days"
+    "GuidelinesCoursesTimes" o|--|| "GuidelinesCourses" : "guideline"
+    "GuidelinesCoursesDays" o|--|| "GuidelinesCourses" : "guideline"
+    "CourseNote" o|--|| "CourseNoteType" : "enum:type"
+    "CourseNote" o|--|| "Course" : "course"
+    "GuidelineBuilding" o|--|| "GuidelineCampus" : "campus"
+    "GuidelineBuilding" o{--}o "Room" : "rooms"
+    "GuidelineCampus" o{--}o "GuidelineBuilding" : "buldings"
+    "Room" o|--|| "GuidelineBuilding" : "building"
+    "Room" o|--|| "CourseLocation" : "location"

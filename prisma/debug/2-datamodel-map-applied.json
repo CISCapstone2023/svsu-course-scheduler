@@ -1,0 +1,2776 @@
+{
+  "enums": [
+    {
+      "name": "Permissions",
+      "values": [
+        {
+          "name": "DEPARTMENT_CHAIR",
+          "dbName": null
+        },
+        {
+          "name": "ADMIN",
+          "dbName": null
+        },
+        {
+          "name": "DEFAULT",
+          "dbName": null
+        }
+      ],
+      "dbName": null
+    },
+    {
+      "name": "CourseState",
+      "values": [
+        {
+          "name": "UNMODIFIED",
+          "dbName": null
+        },
+        {
+          "name": "MODIFIED",
+          "dbName": null
+        },
+        {
+          "name": "ADDED",
+          "dbName": null
+        },
+        {
+          "name": "REMOVED",
+          "dbName": null
+        }
+      ],
+      "dbName": null
+    },
+    {
+      "name": "CourseNoteType",
+      "values": [
+        {
+          "name": "ACAMDEMIC_AFFAIRS",
+          "dbName": null
+        },
+        {
+          "name": "DEPARTMENT",
+          "dbName": null
+        },
+        {
+          "name": "CHANGES",
+          "dbName": null
+        }
+      ],
+      "dbName": null
+    }
+  ],
+  "models": [
+    {
+      "name": "Account",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "id",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "userId",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "type",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "provider",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "providerAccountId",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "refresh_token",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "access_token",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "expires_at",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "token_type",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "scope",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "id_token",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "session_state",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "user",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "User",
+          "relationName": "AccountToUser",
+          "relationFromFields": [
+            "userId"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [
+        [
+          "provider",
+          "providerAccountId"
+        ]
+      ],
+      "uniqueIndexes": [
+        {
+          "name": null,
+          "fields": [
+            "provider",
+            "providerAccountId"
+          ]
+        }
+      ],
+      "isGenerated": false
+    },
+    {
+      "name": "Session",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "id",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "sessionToken",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": true,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "userId",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "expires",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "user",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "User",
+          "relationName": "SessionToUser",
+          "relationFromFields": [
+            "userId"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "User",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "id",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "name",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "username",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "email",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": true,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "emailVerified",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "password",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "image",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "department",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": "CSIS",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "owned_revisions",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "ScheduleRevision",
+          "relationName": "ScheduleRevisionToUser",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "schedules",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "SchedulesOnUsers",
+          "relationName": "SchedulesOnUsersToUser",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "accounts",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Account",
+          "relationName": "AccountToUser",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "sessions",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Session",
+          "relationName": "SessionToUser",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "permissions",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Permission",
+          "relationName": "PermissionToUser",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "SchedulesOnUsers",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "user",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "User",
+          "relationName": "SchedulesOnUsersToUser",
+          "relationFromFields": [
+            "user_tuid"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "user_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "schedule",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Schedule",
+          "relationName": "ScheduleToSchedulesOnUsers",
+          "relationFromFields": [
+            "schedule_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "schedule_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "assignedAt",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "DateTime",
+          "default": {
+            "name": "now",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "assignedBy",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": {
+        "name": null,
+        "fields": [
+          "user_tuid",
+          "schedule_tuid"
+        ]
+      },
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "VerificationToken",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "identifier",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "token",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": true,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "expires",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [
+        [
+          "identifier",
+          "token"
+        ]
+      ],
+      "uniqueIndexes": [
+        {
+          "name": null,
+          "fields": [
+            "identifier",
+            "token"
+          ]
+        }
+      ],
+      "isGenerated": false
+    },
+    {
+      "name": "Permission",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "user_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "id",
+          "kind": "enum",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Permissions",
+          "default": "DEFAULT",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "user",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "User",
+          "relationName": "PermissionToUser",
+          "relationFromFields": [
+            "user_tuid"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "Course",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "excelRow",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Int",
+          "default": -1,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "type",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "section_id",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "revision_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "term",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_summer",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_fall",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_winter",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_spring",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "div",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "department",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "subject",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "course_number",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "section",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "start_date",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "end_date",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "start_time",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "end_time",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "credits",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "title",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "status",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": "Active",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "instruction_method",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": "LEC",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "capacity",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "original_state",
+          "kind": "enum",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "CourseState",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "state",
+          "kind": "enum",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "CourseState",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "createdAt",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "DateTime",
+          "default": {
+            "name": "now",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "updatedAt",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": true
+        },
+        {
+          "name": "faculty",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelinesFacultyToCourse",
+          "relationName": "CourseToGuidelinesFacultyToCourse",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "revision",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "ScheduleRevision",
+          "relationName": "CourseToScheduleRevision",
+          "relationFromFields": [
+            "revision_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "notes",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "CourseNote",
+          "relationName": "CourseToCourseNote",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "locations",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "CourseLocation",
+          "relationName": "CourseToCourseLocation",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "Schedule",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "users",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "SchedulesOnUsers",
+          "relationName": "ScheduleToSchedulesOnUsers",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "revisions",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "ScheduleRevision",
+          "relationName": "ScheduleToScheduleRevision",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "ScheduleRevision",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "schedule",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "name",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "file",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Bytes",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "schedule",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "createdAt",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "DateTime",
+          "default": {
+            "name": "now",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "updatedAt",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": true
+        },
+        {
+          "name": "onboarding",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": true,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "user",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "exported_file",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Bytes",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "exportedAt",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "DateTime",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "organizedColumns",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Json",
+          "default": "{}",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "schedule",
+          "kind": "object",
+          "isList": false,
+          "isRequired": false,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Schedule",
+          "relationName": "ScheduleToScheduleRevision",
+          "relationFromFields": [
+            "schedule_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "courses",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Course",
+          "relationName": "CourseToScheduleRevision",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "user",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "User",
+          "relationName": "ScheduleRevisionToUser",
+          "relationFromFields": [
+            "creator_tuid"
+          ],
+          "relationToFields": [
+            "id"
+          ],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "CourseLocation",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "start_time",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "end_time",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_monday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_tuesday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_wednesday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_thursday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_friday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_saturday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_sunday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "is_online",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "course_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "course",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Course",
+          "relationName": "CourseToCourseLocation",
+          "relationFromFields": [
+            "course_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "rooms",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Room",
+          "relationName": "CourseLocationToRoom",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "GuidelinesFaculty",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "suffix",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "department",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": "CSIS",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "name",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "email",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "is_adjunct",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "to_courses",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelinesFacultyToCourse",
+          "relationName": "GuidelinesFacultyToGuidelinesFacultyToCourse",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "GuidelinesFacultyToCourse",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "faculty_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "course_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "faculty",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelinesFaculty",
+          "relationName": "GuidelinesFacultyToGuidelinesFacultyToCourse",
+          "relationFromFields": [
+            "faculty_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "course",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Course",
+          "relationName": "CourseToGuidelinesFacultyToCourse",
+          "relationFromFields": [
+            "course_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "GuidelinesCourses",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_summer",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_fall",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_winter",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "semester_spring",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "Boolean",
+          "default": false,
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "credits",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "meeting_amount",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "times",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelinesCoursesTimes",
+          "relationName": "GuidelinesCoursesToGuidelinesCoursesTimes",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "days",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelinesCoursesDays",
+          "relationName": "GuidelinesCoursesToGuidelinesCoursesDays",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "GuidelinesCoursesTimes",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "guideline_id",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "start_time",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "end_time",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Int",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "guideline",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelinesCourses",
+          "relationName": "GuidelinesCoursesToGuidelinesCoursesTimes",
+          "relationFromFields": [
+            "guideline_id"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "GuidelinesCoursesDays",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "guideline_id",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_monday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_tuesday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_wednesday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_thursday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_friday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_saturday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "day_sunday",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Boolean",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "guideline",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelinesCourses",
+          "relationName": "GuidelinesCoursesToGuidelinesCoursesDays",
+          "relationFromFields": [
+            "guideline_id"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "CourseNote",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "note",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "type",
+          "kind": "enum",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "CourseNoteType",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "course_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "course",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Course",
+          "relationName": "CourseToCourseNote",
+          "relationFromFields": [
+            "course_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "GuidelineBuilding",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "name",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "prefix",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "campus_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "classrooms",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "campus",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelineCampus",
+          "relationName": "GuidelineBuildingToGuidelineCampus",
+          "relationFromFields": [
+            "campus_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "rooms",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "Room",
+          "relationName": "GuidelineBuildingToRoom",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "GuidelineCampus",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "name",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "buldings",
+          "kind": "object",
+          "isList": true,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelineBuilding",
+          "relationName": "GuidelineBuildingToGuidelineCampus",
+          "relationFromFields": [],
+          "relationToFields": [],
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "Room",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "room",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "building_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "location_tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": true,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "building",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "GuidelineBuilding",
+          "relationName": "GuidelineBuildingToRoom",
+          "relationFromFields": [
+            "building_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "location",
+          "kind": "object",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "CourseLocation",
+          "relationName": "CourseLocationToRoom",
+          "relationFromFields": [
+            "location_tuid"
+          ],
+          "relationToFields": [
+            "tuid"
+          ],
+          "relationOnDelete": "Cascade",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "Subject",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "name",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    },
+    {
+      "name": "Department",
+      "dbName": null,
+      "fields": [
+        {
+          "name": "tuid",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": true,
+          "isReadOnly": false,
+          "hasDefaultValue": true,
+          "type": "String",
+          "default": {
+            "name": "cuid",
+            "args": []
+          },
+          "isGenerated": false,
+          "isUpdatedAt": false
+        },
+        {
+          "name": "name",
+          "kind": "scalar",
+          "isList": false,
+          "isRequired": true,
+          "isUnique": false,
+          "isId": false,
+          "isReadOnly": false,
+          "hasDefaultValue": false,
+          "type": "String",
+          "isGenerated": false,
+          "isUpdatedAt": false
+        }
+      ],
+      "primaryKey": null,
+      "uniqueFields": [],
+      "uniqueIndexes": [],
+      "isGenerated": false
+    }
+  ],
+  "types": []
+}

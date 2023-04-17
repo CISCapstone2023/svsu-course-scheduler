@@ -569,6 +569,7 @@ const Courses = () => {
                     <Button
                       onClick={() => {
                         reset(course);
+                        setCourseEditing(undefined);
                         openCourseCreateModal(true);
                       }}
                       color="info"

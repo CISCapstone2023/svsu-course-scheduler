@@ -42,6 +42,8 @@ services:
   #MySQL database to store application data
   database:
     image: mysql:latest #Pulls latest MySQL image
+    volumes:
+      - mysql-course-scheduler-vol:/var/lib/mysql #Tells the MySQL containter to use this volume
     environment: #Sets environment information for MySQL to use
       MYSQL_ROOT_PASSWORD: "wGJT3Psz"
       MYSQL_DATABASE: "cis_capstone_wi23"
@@ -57,3 +59,8 @@ networks:
       driver: default #Uses default network bridge
       config:
         - subnet: "192.168.120.0/24"
+
+#Internal volume to store MySQL data good
+volumes:
+  mysql-course-scheduler-vol:
+    external: true #Tells the system the volume is created externally

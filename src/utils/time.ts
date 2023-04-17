@@ -26,7 +26,7 @@ const militaryToTime = (time: number) => {
   );
 
   //initializes constant to be used for AM/PM tagging on time
-  const period = time >= 1100 ? "PM" : "AM";
+  const period = time >= 1159 ? "PM" : "AM";
   return {
     hour,
     anteMeridiemHour,

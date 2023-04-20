@@ -222,7 +222,7 @@ export const coursesRouter = createTRPCRouter({
         const hours = total / 60;
         const rhours = Math.floor(hours);
         const minutes = (hours - rhours) * 60;
-        return { hours: rhours, minutes: Math.ceil(minutes) };
+        return { hours: rhours, minutes: Math.round(minutes) };
       };
 
       //Returns the guideline result, page number, and the number of pages in the result

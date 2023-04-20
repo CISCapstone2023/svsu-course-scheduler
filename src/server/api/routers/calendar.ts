@@ -270,28 +270,39 @@ export const calendarRouter = createTRPCRouter({
                   },
                   {
                     days: {
-                      every: {
-                        AND: [
-                          //for every day in the course guideline,
-                          //compare the guideline for each day to true,
-                          //if the has'day' from above returns true
-                          hasMonday ? { day_monday: true } : {},
-                          hasTuesday ? { day_tuesday: true } : {},
-                          hasWednesday ? { day_wednesday: true } : {},
-                          hasThursday ? { day_thursday: true } : {},
-                          hasFriday ? { day_friday: true } : {},
-                          hasSaturday ? { day_saturday: true } : {},
-                          hasSunday ? { day_sunday: true } : {},
+                      some: {
+                        OR: [
+                          ...course.locations.map((location) => {
+                            const hasMonday = location.day_monday;
+                            const hasTuesday = location.day_tuesday;
+                            const hasWednesday = location.day_wednesday;
+                            const hasThursday = location.day_thursday;
+                            const hasFriday = location.day_friday;
+                            const hasSaturday = location.day_saturday;
+                            const hasSunday = location.day_sunday;
+                            return {
+                              //for every day in the course guideline,
+                              //compare the guideline for each day to true,
+                              //if the has'day' from above returns true
+                              ...(hasMonday ? { day_monday: true } : {}),
+                              ...(hasTuesday ? { day_tuesday: true } : {}),
+                              ...(hasWednesday ? { day_wednesday: true } : {}),
+                              ...(hasThursday ? { day_thursday: true } : {}),
+                              ...(hasFriday ? { day_friday: true } : {}),
+                              ...(hasSaturday ? { day_saturday: true } : {}),
+                              ...(hasSunday ? { day_sunday: true } : {}),
+                            };
+                          }),
                         ],
                       },
                     },
                   },
                   {
                     times: {
-                      every: {
+                      some: {
                         //Grabs the times from each location associated with the course
                         //Uncomment once merged and database CourseLocation has times as Ints
-                        AND: [
+                        OR: [
                           ...course.locations.map((location) => {
                             return {
                               start_time: location.start_time,

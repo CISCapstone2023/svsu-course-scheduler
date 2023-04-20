@@ -946,7 +946,7 @@ const exportExcelFileToStorage = async (tuid: string) => {
       //Build the new file from the data
       let buffer = xlsx.build([
         {
-          name: revision.name,
+          name: revision.name.substring(0, 30),
           data: rows,
           options: {},
         },

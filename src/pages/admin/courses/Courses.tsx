@@ -482,6 +482,7 @@ const Courses = () => {
             <div className="grow">Credits</div>
             <div className="grow">Total Meetings</div>
             <div className="grow">Course Length</div>
+            <div>Semesters</div>
             <div>Times</div>
             <div>Days</div>
             <div>Edit</div>
@@ -510,19 +511,41 @@ const Courses = () => {
                     })}
                   </span>
                   <span>
+                    {course.semester_fall && (
+                      <>
+                        <p>Fall</p>
+                      </>
+                    )}
+                    {course.semester_winter && (
+                      <>
+                        <p>Winter</p>
+                      </>
+                    )}
+                    {course.semester_spring && (
+                      <>
+                        <p>Spring</p>
+                      </>
+                    )}
+                    {course.semester_summer && (
+                      <>
+                        <p>Summer</p>
+                      </>
+                    )}
+                  </span>
+                  <span>
                     {/* displays the scheduled times for a course as well as antemeridiem identifier  */}
                     {course.times.map((time) => {
                       return (
                         <>
                           <span key={time.tuid}>
                             {time.start_time_meta.anteMeridiemHour}:
-                            {time.start_time_meta.minute == 0
-                              ? "00"
+                            {time.start_time_meta.minute < 10
+                              ? "0" + time.start_time_meta.minute
                               : time.start_time_meta.minute}{" "}
                             {time.start_time_meta.period}
                             {} to {time.end_time_meta.anteMeridiemHour}:
-                            {time.end_time_meta.minute == 0
-                              ? "00"
+                            {time.end_time_meta.minute < 10
+                              ? "0" + time.end_time_meta.minute
                               : time.end_time_meta.minute}{" "}
                             {time.end_time_meta.period}
                           </span>
